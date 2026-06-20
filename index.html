@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SWING PATH — Hitter Report Cards</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700;800&family=Geist:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header>
+  <a href="javascript:void(0)" class="brand-link" onclick="window.location.hash='';return false;"><span class="brand-mark">BATCRUNCH</span></a>
+  <nav class="top-nav">
+    <a href="javascript:void(0)" onclick="window.location.hash='methodology';return false;">About</a>
+  </nav>
+</header>
+
+<section class="hero">
+  <div class="hero-inner">
+    <h1 class="hero-h1-underlined">Batter Leaderboard</h1>
+    <p class="hero-blurb">Hitters graded across five axes — power, contact, discipline, luck, form — benchmarked against the qualified pool. <a href="javascript:void(0)" onclick="window.location.hash='methodology';return false;" style="color:var(--accent);text-decoration:none;border-bottom:1px solid var(--accent)">Methodology</a></p>
+  </div>
+</section>
+
+<section class="controls">
+  <div class="seg" id="yearSeg"><button data-v="2026" class="on">2026</button><button data-v="2025">2025</button></div>
+  <div class="search"><input id="q" type="text" placeholder="Search a hitter…" autocomplete="off" /></div>
+  <div class="seg" id="sideSeg">
+    <button data-v="all" class="on">All</button>
+    <button data-v="R">RHH</button>
+    <button data-v="L">LHH</button>
+  </div>
+  <select id="posFilter" class="pos-filter">
+    <option value="all">All POS</option>
+    <option value="C">C</option>
+    <option value="1B">1B</option>
+    <option value="2B">2B</option>
+    <option value="3B">3B</option>
+    <option value="SS">SS</option>
+    <option value="INF">INF</option>
+    <option value="OF">OF</option>
+    <option value="DH">DH</option>
+  </select>
+  <div class="min-filter">
+    <span>Min PA</span>
+    <input id="min" type="range" min="502" max="700" step="10" value="502" />
+    <span class="val mono" id="minVal">100</span>
+  </div>
+  <div class="result-count" id="count">— shown</div>
+  <button class="cmp-cta" onclick="window.location.hash='compare';return false;">⚖ Compare hitters</button>
+</section>
+
+<div class="layout">
+  <div class="table-wrap">
+    <table id="lb">
+      <thead>
+        <tr id="headerRow">
+          <th data-k="rank" style="width:40px;">#</th>
+          <th data-k="name">Player</th>
+          <th data-k="side" class="ctr">B</th>
+          <th data-k="platoon" class="ctr">Platoon</th>
+          <th data-k="overall" class="ctr">Overall</th>
+          <th data-k="power" class="ctr">Power</th>
+          <th data-k="contact" class="ctr">Contact</th>
+                    <th data-k="discipline" class="ctr">Disc.</th>
+          <th data-k="luck" class="ctr">Luck</th>
+          <th data-k="form" class="ctr">Form</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+
+  <aside id="panel">
+    <div class="panel-empty">
+      <div class="big">Select a hitter<br/>to see the report card</div>
+      <div class="hint">click any row</div>
+    </div>
+  </aside>
+
+  <div class="mobile-cards">
+    <div class="mc-header" id="mcHeader">
+      <div data-k="rank">#</div>
+      <div data-k="name">Hitter</div>
+      <div data-k="team">Tm</div>
+      <div data-k="position">Pos</div>
+      <div data-k="overall">OVR</div>
+      <div data-k="power">POW</div>
+      <div data-k="discipline">Disc</div>
+      <div data-k="contact">CON</div>
+      <div data-k="luck">Luck</div>
+      <div data-k="heat">Form</div>
+    </div>
+    <div id="mcards"></div>
+  </div>
+</div>
+
+<div id="playerPage" class="player-page" style="display:none">
+  <div class="pp-inner"></div>
+</div>
+
+
+<div id="comparePage" class="compare-page" style="display:none">
+  <div class="cp-inner">
+    <div class="cp-head">
+      <button class="pp-back" onclick="window.location.hash='';return false;">← Back to all hitters</button>
+      <h1 class="cp-title">Compare hitters</h1>
+      <div class="cp-pickers">
+        <div class="cp-picker a">
+          <input type="text" id="cmpSearchA" class="cp-search" placeholder="Search hitter A..." autocomplete="off" />
+          <div class="cp-results" id="cmpResultsA"></div>
+        </div>
+        <div class="cp-vs">vs</div>
+        <div class="cp-picker b">
+          <input type="text" id="cmpSearchB" class="cp-search" placeholder="Search hitter B..." autocomplete="off" />
+          <div class="cp-results" id="cmpResultsB"></div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="cp-content" id="cpContent"></div>
+  </div>
+</div>
+
+<script src="app.js" defer></script>
+
+
+<footer class="dash-footer">
+  <p>Data provided by <a href="https://baseballsavant.mlb.com" target="_blank" rel="noopener">Baseball Savant</a>. All MLB and Statcast data are the property of MLB Advanced Media. This dashboard is for personal/research use; not affiliated with or endorsed by MLB.</p>
+</footer>
+
+</body>
+</html>

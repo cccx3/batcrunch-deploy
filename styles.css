@@ -1195,3 +1195,17 @@
   padding: 8px 14px; cursor: pointer; white-space: nowrap;
 }
 .cmp-cta:hover { filter: brightness(1.06); }
+
+/* mobile: leaderboard horizontal scroll + compare width guards */
+@media (max-width: 720px) {
+  .mobile-cards { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .mc-header, .mc { min-width: 480px; }
+  .mc-header { position: static; }
+
+  .cp-layout, .cp-card, .cp-right { min-width: 0; max-width: 100%; }
+  .cp-card { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .compare-page { overflow-x: hidden; }
+}
+@media (min-width: 721px) and (max-width: 900px) {
+  .cp-inner { max-width: 640px; }
+}

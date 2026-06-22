@@ -1219,3 +1219,26 @@
 @media (min-width: 721px) and (max-width: 900px) {
   .cp-inner { max-width: 640px; }
 }
+
+/* breakout layout variants (temp test) */
+.bx1 { display:grid; grid-template-columns:1fr 1px 1fr; gap:0 14px; }
+.bx1-sep { background:var(--line); }
+.bx1-h { font-size:9px; font-weight:700; letter-spacing:.09em; text-transform:uppercase; color:var(--ink-3); margin-bottom:7px; }
+.bx1-r { display:flex; justify-content:space-between; align-items:baseline; gap:8px; padding:4px 0; font-size:12.5px; white-space:nowrap; }
+.bx1-r span { color:var(--ink-2); }
+.bx1-r b { font-weight:700; }
+.bx1-r b.acc { color:var(--accent); }
+
+.bx2-row { display:grid; grid-template-columns:repeat(3,1fr); gap:7px; margin-bottom:7px; }
+.bx2-tile { background:#161618; border:1px solid var(--line); border-radius:5px; padding:7px 5px; text-align:center; }
+.bx2-tile .l { font-size:8.5px; font-weight:600; text-transform:uppercase; color:var(--ink-3); white-space:nowrap; line-height:1.2; }
+.bx2-tile .v { font-size:15px; font-weight:700; margin-top:3px; white-space:nowrap; }
+.bx2-tile.val { background:#14130d; border-color:#332b14; }
+.bx2-tile.val .v { color:var(--accent); }
+
+.bx3 { display:flex; flex-wrap:wrap; gap:6px; }
+.bx3-chip { display:inline-flex; align-items:baseline; gap:5px; background:#161618; border:1px solid var(--line); border-radius:20px; padding:5px 11px; font-size:12px; white-space:nowrap; flex:0 0 auto; }
+.bx3-chip .l { font-size:9px; font-weight:700; text-transform:uppercase; color:var(--ink-3); }
+.bx3-chip .v { font-weight:700; }
+.bx3-chip.val { background:#14130d; border-color:#332b14; }
+.bx3-chip.val .v { color:var(--accent); }

@@ -251,36 +251,52 @@ function rankOf(pct, total) {
 
 
 function expandedPanel(d) {
-  const fmt = (v, suf='') => v == null ? '—' : (typeof v === 'number' ? v.toFixed(1) + suf : v);
-  const fmtRate = (v) => v == null ? '—' : (v * 100).toFixed(1) + '%';
-  
-  function bar(value, label, sortedArr, invert) {
-    if (value == null) return `<b style="color:#8a8a85">—</b>`;
-    return `<b style="color: #f5f5f0;font-weight:600">${label}</b>`;
-  }
-  
-  return `
-    <div class="mc-expand">
-      <div class="mc-x-grid">
-        <div class="mc-x-section">
-          <div class="mc-x-h">Swing path</div>
-          <div class="mc-x-row"><span>Attack angle</span>${bar(d.attack_angle, fmt(d.attack_angle, '°'), S.attack_angle)}</div>
-          <div class="mc-x-row"><span>Ideal AA%</span>${bar(d.iaa, d.iaa != null ? d.iaa.toFixed(1) + '%' : '—', S.iaa)}</div>
-          <div class="mc-x-row"><span>Attack direction</span>${bar(d.attack_direction, attackDirLabel(d.attack_direction), S.attack_direction)}</div>
-          <div class="mc-x-row"><span>Swing tilt</span>${bar(d.tilt, swingTiltLabel(d.tilt), S.tilt)}</div>
-        </div>
-        <div class="mc-x-section">
-          <div class="mc-x-h">Plate skills</div>
-          <div class="mc-x-row"><span>Z-Swing%</span>${bar(d.z_swing, fmtRate(d.z_swing), S.z_swing)}</div>
-          <div class="mc-x-row"><span>Z-Contact%</span>${bar(d.z_contact, fmtRate(d.z_contact), S.z_contact_s)}</div>
-          <div class="mc-x-row"><span>O-Swing%</span>${bar(d.o_swing, fmtRate(d.o_swing), S.o_swing, true)}</div>
-          <div class="mc-x-row"><span>O-Contact%</span>${bar(d.o_contact, fmtRate(d.o_contact), S.o_contact)}</div>
-        </div>
-      </div>
-    </div>
-  `;
-}
+  const L = window.BX_LAYOUT || 'v1';
+  const dash = '\u2014', deg = '\u00b0';
+  const bbk = d.bb_minus_k != null ? (d.bb_minus_k*100).toFixed(1)+'%' : (d.bb!=null&&d.k!=null ? ((d.bb-d.k)*100).toFixed(1)+'%' : dash);
+  const woba = d.woba!=null ? d.woba.toFixed(3).replace(/^0\./,'.') : dash;
+  const xwoba = d.xwoba!=null ? d.xwoba.toFixed(3).replace(/^0\./,'.') : dash;
+  const aa = d.attack_angle!=null ? d.attack_angle.toFixed(1)+deg : dash;
+  const bat = d.bat_speed!=null ? d.bat_speed.toFixed(1) : dash;
+  const la = d.launch_angle!=null ? d.launch_angle.toFixed(1)+deg : '16.2'+deg; // FAKE until build.py emits launch_angle
 
+  if (L === 'v2') return `
+    <div class="mc-expand"><div class="bx2">
+      <div class="bx2-row">
+        <div class="bx2-tile val"><div class="l">BB\u2212K</div><div class="v" style="color:var(--ink)">${bbk}</div></div>
+        <div class="bx2-tile val"><div class="l">wOBA</div><div class="v">${woba}</div></div>
+        <div class="bx2-tile val"><div class="l">xwOBA</div><div class="v">${xwoba}</div></div>
+      </div>
+      <div class="bx2-row">
+        <div class="bx2-tile"><div class="l">Attack Angle</div><div class="v">${aa}</div></div>
+        <div class="bx2-tile"><div class="l">Bat Speed</div><div class="v">${bat}</div></div>
+        <div class="bx2-tile"><div class="l">Launch Angle</div><div class="v">${la}</div></div>
+      </div>
+    </div></div>`;
+
+  if (L === 'v3') return `
+    <div class="mc-expand"><div class="bx3">
+      <span class="bx3-chip"><span class="l">BB\u2212K</span><span class="v">${bbk}</span></span>
+      <span class="bx3-chip val"><span class="l">wOBA</span><span class="v">${woba}</span></span>
+      <span class="bx3-chip val"><span class="l">xwOBA</span><span class="v">${xwoba}</span></span>
+      <span class="bx3-chip"><span class="l">Attack Angle</span><span class="v">${aa}</span></span>
+      <span class="bx3-chip"><span class="l">Bat Speed</span><span class="v">${bat}</span></span>
+      <span class="bx3-chip"><span class="l">Launch Angle</span><span class="v">${la}</span></span>
+    </div></div>`;
+
+  return `
+    <div class="mc-expand"><div class="bx1">
+      <div class="bx1-col"><div class="bx1-h">Stats</div>
+        <div class="bx1-r"><span>BB\u2212K</span><b>${bbk}</b></div>
+        <div class="bx1-r"><span>wOBA</span><b class="acc">${woba}</b></div>
+        <div class="bx1-r"><span>xwOBA</span><b class="acc">${xwoba}</b></div></div>
+      <div class="bx1-sep"></div>
+      <div class="bx1-col"><div class="bx1-h">Swing</div>
+        <div class="bx1-r"><span>Attack ang</span><b>${aa}</b></div>
+        <div class="bx1-r"><span>Bat speed</span><b>${bat}</b></div>
+        <div class="bx1-r"><span>Launch ang</span><b>${la}</b></div></div>
+    </div></div>`;
+}
 function renderTable() {
   const data = sorted(filtered());
   document.getElementById('count').innerHTML = `<b>${data.length}</b> of ${DATA.length} shown`;
@@ -1371,3 +1387,20 @@ async function load() {
   }
 }
 load();
+
+
+// BX_LAYOUT tester — delete before ship
+window.BX_LAYOUT = localStorage.getItem('bxLayout') || 'v1';
+(function () {
+  const bar = document.createElement('div');
+  bar.style.cssText = 'position:fixed;bottom:8px;left:50%;transform:translateX(-50%);z-index:99999;display:flex;gap:6px;background:#141414;border:1px solid #2a2a2a;border-radius:7px;padding:6px 8px';
+  ['v1','v2','v3'].forEach(k => {
+    const b = document.createElement('button');
+    b.textContent = { v1:'Groups', v2:'Tiles', v3:'Chips' }[k];
+    b.style.cssText = 'font:600 11px Inter;border-radius:4px;padding:6px 11px;cursor:pointer;border:1px solid #303030;' +
+      (window.BX_LAYOUT===k ? 'color:#0a0a0a;background:#ffd54a' : 'color:#aaa;background:#1c1c1c');
+    b.onclick = () => { localStorage.setItem('bxLayout', k); location.reload(); };
+    bar.appendChild(b);
+  });
+  document.body.appendChild(bar);
+})();

@@ -359,10 +359,10 @@ function renderMobileCards() {
     return `
     <div class="mc-wrap ${isExpanded ? 'expanded' : ''}">
       <div class="mc" data-id="${d.id}">
-        <span class="mc-name"><a href="javascript:void(0)" class="mc-name-link" onclick="window.location.hash='player/${d.id}';return false;">${d.first} ${d.last}</a></span>
-        <span class="mc-meta">${d.team ? `<span class="team-pill team-${d.team}">${d.team}</span>` : ''}${d.position ? `<span class="pos-pill">${d.position}</span>` : ''}</span>
+        <span class="mc-name"><a href="javascript:void(0)" class="mc-name-link" data-full="${d.first} ${d.last}" data-abbr="${d.first[0]}. ${d.last}" onclick="window.location.hash='player/${d.id}';return false;">${d.first} ${d.last}</a></span>
+        <span class="mc-team">${d.team ? `<span class="team-pill team-${d.team}">${d.team}</span>` : ''}</span>
+        <span class="mc-pos">${d.position ? `<span class="pos-pill">${d.position}</span>` : ''}</span>
         <span class="mc-stat">${gradeBadge(d.overall)}</span>
-        <span class="mc-stat">${luckCell(d)}</span>
         <span class="mc-stat">${heatCell(d)}</span>
       </div>
       ${isExpanded ? expandedPanel(d) : ''}
@@ -375,6 +375,11 @@ function renderMobileCards() {
       state.expandedId = state.expandedId === id ? null : id;
       renderMobileCards();
     });
+  });
+  // name: full -> "F. Last" if it doesn't fit; CSS ellipsis handles the rest
+  mc.querySelectorAll('.mc-name').forEach(el => {
+    const a = el.querySelector('a');
+    if (a && el.scrollWidth > el.clientWidth + 1) a.textContent = a.dataset.abbr;
   });
 }
 

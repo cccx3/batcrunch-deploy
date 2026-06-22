@@ -709,7 +709,9 @@
   .cp-rtog.on { color: #0a0a0a; background: var(--accent); border-color: var(--accent); }
   .cp-rtog-unit { font-size: 10px; font-weight: 600; color: var(--ink-3); margin-left: 3px; letter-spacing: 0.04em; }
   @media (max-width: 900px) {
-    .cp-layout { grid-template-columns: 1fr; }
+    .cp-layout { display: flex; flex-direction: column; grid-template-columns: 1fr; }
+    .cp-right { order: 1; }
+    .cp-card { order: 2; }
   }
   @media (max-width: 720px) {
     .cp-inner { padding: 12px 12px 36px; }
@@ -758,7 +760,8 @@
   .cp-row .cp-val.winner {
     color: #ffffff; font-weight: 800;
     background: transparent;
-    border-left: 3px solid rgba(86,178,102,0.95);
+    border-left: 1px solid var(--line);
+    box-shadow: inset 3px 0 0 rgba(86,178,102,0.95);
     border-radius: 0;
     margin: 0;
     padding: 10px 16px;

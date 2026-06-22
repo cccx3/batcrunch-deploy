@@ -322,34 +322,47 @@
     .table-wrap { display: none !important; }
     aside#panel { display: none !important; }
     
-    .mobile-cards { display: block; padding: 0 0 60px; max-width: 1100px; margin: 0 auto; }
+    .mobile-cards { display: block; padding: 0 0 60px; max-width: 640px; margin: 0 auto; }
     .mc-header {
-      display: grid;
-      grid-template-columns: 36px minmax(0, 1fr) 44px 32px repeat(6, 40px);
-      gap: 4px; align-items: center;
-      padding: 10px 16px; background: var(--bg); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
-      font-family: 'Inter', sans-serif; font-size: 10px;
-      letter-spacing: 0.06em; text-transform: uppercase; color: #f5f5f0;
-      position: sticky; top: 0; z-index: 5;
+      display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+      padding: 10px 16px; background: var(--bg);
+      border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
+      position: static;
     }
-    .mc-header > div { text-align: center; cursor: pointer; user-select: none; }
-    .mc-header > div:nth-child(1), .mc-header > div:nth-child(2) { text-align: left; }
-    .mc-header > div.active { color: var(--accent); }
-    .mc {
-      display: grid;
-      grid-template-columns: 36px minmax(0, 1fr) 44px 32px repeat(6, 40px);
-      gap: 4px; align-items: center;
-      padding: 8px 16px; border-bottom: 1px solid var(--line);
+    .mc-header::before {
+      content: 'SORT'; font-family: 'Inter', sans-serif; font-size: 9px; font-weight: 700;
+      letter-spacing: 0.1em; color: var(--ink-3); margin-right: 2px;
     }
+    .mc-header > div { display: none; }
+    .mc-header > div:nth-child(n+4) {
+      display: inline-flex; align-items: center;
+      font-family: 'Inter', sans-serif; font-size: 10px; font-weight: 600;
+      letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-3);
+      padding: 4px 9px; border: 1px solid var(--line); border-radius: 4px;
+      cursor: pointer; user-select: none;
+    }
+    .mc-header > div.active { color: var(--accent); border-color: var(--accent); }
+    .mc { display: block; padding: 12px 16px; border-bottom: 1px solid var(--line); }
     .mc:active { background: var(--bg-2); }
-    .mc-rank { font-family: 'Inter', sans-serif; font-variant-numeric: tabular-nums; font-size: 12px; color: var(--ink-3); letter-spacing: 0.04em; }
-    .mc-name {
-      font-family: 'Inter', system-ui, sans-serif; font-weight: 600; font-size: 15px;
-      color: #f5f5f0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -0.005em;
+    .mc-top { display: flex; align-items: center; gap: 8px; margin-bottom: 11px; }
+    .mc-rank {
+      font-family: 'Inter', sans-serif; font-variant-numeric: tabular-nums;
+      font-size: 12px; color: var(--ink-3); letter-spacing: 0.04em; flex: none; min-width: 20px;
     }
-    .mc-cell { display: flex; align-items: center; justify-content: center; }
-    .mc-cell .grade { min-width: 36px; height: 26px; font-size: 12px; border-radius: 2px; }
-    .mc-cell .side-pill { font-size: 9px; padding: 1px 5px; border-radius: 2px; }
+    .mc-name { flex: 1 1 auto; min-width: 0; }
+    .mc-name-link {
+      font-family: 'Inter', system-ui, sans-serif; font-weight: 600; font-size: 16px;
+      color: #f5f5f0; letter-spacing: -0.005em; text-decoration: none; white-space: normal;
+    }
+    .mc-meta { display: flex; align-items: center; gap: 6px; flex: none; }
+    .mc-grades { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+    .mc-g { display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 0; }
+    .mc-g-lbl {
+      font-family: 'Inter', sans-serif; font-size: 9px; font-weight: 700;
+      letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-3);
+    }
+    .mc-g .grade { min-width: 0; width: 100%; height: 26px; font-size: 12px; border-radius: 2px; }
+    .mc-g > :last-child { max-width: 100%; }
     .mc-pos { font-family: 'Inter', sans-serif; font-size: 10px; color: var(--ink-3); text-align: center; letter-spacing: 0.04em; }
     .mc-team { display: flex; align-items: center; justify-content: center; }
     .mc-pos-inline { font-family: 'Inter', sans-serif; font-size: 10px; color: var(--ink-3); letter-spacing: 0.04em; font-weight: 400; margin-left: 4px; }
@@ -1196,17 +1209,9 @@
 }
 .cmp-cta:hover { filter: brightness(1.06); }
 
-/* mobile: leaderboard table-body horizontal scroll + compare width guards */
+/* mobile: page-overflow safety + compare width guards */
 @media (max-width: 720px) {
-  /* the list (#mcards) + header are the scroll content; .mobile-cards is the scroller.
-     min-width must be on #mcards (the rows' container), or rows overflow it and the PAGE scrolls. */
-  .mobile-cards { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-  .mc-header, #mcards { min-width: 480px; }
-  .mc-header { position: static; }
-
-  /* belt-and-suspenders: never let the page itself scroll sideways */
   html, body { overflow-x: hidden; }
-
   .cp-layout, .cp-card, .cp-right { min-width: 0; max-width: 100%; }
   .cp-card { overflow-x: auto; -webkit-overflow-scrolling: touch; }
   .compare-page { overflow-x: hidden; }

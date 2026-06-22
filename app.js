@@ -359,15 +359,11 @@ function renderMobileCards() {
     return `
     <div class="mc-wrap ${isExpanded ? 'expanded' : ''}">
       <div class="mc" data-id="${d.id}">
-        <div class="mc-top">
-          <span class="mc-name"><a href="javascript:void(0)" class="mc-name-link" onclick="window.location.hash='player/${d.id}';return false;">${d.first} ${d.last}</a></span>
-          <span class="mc-meta">${d.team ? `<span class="team-pill team-${d.team}">${d.team}</span>` : ''}${d.position ? `<span class="pos-pill">${d.position}</span>` : ''}</span>
-        </div>
-        <div class="mc-grades">
-          <div class="mc-g"><span class="mc-g-lbl">OVR</span>${gradeBadge(d.overall)}</div>
-          <div class="mc-g"><span class="mc-g-lbl">LUCK</span>${luckCell(d)}</div>
-          <div class="mc-g"><span class="mc-g-lbl">FORM</span>${heatCell(d)}</div>
-        </div>
+        <span class="mc-name"><a href="javascript:void(0)" class="mc-name-link" onclick="window.location.hash='player/${d.id}';return false;">${d.first} ${d.last}</a></span>
+        <span class="mc-meta">${d.team ? `<span class="team-pill team-${d.team}">${d.team}</span>` : ''}${d.position ? `<span class="pos-pill">${d.position}</span>` : ''}</span>
+        <span class="mc-stat">${gradeBadge(d.overall)}</span>
+        <span class="mc-stat">${luckCell(d)}</span>
+        <span class="mc-stat">${heatCell(d)}</span>
       </div>
       ${isExpanded ? expandedPanel(d) : ''}
     </div>`;

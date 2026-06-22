@@ -1196,11 +1196,16 @@
 }
 .cmp-cta:hover { filter: brightness(1.06); }
 
-/* mobile: leaderboard horizontal scroll + compare width guards */
+/* mobile: leaderboard table-body horizontal scroll + compare width guards */
 @media (max-width: 720px) {
+  /* the list (#mcards) + header are the scroll content; .mobile-cards is the scroller.
+     min-width must be on #mcards (the rows' container), or rows overflow it and the PAGE scrolls. */
   .mobile-cards { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-  .mc-header, .mc { min-width: 480px; }
+  .mc-header, #mcards { min-width: 480px; }
   .mc-header { position: static; }
+
+  /* belt-and-suspenders: never let the page itself scroll sideways */
+  html, body { overflow-x: hidden; }
 
   .cp-layout, .cp-card, .cp-right { min-width: 0; max-width: 100%; }
   .cp-card { overflow-x: auto; -webkit-overflow-scrolling: touch; }

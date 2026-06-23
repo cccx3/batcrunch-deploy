@@ -1257,3 +1257,15 @@
 .bx3-chip .v { font-weight:700; }
 .bx3-chip.val { background:#14130d; border-color:#332b14; }
 .bx3-chip.val .v { color:var(--accent); }
+
+/* compare table: mobile fit (placed last so it beats the desktop header rules above) */
+@media (max-width: 900px) {
+  .cp-table-headers { grid-template-columns: minmax(58px,1fr) 1fr 1fr; padding: 8px 8px 12px; margin: 0; }
+  .cp-table-h-name { font-size: 12px; padding: 0 6px; font-weight: 700; word-break: break-word; line-height: 1.2; }
+  .cp-hdr-sw { margin-right: 5px; }
+  .cp-row, .cp-section-h { grid-template-columns: minmax(58px,1fr) 1fr 1fr; }
+  .cp-row .cp-label { font-size: 11px; padding: 8px 6px; }
+  .cp-row .cp-val { font-size: 12px; padding: 10px 4px; white-space: nowrap; }
+  .cp-row .cp-val.winner { padding: 10px 4px; }
+  .cp-card { overflow-x: hidden; max-width: 100%; }
+}

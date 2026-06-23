@@ -315,7 +315,7 @@ function renderTable() {
       <td class="ctr">${luckCell(d)}</td>
       <td class="ctr">${heatCell(d)}</td>
     </tr>
-    ${state.selectedId === d.id ? `<tr class="expand-row"><td colspan="10">${expandedPanel(d)}</td></tr>` : ''}
+    ${state.selectedId === d.id ? `` : ''}
   `).join('');
   tbody.querySelectorAll('tr[data-id]').forEach(tr => {
     tr.addEventListener('click', e => {
@@ -348,10 +348,12 @@ function panelYoYGrid(d){
   if(!rows) return '<div class="panel-yoy-empty">No prior-year data.</div>';
   return rows.map(function(r){
     var dl=_dl(r[1],r[2]);
-    return '<div class="yoy-cell"><div class="yoy-cell-head"><span class="yoy-cell-label">'+r[0]+'</span>'
-      +'<span class="yoy-delta">'+_ds(dl)+'</span></div><div class="yoy-bars">'
-      +'<div class="yoy-bar-prev"><span class="yoy-bar-prev-val">'+_f1(r[1],r[3])+'</span></div>'
-      +'<div class="yoy-bar-curr"><span class="yoy-bar-curr-val">'+_f1(r[2],r[3])+'</span></div></div></div>';
+    var dir=(dl==null||Math.abs(dl)<1e-9)?'yflat':(dl>0?'yup':'ydn');
+    var prev=_f1(r[1],r[3]), curr=_f1(r[2],r[3]);
+    var head='<div class="yoy2-head"><span class="yoy2-lbl">'+r[0]+'</span><span class="yoy-delta">'+_ds(dl)+'</span></div>';
+    var cells='<div class="yoy2-pair yoy-view-cells"><div class="mc p"><div class="yr">2025</div><div class="vl">'+prev+'</div></div><div class="mc c"><div class="yr">2026</div><div class="vl '+dir+'">'+curr+'</div></div></div>';
+    var split='<div class="yoy2-bar yoy-view-split"><span class="seg p">'+prev+'</span><span class="seg c"><span class="num '+dir+'">'+curr+'</span></span></div>';
+    return '<div class="yoy2-cell">'+head+cells+split+'</div>';
   }).join('');
 }
 

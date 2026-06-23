@@ -1269,3 +1269,9 @@
   .cp-row .cp-val.winner { padding: 10px 4px; }
   .cp-card { overflow-x: hidden; max-width: 100%; }
 }
+
+/* compare MOBILE-only: drop section titles, keep single amber line under player names */
+@media (max-width: 900px) {
+  .cp-section-h { display: none; }
+  .cp-table-headers { border-bottom: 1px solid var(--accent); }
+}

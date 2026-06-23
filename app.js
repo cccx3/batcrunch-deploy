@@ -560,7 +560,7 @@ function compareRollingChart(a, b, metric, W){
   const isPct = (metric === 'barrel' || metric === 'k' || metric === 'bb' || metric === 'zone');
   const wa = rollingSeries(ra, W)[metric];
   const wb = rollingSeries(rb, W)[metric];
-  const Wd = 460, Hd = 184, pad = { t: 12, r: 14, b: 24, l: 40 };
+  const Wd = 460, Hd = (typeof window !== "undefined" && window.innerWidth <= 900) ? 250 : 184, pad = { t: 12, r: 14, b: 24, l: 40 };
   const iW = Wd - pad.l - pad.r, iH = Hd - pad.t - pad.b;
   const xMin = W, xMax = Math.max(W + wa.length - 1, W + wb.length - 1);
   const allv = wa.concat(wb);

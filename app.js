@@ -1242,11 +1242,24 @@ function renderCompare() {
       <div class="cp-radar-wrap">${compareRadar(a, b)}</div>
       <div class="cp-roll-wrap">${cmpRollPanel(a, b)}</div>
     </div>`;
+  const cptab = state.cmpTab || 'radar';
   document.getElementById('cpContent').innerHTML =
-    '<div class="cp-layout">' +
+    '<div class="cp-tabs">' +
+      '<button class="cp-tab' + (cptab==='radar'?' on':'') + '" data-cptab="radar" onclick="cpSetTab(\'radar\')">Radar</button>' +
+      '<button class="cp-tab' + (cptab==='roll'?' on':'') + '" data-cptab="roll" onclick="cpSetTab(\'roll\')">Rolling</button>' +
+      '<button class="cp-tab' + (cptab==='table'?' on':'') + '" data-cptab="table" onclick="cpSetTab(\'table\')">Table</button>' +
+    '</div>' +
+    '<div class="cp-layout cp-tab-' + cptab + '">' +
       '<div class="cp-card">' + tableHeaders + rows + '</div>' +
       right +
     '</div>';
+}
+
+function cpSetTab(t) {
+  state.cmpTab = t;
+  const lay = document.querySelector('.cp-layout');
+  if (lay) lay.className = 'cp-layout cp-tab-' + t;
+  document.querySelectorAll('.cp-tab').forEach(b => b.classList.toggle('on', b.dataset.cptab === t));
 }
 
 function setupCompareSearch() {

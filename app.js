@@ -251,7 +251,7 @@ function rankOf(pct, total) {
 
 
 function expandedPanel(d) {
-  const L = window.BX_LAYOUT || 'v1';
+  const L = 'v2'; // Tiles (locked)
   const dash = '\u2014', deg = '\u00b0';
   const bbk = d.bb_minus_k != null ? (d.bb_minus_k*100).toFixed(1)+'%' : (d.bb!=null&&d.k!=null ? ((d.bb-d.k)*100).toFixed(1)+'%' : dash);
   const woba = d.woba!=null ? d.woba.toFixed(3).replace(/^0\./,'.') : dash;
@@ -1194,7 +1194,6 @@ function renderCompare() {
     ['BB − K%',         d => d.bb_minus_k, fmtPctSign, true],
     ['Whiff %',         d => d.whiff,      v => v == null ? '—' : v.toFixed(1) + '%', false],
     ['__section', 'Plate skills'],
-    ['Z-Swing %',       d => d.z_swing,    fmtPct,     null],
     ['Z-Contact %',     d => d.z_contact,  fmtPct,     true],
     ['O-Swing %',       d => d.o_swing,    fmtPct,     false],
     ['__section', 'Swing path'],
@@ -1228,8 +1227,8 @@ function renderCompare() {
   const tableHeaders = `
     <div class="cp-table-headers">
       <div class="cp-table-h-spacer"></div>
-      <div class="cp-table-h-name"><span class="cp-hdr-sw" style="background:#ffd54a"></span>${a.first} ${a.last}</div>
-      <div class="cp-table-h-name"><span class="cp-hdr-sw" style="background:#7fb3dd"></span>${b.first} ${b.last}</div>
+      <div class="cp-table-h-name"><span class="cp-hdr-sw" style="background:#ffd54a"></span>${a.last}</div>
+      <div class="cp-table-h-name"><span class="cp-hdr-sw" style="background:#7fb3dd"></span>${b.last}</div>
     </div>
   `;
   const right = `
@@ -1402,18 +1401,3 @@ async function load() {
 load();
 
 
-// BX_LAYOUT tester — delete before ship
-window.BX_LAYOUT = localStorage.getItem('bxLayout') || 'v1';
-(function () {
-  const bar = document.createElement('div');
-  bar.style.cssText = 'position:fixed;bottom:8px;left:50%;transform:translateX(-50%);z-index:99999;display:flex;gap:6px;background:#141414;border:1px solid #2a2a2a;border-radius:7px;padding:6px 8px';
-  ['v1','v2','v3'].forEach(k => {
-    const b = document.createElement('button');
-    b.textContent = { v1:'Groups', v2:'Tiles', v3:'Chips' }[k];
-    b.style.cssText = 'font:600 11px Inter;border-radius:4px;padding:6px 11px;cursor:pointer;border:1px solid #303030;' +
-      (window.BX_LAYOUT===k ? 'color:#0a0a0a;background:#ffd54a' : 'color:#aaa;background:#1c1c1c');
-    b.onclick = () => { localStorage.setItem('bxLayout', k); location.reload(); };
-    bar.appendChild(b);
-  });
-  document.body.appendChild(bar);
-})();

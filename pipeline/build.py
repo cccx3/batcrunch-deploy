@@ -138,19 +138,61 @@ def compute_splits(raw):
     return out
 
 
+_PA_AGG = ["d_pitches", "d_inzone", "d_swing", "d_zswing", "d_oswing",
+          "d_zcontact", "d_ocontact", "d_whiff", "d_bbe", "ev_sum", "hardhit",
+          "n_sw", "bs_sum", "sl_sum", "aa_sum", "ad_sum", "tilt_sum", "n_ideal"]
+
+
+def _pa_pitch_aggs(raw):
+    """Per-PA pitch-level counts/sums. Discipline counts mirror compute_discipline
+    (bunts excluded, in-zone = 1..9, contact = swing & ~whiff) so season == rolling.
+    Bat-tracking emitted as sums + a swing count so the JS rolls rate = sum/count
+    (keeps fillna(0) correct - no nulls)."""
+    nb = ~raw["description"].str.contains("bunt", na=False)
+    d = raw[nb].copy()
+    for c in ["bat_speed", "swing_length", "attack_angle", "attack_direction",
+              "swing_path_tilt", "launch_speed"]:
+        d[c] = pd.to_numeric(d[c], errors="coerce") if c in d.columns else np.nan
+    desc = d["description"]
+    sw  = desc.isin(SWING).values
+    wh  = desc.isin(WHIFF).values
+    con = sw & ~wh
+    iz  = d["zone"].between(1, 9).values
+    bt  = sw & d["bat_speed"].notna().values
+    d["d_pitches"]  = 1
+    d["d_inzone"]   = iz.astype(int)
+    d["d_swing"]    = sw.astype(int)
+    d["d_zswing"]   = (sw & iz).astype(int)
+    d["d_oswing"]   = (sw & ~iz).astype(int)
+    d["d_zcontact"] = (con & iz).astype(int)
+    d["d_ocontact"] = (con & ~iz).astype(int)
+    d["d_whiff"]    = wh.astype(int)
+    d["d_bbe"]      = d["launch_speed"].notna().astype(int)
+    d["ev_sum"]     = d["launch_speed"].fillna(0.0)
+    d["hardhit"]    = (d["launch_speed"] >= 95).fillna(False).astype(int)
+    d["n_sw"]       = bt.astype(int)
+    d["bs_sum"]     = np.where(bt, d["bat_speed"].fillna(0.0), 0.0)
+    d["sl_sum"]     = np.where(bt, d["swing_length"].fillna(0.0), 0.0)
+    d["aa_sum"]     = np.where(bt, d["attack_angle"].fillna(0.0), 0.0)
+    d["ad_sum"]     = np.where(bt, d["attack_direction"].fillna(0.0), 0.0)
+    d["tilt_sum"]   = np.where(bt, d["swing_path_tilt"].fillna(0.0), 0.0)
+    d["n_ideal"]    = (bt & d["attack_angle"].between(5, 20).values).astype(int)
+    return d.groupby(["game_pk", "at_bat_number"], as_index=False)[_PA_AGG].sum()
+
+
 def compute_pa_log(raw):
     """Per-batter chronological PA log; the dashboard rolls windows in JS.
-    Row: [woba_value, woba_denom, xwoba_value, barrel, bbe, k, bb, zone_in, pitches]
-    """
+    Row (27 cols): woba_value, woba_denom, xv, brl, bbe, kf, bbf, zone_in, pitches,
+    then _PA_AGG (discipline counts + EV/hardhit + bat-tracking sums)."""
     pc = (raw.assign(_z=raw["zone"].between(1, 9))
              .groupby(["game_pk", "at_bat_number"])
              .agg(pitches=("zone", "size"), zone_in=("_z", "sum"))
              .reset_index())
     pa = pa_frame(raw).merge(pc, on=["game_pk", "at_bat_number"], how="left")
+    pa = pa.merge(_pa_pitch_aggs(raw), on=["game_pk", "at_bat_number"], how="left")
     pa = pa.sort_values(["batter", "game_date", "game_pk", "at_bat_number"])
     pa.loc[pa["events"] == "intent_walk", ["woba_value", "woba_denom"]] = 0
     ewu = pa["estimated_woba_using_speedangle"]
-    # single .assign to avoid fragmentation
     pa = pa.assign(
         xv=np.where(ewu.notna(), ewu, pa["woba_value"]),
         brl=(pa["launch_speed_angle"] == 6).astype(int),
@@ -158,7 +200,8 @@ def compute_pa_log(raw):
         kf=pa["events"].isin(K_EVENTS).astype(int),
         bbf=pa["events"].isin(BB_EVENTS).astype(int),
     )
-    cols = ["woba_value", "woba_denom", "xv", "brl", "bbe", "kf", "bbf", "zone_in", "pitches"]
+    cols = (["woba_value", "woba_denom", "xv", "brl", "bbe", "kf", "bbf",
+             "zone_in", "pitches"] + _PA_AGG)
     log = {}
     for bid, d in pa.groupby("batter"):
         log[int(bid)] = d[cols].fillna(0).round(3).values.tolist()

@@ -165,6 +165,7 @@ function sorted(arr) {
     if (k === 'luck') return dir * (((a.xwoba||0)-(a.woba||0)) - ((b.xwoba||0)-(b.woba||0)));
     if (k === 'heat') return dir * ((a.heat||0) - (b.heat||0));
     if (k === 'park') return dir * ((a.pf ?? 0) - (b.pf ?? 0));
+    if (k === 'team') return dir * String(a.team||'').localeCompare(String(b.team||''));
     if (k === 'platoon') {
       const order = {'Strict': 3, 'Sheltered': 2, 'Everyday': 1, '—': 0};
       return dir * ((order[a.platoon_tier]||0) - (order[b.platoon_tier]||0));
@@ -324,6 +325,7 @@ function renderTable() {
     <tr data-id="${d.id}" class="${state.selectedId === d.id ? 'selected' : ''}">
       <td class="rank">${d._rank ?? '—'}</td>
       <td class="name-cell"><a href="javascript:void(0)" class="mc-name-link" onclick="window.location.hash='player/${d.id}';return false;"><span class="last">${d.last}</span>, <span class="first">${d.first}</span></a></td>
+      <td class="ctr">${d.team ? `<span class="team-pill team-${d.team}">${d.team}</span>` : ''}</td>
       <td class="ctr"><span class="side-pill ${d.side}">${d.side}</span></td>
       <td class="ctr"><span class="platoon-pill p-${d.platoon_tier}">${d.platoon_tier}</span></td>
       <td class="ctr">${gradeBadge(d.overall)}</td>
@@ -1419,7 +1421,7 @@ async function load() {
     const top = sorted(filtered())[0]; if (top) state.selectedId = top.id;
     renderTable(); renderPanel(); renderMobileCards(); handleRoute();
   } catch (e) {
-    if (tbody) tbody.innerHTML = '<tr><td colspan="11" style="padding:28px;text-align:center;color:var(--ink-3)">Couldn\u2019t load ' + DATA_URL + ' \u2014 serve over http (python3 -m http.server), not file://</td></tr>';
+    if (tbody) tbody.innerHTML = '<tr><td colspan="12" style="padding:28px;text-align:center;color:var(--ink-3)">Couldn\u2019t load ' + DATA_URL + ' \u2014 serve over http (python3 -m http.server), not file://</td></tr>';
     console.error(e);
   }
 }

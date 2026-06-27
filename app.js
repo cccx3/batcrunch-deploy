@@ -113,10 +113,6 @@ function recompute() {
   int_batter: [...src].map(d=>d.int_batter).filter(x=>x!=null).sort((a,b)=>a-b),
   attack_direction: [...src].map(d=>d.attack_direction).filter(x=>x!=null).sort((a,b)=>a-b),
   whiff_s: [...src].map(d=>d.whiff).filter(x=>x!=null).sort((a,b)=>a-b),
-  swing_decision_combo: [...src].map(d => {
-    if (d.z_swing == null || d.z_contact == null) return null;
-    return d.z_swing * d.z_contact * 100;
-  }).filter(x=>x!=null).sort((a,b)=>a-b),
 };
 
 DATA.forEach(d => {
@@ -423,16 +419,12 @@ function renderMobileCards() {
 }
 
 
+const RADAR_LABELS = ['Raw Power','Game Power','Discipline','Speed','Bat-to|Ball'];
+
 function renderRadar(d) {
-  // 6 axes: Raw Power, Game Power, Swing Decision, Discipline, Speed, Bat-to-Ball
-  const swing_decision = (d.z_swing != null && d.z_contact != null) ? d.z_swing * d.z_contact * 100 : null;
-  const axes = [
-    { label: 'Raw Power',     value: d.bat_speed != null ? percentile(S.bat_speed_s, d.bat_speed) : 50 },
-    { label: 'Game Power',    value: d.barrel_pct != null ? percentile(S.barrel_pct, d.barrel_pct) : 50 },
-    { label: 'Discipline',    value: d.o_swing != null ? (100 - percentile(S.o_swing, d.o_swing)) : 50 },
-    { label: 'Speed',         value: d.sprint != null ? percentile(S.sprint, d.sprint) : 50 },
-    { label: 'Bat-to|Ball',   value: d.whiff != null ? (100 - percentile(S.whiff_s, d.whiff)) : 50 },
-  ];
+  // 5 axes (shared with _radarAxes / compareRadar)
+  const _v = _radarAxes(d);
+  const axes = RADAR_LABELS.map((label, i) => ({ label, value: _v[i] }));
   const cx = 230, cy = 176, R = 120;
   const N = axes.length;
   
@@ -517,11 +509,9 @@ function renderRadar(d) {
 
 
 function _radarAxes(d){
-  const sd = (d.z_swing != null && d.z_contact != null) ? d.z_swing * d.z_contact * 100 : null;
   return [
     d.bat_speed  != null ? percentile(S.bat_speed_s, d.bat_speed) : 50,
     d.barrel_pct != null ? percentile(S.barrel_pct, d.barrel_pct) : 50,
-    sd           != null ? percentile(S.swing_decision_combo, sd) : 50,
     d.o_swing    != null ? (100 - percentile(S.o_swing, d.o_swing)) : 50,
     d.sprint     != null ? percentile(S.sprint, d.sprint) : 50,
     d.whiff      != null ? (100 - percentile(S.whiff_s, d.whiff)) : 50,
@@ -529,8 +519,8 @@ function _radarAxes(d){
 }
 
 function compareRadar(a, b){
-  const labels = ['Raw Power','Game Power','Swing Decision','Discipline','Speed','Bat-to|Ball'];
-  const cx = 230, cy = 195, R = 130, N = 6;
+  const labels = RADAR_LABELS;
+  const cx = 230, cy = 195, R = 130, N = 5;
   const pt = (i, r) => { const ang = -Math.PI/2 + (2*Math.PI*i)/N; return [cx + r*Math.cos(ang), cy + r*Math.sin(ang)]; };
   const av = _radarAxes(a), bv = _radarAxes(b);
   let grid = '';
@@ -638,14 +628,31 @@ function computeRollingMean(arr, window) {
 }
 
 function rollingSeries(rows, W) {
-  const n = rows.length, woba=[], xwoba=[], zone=[], barrel=[], k=[], bb=[];
+  const n = rows.length;
+  const woba=[],xwoba=[],zone=[],barrel=[],k=[],bb=[];
+  const z_swing=[],o_swing=[],z_contact=[],o_contact=[],whiff=[],hardhit=[],ev=[];
+  const bat_speed=[],swing_length=[],attack_angle=[],attack_direction=[],tilt=[],iaa=[];
+  const g=(r,i)=>(r[i]||0);
   for (let i = W - 1; i < n; i++) {
     let wv=0,wd=0,xv=0,br=0,be=0,kf=0,bf=0,zi=0,pi=0;
-    for (let j = i-W+1; j <= i; j++){ const r=rows[j]; wv+=r[0];wd+=r[1];xv+=r[2];br+=r[3];be+=r[4];kf+=r[5];bf+=r[6];zi+=r[7];pi+=r[8]; }
+    let dp=0,din=0,dsw=0,dzs=0,dos=0,dzc=0,doc=0,dwh=0,dbe=0,evs=0,hh=0,nsw=0,bss=0,sls=0,aas=0,ads=0,tis=0,nid=0;
+    for (let j = i-W+1; j <= i; j++){ const r=rows[j];
+      wv+=r[0];wd+=r[1];xv+=r[2];br+=r[3];be+=r[4];kf+=r[5];bf+=r[6];zi+=r[7];pi+=r[8];
+      dp+=g(r,9);din+=g(r,10);dsw+=g(r,11);dzs+=g(r,12);dos+=g(r,13);dzc+=g(r,14);doc+=g(r,15);dwh+=g(r,16);dbe+=g(r,17);
+      evs+=g(r,18);hh+=g(r,19);nsw+=g(r,20);bss+=g(r,21);sls+=g(r,22);aas+=g(r,23);ads+=g(r,24);tis+=g(r,25);nid+=g(r,26);
+    }
     woba.push(wd?wv/wd:0); xwoba.push(wd?xv/wd:0);
-    barrel.push(be?br/be*100:0); k.push(kf/W*100); bb.push(bf/W*100); zone.push(pi?zi/pi*100:0);
+    barrel.push(dbe?br/dbe*100:0); k.push(kf/W*100); bb.push(bf/W*100); zone.push(pi?zi/pi*100:0);
+    const oz=dp-din;
+    z_swing.push(din?dzs/din*100:0); o_swing.push(oz?dos/oz*100:0);
+    z_contact.push(dzs?dzc/dzs*100:0); o_contact.push(dos?doc/dos*100:0); whiff.push(dsw?dwh/dsw*100:0);
+    hardhit.push(dbe?hh/dbe*100:0); ev.push(dbe?evs/dbe:0);
+    bat_speed.push(nsw?bss/nsw:0); swing_length.push(nsw?sls/nsw:0);
+    attack_angle.push(nsw?aas/nsw:0); attack_direction.push(nsw?ads/nsw:0); tilt.push(nsw?tis/nsw:0);
+    iaa.push(nsw?nid/nsw*100:0);
   }
-  return { woba, xwoba, zone, barrel, k, bb };
+  return { woba,xwoba,zone,barrel,k,bb, z_swing,o_swing,z_contact,o_contact,whiff,
+           hardhit,ev, bat_speed,swing_length,attack_angle,attack_direction,tilt,iaa };
 }
 
 function renderRollingChart(metric, windowSize) {
@@ -798,191 +805,6 @@ function wireRollingControls() {
     };
   });
   refreshRolling();
-}
-
-function renderRadarOverlay(d) {
-  // Two-shape radar: dim grey (2024) + lime (2025) overlaid
-  const swing_decision = (d.z_swing != null && d.z_contact != null) ? d.z_swing * d.z_contact * 100 : null;
-  const cur = [
-    { label: 'Raw Power',     value: d.bat_speed != null ? percentile(S.bat_speed_s, d.bat_speed) : 50 },
-    { label: 'Game Power',    value: d.barrel_pct != null ? percentile(S.barrel_pct, d.barrel_pct) : 50 },
-    { label: 'Discipline',    value: d.o_swing != null ? (100 - percentile(S.o_swing, d.o_swing)) : 50 },
-    { label: 'Speed',         value: d.sprint != null ? percentile(S.sprint, d.sprint) : 50 },
-    { label: 'Bat-to|Ball',   value: d.whiff != null ? (100 - percentile(S.whiff_s, d.whiff)) : 50 },
-  ];
-  // Mock 2024 values - hardcoded for Judge demo
-  const prev = [
-    { value: 91 },  // Power 2024
-    { value: 56 },  // Disc 2024
-    { value: 68 },  // Contact 2024
-    { value: 87 },  // Bat speed 2024
-    { value: 45 },  // Sprint 2024
-    { value: 79 },  // Z-Con 2024
-  ];
-  
-  const cx = 230, cy = 176, R = 120;
-  const N = 6;
-  
-  function pt(i, r) {
-    const ang = -Math.PI / 2 + (2 * Math.PI * i) / N;
-    return [cx + r * Math.cos(ang), cy + r * Math.sin(ang)];
-  }
-  
-  let grid = '';
-  for (const ratio of [0.25, 0.5, 0.75, 1.0]) {
-    const points = cur.map((_, i) => pt(i, R * ratio).join(',')).join(' ');
-    grid += `<polygon points="${points}" fill="none" stroke="#3a3a35" stroke-width="1" />`;
-  }
-  let spokes = '';
-  for (let i = 0; i < N; i++) {
-    const [x, y] = pt(i, R);
-    spokes += `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="#3a3a35" stroke-width="1" />`;
-  }
-  
-  const prevPoints = prev.map((a, i) => pt(i, R * (a.value || 0) / 100).join(',')).join(' ');
-  const curPoints = cur.map((a, i) => pt(i, R * (a.value || 0) / 100).join(',')).join(' ');
-  
-  const curDots = cur.map((a, i) => {
-    const [x, y] = pt(i, R * (a.value || 0) / 100);
-    return `<circle cx="${x}" cy="${y}" r="5" fill="#ffd54a" />`;
-  }).join('');
-  
-  let labels = '';
-  for (let i = 0; i < N; i++) {
-    const [lx, ly] = pt(i, R + 24);
-    let anchor = 'middle';
-    if (lx > cx + 5) anchor = 'start';
-    else if (lx < cx - 5) anchor = 'end';
-    const words = cur[i].label.toUpperCase().split(/[ |]/);
-    if (words.length > 1) {
-      const lh = 15;
-      const yStart = ly - (lh * (words.length - 1)) / 2;
-      const tspans = words.map((w, j) => `<tspan x="${lx}" dy="${j === 0 ? 0 : lh}">${w}</tspan>`).join('');
-      labels += `<text x="${lx}" y="${yStart}" text-anchor="${anchor}" dominant-baseline="middle" fill="#f5f5f0" font-family="Inter, sans-serif" font-weight="700" font-size="14" letter-spacing="0.02em">${tspans}</text>`;
-    } else {
-      labels += `<text x="${lx}" y="${ly}" text-anchor="${anchor}" dominant-baseline="middle" fill="#f5f5f0" font-family="Inter, sans-serif" font-weight="700" font-size="15" letter-spacing="0.02em">${cur[i].label.toUpperCase()}</text>`;
-    }
-  }
-  
-  const legend = "";
-  
-  return `
-    <svg viewBox="-30 0 520 400" width="100%" style="max-width:600px;display:block;margin:0 auto">
-      ${grid}
-      ${spokes}
-      <polygon points="${prevPoints}" fill="#888" fill-opacity="0.18" stroke="#888" stroke-width="1.5" stroke-dasharray="4 3" />
-      <polygon points="${curPoints}" fill="rgba(255,213,74,0.15)" stroke="#ffd54a" stroke-width="2" />
-      ${curDots}
-      ${labels}
-      ${legend}
-    </svg>
-  `;
-}
-
-
-function renderJunkRadar() {
-  // Mock data: two arbitrary shapes (blue + maroon) on 6-axis radar
-  const labels = ['Raw Power', 'Game Power', 'Swing Decision', 'Discipline', 'Speed', 'Bat-to|Ball'];
-  const blueShape = [82, 64, 71, 88, 52, 76];
-  const maroonShape = [68, 79, 84, 71, 60, 88];
-  
-  const cx = 230, cy = 176, R = 120;
-  const N = 6;
-  
-  function pt(i, r) {
-    const ang = -Math.PI / 2 + (2 * Math.PI * i) / N;
-    return [cx + r * Math.cos(ang), cy + r * Math.sin(ang)];
-  }
-  
-  let grid = '';
-  for (const ratio of [0.25, 0.5, 0.75, 1.0]) {
-    const points = labels.map((_, i) => pt(i, R * ratio).join(',')).join(' ');
-    grid += `<polygon points="${points}" fill="none" stroke="#3a3a35" stroke-width="1" />`;
-  }
-  let spokes = '';
-  for (let i = 0; i < N; i++) {
-    const [x, y] = pt(i, R);
-    spokes += `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="#3a3a35" stroke-width="1" />`;
-  }
-  
-  const bluePoints = blueShape.map((v, i) => pt(i, R * v / 100).join(',')).join(' ');
-  const maroonPoints = maroonShape.map((v, i) => pt(i, R * v / 100).join(',')).join(' ');
-  
-  const blueDots = blueShape.map((v, i) => {
-    const [x, y] = pt(i, R * v / 100);
-    return `<circle cx="${x}" cy="${y}" r="3" fill="#5b8def" />`;
-  }).join('');
-  const maroonDots = maroonShape.map((v, i) => {
-    const [x, y] = pt(i, R * v / 100);
-    return `<circle cx="${x}" cy="${y}" r="3" fill="#8b2c3f" />`;
-  }).join('');
-  
-  let labelsSvg = '';
-  for (let i = 0; i < N; i++) {
-    const [lx, ly] = pt(i, R + 24);
-    let anchor = 'middle';
-    if (lx > cx + 5) anchor = 'start';
-    else if (lx < cx - 5) anchor = 'end';
-    const words = labels[i].toUpperCase().split(/[ |]/);
-    if (words.length > 1) {
-      const lh = 15;
-      const yStart = ly - (lh * (words.length - 1)) / 2;
-      const tspans = words.map((w, j) => `<tspan x="${lx}" dy="${j === 0 ? 0 : lh}">${w}</tspan>`).join('');
-      labelsSvg += `<text x="${lx}" y="${yStart}" text-anchor="${anchor}" dominant-baseline="middle" fill="#f5f5f0" font-family="Inter, sans-serif" font-weight="700" font-size="14" letter-spacing="0.02em">${tspans}</text>`;
-    } else {
-      labelsSvg += `<text x="${lx}" y="${ly}" text-anchor="${anchor}" dominant-baseline="middle" fill="#f5f5f0" font-family="Inter, sans-serif" font-weight="700" font-size="15" letter-spacing="0.02em">${labels[i].toUpperCase()}</text>`;
-    }
-  }
-  
-  const legend = `
-    <g transform="translate(${cx - 80}, 360)">
-      <rect x="0" y="0" width="10" height="10" fill="#5b8def" opacity="0.25" stroke="#5b8def" stroke-width="1.5" />
-      <text x="16" y="9" fill="#5b8def" font-family="Inter, sans-serif" font-size="10">2024</text>
-      <rect x="70" y="0" width="10" height="10" fill="#8b2c3f" opacity="0.25" stroke="#8b2c3f" stroke-width="1.5" />
-      <text x="86" y="9" fill="#8b2c3f" font-family="Inter, sans-serif" font-size="10">2025</text>
-    </g>
-  `;
-  
-  return `
-    <svg viewBox="-30 0 520 400" width="100%" style="max-width:600px;display:block;margin:0 auto">
-      ${grid}
-      ${spokes}
-      <polygon points="${bluePoints}" fill="#5b8def" fill-opacity="0.18" stroke="#5b8def" stroke-width="1.5" />
-      <polygon points="${maroonPoints}" fill="#8b2c3f" fill-opacity="0.22" stroke="#8b2c3f" stroke-width="1.5" />
-      ${blueDots}
-      ${maroonDots}
-      ${labelsSvg}
-      ${legend}
-    </svg>
-  `;
-}
-
-function renderYoY(d) {
-  const prevYear = String(+curYear - 1);
-  const cy = YEARS[curYear] && YEARS[curYear].players[d.id];
-  const py = YEARS[prevYear] && YEARS[prevYear].players[d.id];
-  if (!cy || !py) return '<div style="padding:24px 0;color:var(--ink-3);font-family:\'Inter\',sans-serif;font-size:12px;">No ' + prevYear + ' data for this hitter.</div>';
-  const f1 = (v,s='') => v==null ? '—' : v.toFixed(1)+s;
-  const rows = [
-    ['Bat speed',  py.bat_speed, cy.bat_speed, '',  true],
-    ['Barrel%',    py.barrel,    cy.barrel,    '%', true],
-    ['Z-Contact%', py.z_contact, cy.z_contact, '%', true],
-    ['BB%',        py.bb,        cy.bb,        '%', true],
-    ['K%',         py.k,         cy.k,         '%', false],
-  ].map(([label, pv, cv, suf, hi]) => {
-    const dl = (pv!=null && cv!=null) ? cv-pv : null;
-    const good = dl==null ? true : (hi ? dl>=0 : dl<=0);
-    const ds = dl==null ? '—' : (dl>=0?'+':'−') + Math.abs(dl).toFixed(1);
-    return '<div class="yoy-row"><span class="yoy-label">'+label+'</span><div class="yoy-bars"><div class="yoy-bar-prev"><span class="yoy-bar-prev-val">'+f1(pv,suf)+'</span></div><div class="yoy-bar-curr"><span class="yoy-bar-curr-val">'+f1(cv,suf)+'</span></div></div><span class="yoy-delta '+(good?'good':'bad')+'">'+ds+'</span></div>';
-  }).join('');
-  const wob = v => v==null ? '—' : v.toFixed(3).replace(/^0/,'');
-  return '<div class="yoy-grid"><div class="yoy-stats-col"><div class="yoy-bar-legend">'
-    + '<span class="yoy-bar-legend-item"><span class="yoy-bar-legend-sw prev"></span>'+prevYear+'</span>'
-    + '<span class="yoy-bar-legend-item"><span class="yoy-bar-legend-sw curr"></span>'+curYear+'</span></div>'
-    + '<div style="display:grid;grid-template-columns:1fr;gap:8px;">'+rows+'</div></div>'
-    + '<div class="yoy-radar-col">'+renderRadarOverlay(d)
-    + '<div class="yoy-xwoba-row"><div class="yoy-xwoba-item"><div class="yoy-xwoba-lbl">'+prevYear+' xwOBA</div><div class="yoy-xwoba-val">'+wob(py.xwoba)+'</div></div>'
-    + '<div class="yoy-xwoba-item"><div class="yoy-xwoba-lbl">'+curYear+' xwOBA</div><div class="yoy-xwoba-val">'+wob(cy.xwoba)+'</div></div></div></div></div>';
 }
 
 function renderYoYRows(d) {
@@ -1447,7 +1269,6 @@ load();
   }
   var TOP=[['out','Outcomes'],['disc','Discipline'],['pow','Power'],['path','Swing path']];
   var SUBS={pow:[['raw','Raw'],['game','Game']],path:[['ang','Angles'],['pq','Path quality']]};
-  var SLNAME={disc:'Discipline',raw:'Power \u00b7 Raw',game:'Power \u00b7 Game',ang:'Swing path \u00b7 Angles',pq:'Swing path \u00b7 Path quality'};
   function parentOf(sl){return {out:'out',disc:'disc',raw:'pow',game:'pow',ang:'path',pq:'path'}[sl];}
   function btn(id,lab,on,attr){return '<button '+attr+'="'+id+'" style="font:600 11px Inter;border-radius:4px;padding:4px 9px;cursor:pointer;border:1px solid #303030;'+(on?'color:#0a0a0a;background:'+ACC:'color:#aaa;background:#1c1c1c')+'">'+lab+'</button>';}
   function winBtns(){return [['50','50'],['100','100'],['250','250']].map(function(o){return btn(o[0],o[1],String(winN)===o[0],'data-bcw');}).join('')+'<span style="font:700 10px Inter;letter-spacing:.08em;color:#666;margin-left:5px">PA</span>';}
@@ -1458,37 +1279,48 @@ load();
     return '<div style="display:flex;flex-wrap:nowrap;white-space:nowrap;align-items:center;gap:4px;padding:6px 0 4px 18px"><div style="display:inline-flex;gap:3px">'+top+'</div>'+sub+'<div style="display:inline-flex;gap:3px;margin-left:auto;margin-right:16px;align-items:center">'+winBtns()+'</div></div>';
   }
   function note(t){return tabBar()+'<div style="height:calc(100% - 40px);display:flex;align-items:center;justify-content:center;color:'+C.note+';font:600 13px Inter;text-align:center;padding:0 24px">'+t+'</div>';}
+  var SL={
+    out:{label:'Outcomes',unit:'woba',base:0.300,lines:[['xwoba','xwOBA',DN,2],['woba','wOBA',ACC,2.5]]},
+    disc:{label:'Discipline',unit:'pct',lines:[['z_swing','Z-Swing%','#f5f5f0',2],['o_swing','O-Swing%','#7fb3dd',2],['z_contact','Z-Contact%',ACC,2.5],['whiff','Whiff%','#e57373',2]]},
+    raw:{label:'Power \u00b7 Raw',unit:'mph',lines:[['bat_speed','Bat speed',ACC,2.5],['ev','Exit velo','#f5f5f0',2]]},
+    game:{label:'Power \u00b7 Game',unit:'pct',lines:[['barrel','Barrel%',ACC,2.5],['hardhit','HardHit%','#f5f5f0',2]]},
+    ang:{label:'Swing path \u00b7 Angles',unit:'deg',lines:[['attack_angle','Attack',ACC,2.5],['attack_direction','Direction','#7fb3dd',2],['tilt','Tilt','#f5f5f0',2]]},
+    pq:{label:'Swing path \u00b7 Path quality',unit:'pct',lines:[['iaa','Ideal AA%',ACC,2.5]]}
+  };
   function rollChart(w,h){
     if(w<140||h<120)return '';
-    if(slice!=='out')return note((SLNAME[slice]||'')+' rolling \u2014 pending pipeline fields');
+    var cfg=SL[slice]||SL.out, isW=cfg.unit==='woba';
     var rows=(typeof ROLLING!=='undefined'&&ROLLING[state.selectedId])||null;
     var d=DATA.find(function(x){return x.id===state.selectedId;}); var nm=d?d.raw_name:'';
     if(!rows)return note('No rolling data for this hitter');
     var N=winN; if(rows.length<20)return note('Not enough PA ('+rows.length+')');
     var SM=Math.min(N, rows.length);
     var S=rollingSeries(rows,SM);
-    var wa=S.woba.slice(), xa=S.xwoba.slice();
-    if(wa.length<2)return note('Not enough PA for a '+N+'-PA window ('+rows.length+')');
-    if(wa.length>N){wa=wa.slice(-N);xa=xa.slice(-N);}
-    var len=wa.length;
+    var L=cfg.lines.map(function(ln){return {lab:ln[1],c:ln[2],wdt:ln[3],vals:(S[ln[0]]||[]).slice()};});
+    var len=L[0]?L[0].vals.length:0;
+    if(len<2)return note('Not enough PA for a '+N+'-PA window ('+rows.length+')');
+    if(len>N){L.forEach(function(o){o.vals=o.vals.slice(-N);});len=N;}
+    function fmt(v){return isW?f3(v):cfg.unit==='pct'?Math.round(v)+'%':cfg.unit==='deg'?Math.round(v)+'\u00b0':Math.round(v);}
     var ch=h-36, mL=62, mR=34, mT=58, mB=34, iw=w-mL-mR, ih=ch-mT-mB;
     function X(p){return mL+(p/(len||1))*iw;}
-    var all=wa.concat(xa), dMin=Math.min.apply(null,all), dMax=Math.max.apply(null,all);
-    var base=0.300, lo=Math.min(dMin,base), hi=dMax;
-    var ax=d3nice(lo,hi,4,0.1,{fixBot:true}); var yA=ax.a,yB=ax.b, ticks=ax.t;
+    var all=[];L.forEach(function(o){all=all.concat(o.vals);});
+    var dMin=Math.min.apply(null,all), dMax=Math.max.apply(null,all), ax;
+    if(isW){ax=d3nice(Math.min(dMin,cfg.base),dMax,4,0.1,{fixBot:true});}
+    else{var pv=((dMax-dMin)||1)*0.10;ax=d3nice(dMin-pv,dMax+pv,4,null,{});}
+    var yA=ax.a,yB=ax.b,ticks=ax.t;
     function Y(v){return mT+(1-(v-yA)/((yB-yA)||1))*ih;}
     var s='<svg width="'+w+'" height="'+ch+'" xmlns="http://www.w3.org/2000/svg" style="display:block">';
-    s+='<text x="'+mL+'" y="19" font-family="Inter" font-size="16"><tspan fill="#f5f5f0" font-weight="800">Last '+len+' PA</tspan><tspan fill="#cfcfc9" font-weight="600"> \u00b7 Outcomes</tspan><tspan fill="'+C.note+'" font-weight="600" font-size="11.5">  \u00b7 '+nm+'</tspan></text>';
+    s+='<text x="'+mL+'" y="19" font-family="Inter" font-size="16"><tspan fill="#f5f5f0" font-weight="800">Last '+len+' PA</tspan><tspan fill="#cfcfc9" font-weight="600"> \u00b7 '+cfg.label+'</tspan><tspan fill="'+C.note+'" font-weight="600" font-size="11.5">  \u00b7 '+nm+'</tspan></text>';
     s+='<line x1="'+mL+'" y1="26" x2="'+(mL+('Last '+len+' PA').length*7.4)+'" y2="26" stroke="'+ACC+'" stroke-width="2.5" stroke-dasharray="0.5 5" stroke-linecap="round"/>';
-    var chips=[{lab:'xwOBA',c:DN},{lab:'wOBA',c:ACC}], lx=mL;
-    chips.forEach(function(c){s+='<rect x="'+lx+'" y="37" width="10" height="10" rx="2" fill="'+c.c+'"/><text x="'+(lx+14)+'" y="46" fill="'+C.leg+'" font-family="Inter" font-size="11.5" font-weight="600">'+c.lab+'</text>';lx+=15+c.lab.length*6.7+20;});
+    var lx=mL;
+    L.forEach(function(o){s+='<rect x="'+lx+'" y="37" width="10" height="10" rx="2" fill="'+o.c+'"/><text x="'+(lx+14)+'" y="46" fill="'+C.leg+'" font-family="Inter" font-size="11.5" font-weight="600">'+o.lab+'</text>';lx+=15+o.lab.length*6.7+20;});
     s+='<text x="'+(w-mR)+'" y="46" text-anchor="end" fill="'+C.note+'" font-family="Inter" font-size="9.5" font-weight="700" letter-spacing=".05em">PA AGO \u2192 NOW</text>';
     s+='<line x1="'+mL+'" y1="'+mT+'" x2="'+mL+'" y2="'+(mT+ih)+'" stroke="'+C.axis+'" stroke-width="1.5"/>';
-    ticks.forEach(function(tv){var yy=Y(tv).toFixed(1);s+='<line x1="'+mL+'" y1="'+yy+'" x2="'+(w-mR)+'" y2="'+yy+'" stroke="'+C.grid+'" stroke-width="1" stroke-dasharray="5 5"/><text x="'+(mL-10)+'" y="'+(Y(tv)+5).toFixed(1)+'" text-anchor="end" fill="'+C.tick+'" font-family="Inter" font-size="13" font-weight="600">'+f3(tv)+'</text>';});
-    if(base>=yA&&base<=yB){var by=Y(base).toFixed(1);s+='<line x1="'+mL+'" y1="'+by+'" x2="'+(w-mR)+'" y2="'+by+'" stroke="'+C.base+'" stroke-width="1.5" stroke-dasharray="9 5"/><text x="'+(w-mR-4)+'" y="'+(+by-6)+'" text-anchor="end" fill="'+C.base+'" font-family="Inter" font-size="11.5" font-weight="700">LG AVG</text>';}
+    ticks.forEach(function(tv){var yy=Y(tv).toFixed(1);s+='<line x1="'+mL+'" y1="'+yy+'" x2="'+(w-mR)+'" y2="'+yy+'" stroke="'+C.grid+'" stroke-width="1" stroke-dasharray="5 5"/><text x="'+(mL-10)+'" y="'+(Y(tv)+5).toFixed(1)+'" text-anchor="end" fill="'+C.tick+'" font-family="Inter" font-size="13" font-weight="600">'+fmt(tv)+'</text>';});
+    if(isW&&cfg.base>=yA&&cfg.base<=yB){var by=Y(cfg.base).toFixed(1);s+='<line x1="'+mL+'" y1="'+by+'" x2="'+(w-mR)+'" y2="'+by+'" stroke="'+C.base+'" stroke-width="1.5" stroke-dasharray="9 5"/><text x="'+(w-mR-4)+'" y="'+(+by-6)+'" text-anchor="end" fill="'+C.base+'" font-family="Inter" font-size="11.5" font-weight="700">LG AVG</text>';}
     var xt=d3nice(0,len,5,null,{capTop:true,fixBot:true});
     xt.t.forEach(function(v){if(v>len+0.5)return;var xx=X(v);var anc=(v<=0.5)?'start':(v>=len-0.5)?'end':'middle';s+='<text x="'+xx.toFixed(1)+'" y="'+(ch-9)+'" text-anchor="'+anc+'" fill="'+C.xl+'" font-family="Inter" font-size="12.5" font-weight="600">'+Math.round(v)+'</text>';});
-    [[xa,DN,2],[wa,ACC,2.5]].forEach(function(P){var p=P[0].map(function(v,i){return X(i).toFixed(1)+','+Y(v).toFixed(1);}).join(' ');s+='<polyline points="'+p+'" fill="none" stroke="'+P[1]+'" stroke-width="'+P[2]+'" stroke-linejoin="round" stroke-linecap="round"/>';});
+    L.forEach(function(o){var p=o.vals.map(function(v,i){return X(i).toFixed(1)+','+Y(v).toFixed(1);}).join(' ');s+='<polyline points="'+p+'" fill="none" stroke="'+o.c+'" stroke-width="'+o.wdt+'" stroke-linejoin="round" stroke-linecap="round"/>';});
     s+='</svg>'; return tabBar()+s;
   }
   function yoyTop(){var c=document.querySelector('#panel .yoy-view-cells, #panel .yoy2-cell');if(c)return c.getBoundingClientRect().top;return window.innerHeight*0.62;}

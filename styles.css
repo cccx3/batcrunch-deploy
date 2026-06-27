@@ -109,6 +109,7 @@
   }
   .side-pill.L { border-color: #2a4d6d; color: #7db3e0; }
   .side-pill.R { border-color: #6d2a3d; color: #e07d9a; }
+  .side-pill.S { border-color: #5a4d2a; color: #d9c47d; }
 
   .platoon-pill {
     display: inline-block; font-family: 'Inter', sans-serif; font-variant-numeric: tabular-nums; font-size: 12px;
@@ -1303,3 +1304,14 @@
   .yoy-view-cells { display:none; }
   .yoy-view-split { display:flex; }
 }
+
+/* radar panel: pentagon sizing + YoY tiles centered in their negative space */
+.panel-card { justify-content: flex-start; }
+.panel-card .panel-radar { flex: 0 0 auto; }
+.panel-card .panel-radar svg { height: auto !important; width: 100% !important; max-width: 390px !important; }
+.panel-card .panel-yoy-grid { margin-top: auto; margin-bottom: auto; }
+
+/* player-page Radar tab: full-width centered pentagon (replaces clipped 500px in-stats radar) */
+.pp-radar-tab-wrap { padding: 10px 16px 20px; display: flex; justify-content: center; }
+.pp-radar-tab-wrap svg { width: 100%; max-width: 460px; height: auto; }
+.pp-radar-tab .pp-bnr { text-align: left; }

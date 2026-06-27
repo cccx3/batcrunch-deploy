@@ -31,7 +31,7 @@ function transform(id, p, prevWoba, shL, shR) {
   const wd  = (prevWoba == null || p.woba == null) ? null : +(p.woba - prevWoba).toFixed(3);
   const nm = p.name || '';
   return {
-    id: +id, raw_name: nm, side: p.hand,
+    id: +id, raw_name: nm, side: p.switch ? 'S' : p.hand,
     bat_speed: p.bat_speed, swing_length: p.swing_length, attack_angle: p.attack_angle, attack_direction: p.attack_direction,
     tilt: p.tilt, iaa: p.iaa, whiff: p.whiff, pa: p.pa,
     barrel_pct: p.barrel, sweet_pct: p.sweet,
@@ -427,12 +427,11 @@ function renderRadar(d) {
   const axes = [
     { label: 'Raw Power',     value: d.bat_speed != null ? percentile(S.bat_speed_s, d.bat_speed) : 50 },
     { label: 'Game Power',    value: d.barrel_pct != null ? percentile(S.barrel_pct, d.barrel_pct) : 50 },
-    { label: 'Swing Decision',value: swing_decision != null ? percentile(S.swing_decision_combo, swing_decision) : 50 },
     { label: 'Discipline',    value: d.o_swing != null ? (100 - percentile(S.o_swing, d.o_swing)) : 50 },
     { label: 'Speed',         value: d.sprint != null ? percentile(S.sprint, d.sprint) : 50 },
     { label: 'Bat-to|Ball',   value: d.whiff != null ? (100 - percentile(S.whiff_s, d.whiff)) : 50 },
   ];
-  const cx = 230, cy = 190, R = 130;
+  const cx = 230, cy = 176, R = 120;
   const N = axes.length;
   
   // Polar to cartesian
@@ -450,7 +449,6 @@ function renderRadar(d) {
     const pv = [
       py.bat_speed != null ? percentile(S.bat_speed_s, py.bat_speed) : 50,
       py.barrel    != null ? percentile(S.barrel_pct, py.barrel) : 50,
-      sdP          != null ? percentile(S.swing_decision_combo, sdP) : 50,
       py.o_swing   != null ? (100 - percentile(S.o_swing, py.o_swing / 100)) : 50,
       py.sprint    != null ? percentile(S.sprint, py.sprint) : 50,
       py.whiff     != null ? (100 - percentile(S.whiff_s, py.whiff)) : 50,
@@ -502,7 +500,7 @@ function renderRadar(d) {
   }
   
   return `
-    <svg viewBox="20 0 450 375" width="100%" style="max-width:510px;display:block;margin:0 auto">
+    <svg viewBox="20 0 450 318" width="100%" style="max-width:510px;display:block;margin:0 auto">
       ${grid}
       ${spokes}
       ${prevPoints ? `<polygon points="${prevPoints}" fill="#888" fill-opacity="0.14" stroke="#888" stroke-width="1.5" stroke-dasharray="4 3" />` : ''}
@@ -806,7 +804,6 @@ function renderRadarOverlay(d) {
   const cur = [
     { label: 'Raw Power',     value: d.bat_speed != null ? percentile(S.bat_speed_s, d.bat_speed) : 50 },
     { label: 'Game Power',    value: d.barrel_pct != null ? percentile(S.barrel_pct, d.barrel_pct) : 50 },
-    { label: 'Swing Decision',value: swing_decision != null ? percentile(S.swing_decision_combo, swing_decision) : 50 },
     { label: 'Discipline',    value: d.o_swing != null ? (100 - percentile(S.o_swing, d.o_swing)) : 50 },
     { label: 'Speed',         value: d.sprint != null ? percentile(S.sprint, d.sprint) : 50 },
     { label: 'Bat-to|Ball',   value: d.whiff != null ? (100 - percentile(S.whiff_s, d.whiff)) : 50 },
@@ -821,7 +818,7 @@ function renderRadarOverlay(d) {
     { value: 79 },  // Z-Con 2024
   ];
   
-  const cx = 230, cy = 190, R = 130;
+  const cx = 230, cy = 176, R = 120;
   const N = 6;
   
   function pt(i, r) {
@@ -887,7 +884,7 @@ function renderJunkRadar() {
   const blueShape = [82, 64, 71, 88, 52, 76];
   const maroonShape = [68, 79, 84, 71, 60, 88];
   
-  const cx = 230, cy = 190, R = 130;
+  const cx = 230, cy = 176, R = 120;
   const N = 6;
   
   function pt(i, r) {
@@ -1062,6 +1059,7 @@ function renderPlayerPage(id) {
     </div>
     <div class="pp-tabs" id="ppTabs">
       <button data-tab="stats" class="active">Stats + YoY</button>
+      <button data-tab="radar">Radar</button>
       <button data-tab="rolling">Rolling</button>
     </div>
     
@@ -1098,13 +1096,19 @@ function renderPlayerPage(id) {
           <div class="pp-bnr">Year over year</div>
           ${yoyLegend}
           <div class="pp-radar-row">
-            <div class="pp-radar-wrap">${renderRadar(d)}</div>
             <div class="pp-yoy-bars">${yoyBars}</div>
           </div>
         </div>
       </div>
     </div>
     
+    <div class="pp-tab-panel" data-panel="radar">
+      <div class="pp-panel pp-radar-tab">
+        <div class="pp-bnr">Profile shape</div>
+        <div class="pp-radar-tab-wrap">${renderRadar(d)}</div>
+      </div>
+    </div>
+
     <div class="pp-tab-panel" data-panel="rolling">
       <div class="rolling-tab-body">
         ${ROLLING[d.id] ? `
@@ -1498,7 +1502,7 @@ load();
     if(!r){box.style.display='none';pinFooter(false);return;}
     box.style.display='block';
     var dh=pinFooter(true);
-    box.style.left=r.left+'px';box.style.width=r.width+'px';box.style.top=Math.max(120,rowAnchorTop())+'px';box.style.bottom=dh+'px';
+    box.style.left=r.left+'px';box.style.width=r.width+'px';var BUF=5,__key=window.innerWidth+'x'+window.innerHeight+'|'+Math.round(dh);if(window.__boxHKey!==__key){var __dh=Math.max(200,Math.min(480,Math.round(r.height*0.52)));var __rows=document.querySelectorAll('#tbody tr[data-id]'),__h=__dh;if(__rows.length){var __ft=__rows[0].getBoundingClientRect().top,__rh=__rows[0].getBoundingClientRect().height||56;var __raw=window.innerHeight-(dh+BUF)-__dh;var __kM=Math.max(2,Math.floor((window.innerHeight-(dh+BUF)-200-__ft)/__rh));var __k=Math.min(__kM,Math.max(2,Math.round((__raw-__ft)/__rh)));__h=Math.max(180,(window.innerHeight-(dh+BUF)-(__ft+__k*__rh)));}window.__boxH=__h;window.__boxHKey=__key;}box.style.top='auto';box.style.height=window.__boxH+'px';box.style.bottom=(dh+BUF)+'px';
     var bb=box.getBoundingClientRect();
     box.innerHTML=rollChart(Math.round(bb.width),Math.round(bb.height));
     box.querySelectorAll('[data-bct]').forEach(function(b){b.onclick=function(){var p=b.dataset.bct;slice=(p==='pow')?'raw':(p==='path')?'ang':p;place();};});

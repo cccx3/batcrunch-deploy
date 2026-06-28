@@ -920,6 +920,7 @@ function renderPlayerPage(id) {
           <div class="pp-bnr">Year over year</div>
           ${yoyLegend}
           <div class="pp-radar-row">
+            <div class="pp-radar-wrap pp-radar-inline">${renderRadar(d)}</div>
             <div class="pp-yoy-bars">${yoyBars}</div>
           </div>
         </div>

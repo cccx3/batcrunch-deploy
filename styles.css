@@ -1316,16 +1316,4 @@
 .pp-radar-tab-wrap svg { width: 100%; max-width: 460px; height: auto; }
 .pp-radar-tab .pp-bnr { text-align: left; }
 
-/* player page: tab bar is mobile-only; desktop shows every panel stacked (no tabulation) */
-@media (min-width: 721px) {
-  .pp-tabs { display: none; }
-  .pp-tab-panel { display: block; }
-}
 
-/* desktop: radar lives inside Stats again (pre-"mobile tweaks" layout); standalone radar tab is mobile-only.
-   No width override - the SVG's own width:100%;max-width:510px governs, exactly like the pre-drift build. */
-.pp-radar-inline { display: none; }
-@media (min-width: 721px) {
-  .pp-radar-inline { display: block; }
-  .pp-tab-panel[data-panel="radar"] { display: none; }
-}

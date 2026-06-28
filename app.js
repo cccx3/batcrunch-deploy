@@ -920,7 +920,6 @@ function renderPlayerPage(id) {
           <div class="pp-bnr">Year over year</div>
           ${yoyLegend}
           <div class="pp-radar-row">
-            <div class="pp-radar-wrap pp-radar-inline">${renderRadar(d)}</div>
             <div class="pp-yoy-bars">${yoyBars}</div>
           </div>
         </div>
@@ -970,6 +969,8 @@ function renderPlayerPage(id) {
         if (target === 'rolling') { setTimeout(wireRollingControls, 0); }
     });
   });
+  // render the rolling chart on load so it shows on desktop (no tab click needed)
+  setTimeout(wireRollingControls, 0);
 }
 document.getElementById('q')?.addEventListener('input', e => { state.query = e.target.value; renderTable(); renderMobileCards(); });
 document.querySelectorAll('#sideSeg button').forEach(b => {
@@ -1337,7 +1338,7 @@ load();
     if(!r){box.style.display='none';pinFooter(false);return;}
     box.style.display='block';
     var dh=pinFooter(true);
-    box.style.left=r.left+'px';box.style.width=(window.innerWidth-r.left)+'px';var BUF=5,__key=window.innerWidth+'x'+window.innerHeight+'|'+Math.round(dh);if(window.__boxHKey!==__key){var __dh=Math.max(200,Math.min(480,Math.round(r.height*0.52)));var __rows=document.querySelectorAll('#tbody tr[data-id]'),__h=__dh;if(__rows.length){var __ft=__rows[0].getBoundingClientRect().top,__rh=__rows[0].getBoundingClientRect().height||56;var __raw=window.innerHeight-(dh+BUF)-__dh;var __kM=Math.max(2,Math.floor((window.innerHeight-(dh+BUF)-200-__ft)/__rh));var __k=Math.min(__kM,Math.max(2,Math.round((__raw-__ft)/__rh)));__h=Math.max(180,(window.innerHeight-(dh+BUF)-(__ft+__k*__rh)));}window.__boxH=__h;window.__boxHKey=__key;}box.style.top='auto';box.style.height=window.__boxH+'px';box.style.bottom=(dh+BUF)+'px';
+    box.style.left=r.left+'px';box.style.width=r.width+'px';var BUF=5,__key=window.innerWidth+'x'+window.innerHeight+'|'+Math.round(dh);if(window.__boxHKey!==__key){var __dh=Math.max(200,Math.min(480,Math.round(r.height*0.52)));var __rows=document.querySelectorAll('#tbody tr[data-id]'),__h=__dh;if(__rows.length){var __ft=__rows[0].getBoundingClientRect().top,__rh=__rows[0].getBoundingClientRect().height||56;var __raw=window.innerHeight-(dh+BUF)-__dh;var __kM=Math.max(2,Math.floor((window.innerHeight-(dh+BUF)-200-__ft)/__rh));var __k=Math.min(__kM,Math.max(2,Math.round((__raw-__ft)/__rh)));__h=Math.max(180,(window.innerHeight-(dh+BUF)-(__ft+__k*__rh)));}window.__boxH=__h;window.__boxHKey=__key;}box.style.top='auto';box.style.height=window.__boxH+'px';box.style.bottom=(dh+BUF)+'px';
     var bb=box.getBoundingClientRect();
     box.innerHTML=rollChart(Math.round(bb.width),Math.round(bb.height));
     box.querySelectorAll('[data-bct]').forEach(function(b){b.onclick=function(){var p=b.dataset.bct;slice=(p==='pow')?'raw':(p==='path')?'ang':p;place();};});

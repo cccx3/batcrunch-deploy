@@ -883,7 +883,6 @@ function renderPlayerPage(id) {
     </div>
     <div class="pp-tabs" id="ppTabs">
       <button data-tab="stats" class="active">Stats + YoY</button>
-      <button data-tab="radar">Radar</button>
       <button data-tab="rolling">Rolling</button>
     </div>
     
@@ -920,19 +919,13 @@ function renderPlayerPage(id) {
           <div class="pp-bnr">Year over year</div>
           ${yoyLegend}
           <div class="pp-radar-row">
+            <div class="pp-radar-wrap">${renderRadar(d)}</div>
             <div class="pp-yoy-bars">${yoyBars}</div>
           </div>
         </div>
       </div>
     </div>
     
-    <div class="pp-tab-panel" data-panel="radar">
-      <div class="pp-panel pp-radar-tab">
-        <div class="pp-bnr">Profile shape</div>
-        <div class="pp-radar-tab-wrap">${renderRadar(d)}</div>
-      </div>
-    </div>
-
     <div class="pp-tab-panel" data-panel="rolling">
       <div class="rolling-tab-body">
         ${ROLLING[d.id] ? `

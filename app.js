@@ -320,7 +320,7 @@ function renderTable() {
   tbody.innerHTML = data.map(d => `
     <tr data-id="${d.id}" class="${state.selectedId === d.id ? 'selected' : ''}">
       <td class="rank">${d._rank ?? '—'}</td>
-      <td class="name-cell"><a href="javascript:void(0)" class="mc-name-link" onclick="window.location.hash='player/${d.id}';return false;"><span class="last">${d.last}</span>, <span class="first">${d.first}</span></a></td>
+      <td class="name-cell"><a href="javascript:void(0)" class="mc-name-link" onclick="window.location.hash='player/${d.id}';return false;">${d.first} ${d.last}</a></td>
       <td class="ctr">${d.team ? `<span class="team-pill team-${d.team}">${d.team}</span>` : ''}</td>
       <td class="ctr"><span class="side-pill ${d.side}">${d.side}</span></td>
       <td class="ctr"><span class="platoon-pill p-${d.platoon_tier}">${d.platoon_tier}</span></td>
@@ -1301,7 +1301,7 @@ load();
     if(len<2)return note('Not enough PA for a '+N+'-PA window ('+rows.length+')');
     if(len>N){L.forEach(function(o){o.vals=o.vals.slice(-N);});len=N;}
     function fmt(v){return isW?f3(v):cfg.unit==='pct'?Math.round(v)+'%':cfg.unit==='deg'?Math.round(v)+'\u00b0':Math.round(v);}
-    var ch=h-36, mL=62, mR=34, mT=58, mB=34, iw=w-mL-mR, ih=ch-mT-mB;
+    var ch=h-64, mL=62, mR=34, mT=58, mB=34, iw=w-mL-mR, ih=ch-mT-mB;
     function X(p){return mL+(p/(len||1))*iw;}
     var all=[];L.forEach(function(o){all=all.concat(o.vals);});
     var dMin=Math.min.apply(null,all), dMax=Math.max.apply(null,all), ax;

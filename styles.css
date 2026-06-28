@@ -1315,3 +1315,9 @@
 .pp-radar-tab-wrap { padding: 10px 16px 20px; display: flex; justify-content: center; }
 .pp-radar-tab-wrap svg { width: 100%; max-width: 460px; height: auto; }
 .pp-radar-tab .pp-bnr { text-align: left; }
+
+/* player page: tab bar is mobile-only; desktop shows every panel stacked (no tabulation) */
+@media (min-width: 721px) {
+  .pp-tabs { display: none; }
+  .pp-tab-panel { display: block; }
+}

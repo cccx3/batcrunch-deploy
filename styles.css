@@ -469,7 +469,7 @@
 
   .player-page {
     position: fixed; inset: 0; z-index: 100;
-    background: #131313;
+    background: linear-gradient(155deg, #1a140c 0%, #0c0a07 56%, #0a0a0a 100%);
     overflow-y: auto;
   }
   .pp-inner {
@@ -558,7 +558,7 @@
     transition: color 0.15s, border-color 0.15s;
   }
   .pp-tabs button:hover { color: #d8d8d2; }
-  .pp-tabs button.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .pp-tabs button.active { color: var(--ink); border-bottom-color: var(--ink); }
   
   .pp-tab-panel { display: none; }
   .pp-tab-panel.active { display: block; }
@@ -1090,14 +1090,14 @@
     margin-bottom: 0; flex-wrap: wrap; gap: 12px;
     width: 100%;
   }
-  .rolling-tabs { display: flex; gap: 4px; }
+  .rolling-tabs { display: flex; gap: 6px; }
   .rt-tab {
-    background: transparent; border: 1px solid var(--line); color: var(--ink-2);
-    padding: 6px 14px; font-family: 'Inter', sans-serif; font-size: 11px;
-    font-weight: 500; letter-spacing: 0.04em; cursor: pointer;
-    border-radius: 2px;
+    background: #1a1a1a; border: 1px solid var(--line-2); color: #d8d8d2;
+    padding: 9px 16px; font-family: 'Inter', sans-serif; font-size: 14px;
+    font-weight: 700; letter-spacing: 0.01em; cursor: pointer;
+    border-radius: 3px;
   }
-  .rt-tab.active { background: var(--accent); color: #0a0a0a; border-color: var(--accent); font-weight: 700; }
+  .rt-tab.active { background: #f0f0ea; color: #0a0a0a; border-color: #f0f0ea; font-weight: 700; }
   .rt-tab:hover:not(.active) { color: var(--ink); border-color: var(--ink-3); }
   .rolling-window { display: flex; align-items: center; gap: 8px; }
   .rw-lbl {
@@ -1105,14 +1105,22 @@
     letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3);
   }
   .rw-btn {
-    background: transparent; border: 1px solid var(--line); color: var(--ink-2);
-    padding: 4px 10px; font-family: 'Inter', sans-serif; font-size: 13px;
-    font-weight: 500; cursor: pointer; border-radius: 2px;
+    background: #1a1a1a; border: 1px solid var(--line-2); color: #d8d8d2;
+    padding: 8px 13px; font-family: 'Inter', sans-serif; font-size: 13.5px;
+    font-weight: 700; cursor: pointer; border-radius: 3px;
     font-variant-numeric: tabular-nums;
   }
-  .rw-btn.active { background: var(--accent); color: #0a0a0a; border-color: var(--accent); font-weight: 700; }
+  .rw-btn.active { background: #f0f0ea; color: #0a0a0a; border-color: #f0f0ea; font-weight: 700; }
   .rw-btn:hover:not(.active) { color: var(--ink); border-color: var(--ink-3); }
   .rolling-tab-body { display: block; width: 100%; }
+  #rollingChartHost {
+    margin-top: 14px;
+    background: #181b1e;
+    border: 1px solid #36363c;
+    border-radius: 4px;
+    padding: 18px 16px 10px;
+  }
+  #rollingChartHost svg { display: block; width: 100%; }
 
   .pp-rs-table {
     margin-top: 12px;

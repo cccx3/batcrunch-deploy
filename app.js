@@ -655,77 +655,61 @@ function rollingSeries(rows, W) {
            hardhit,ev, bat_speed,swing_length,attack_angle,attack_direction,tilt,iaa };
 }
 
-function renderRollingChart(metric, windowSize) {
-  const W = 720, H = 280, pad = { t: 16, r: 16, b: 32, l: 44 };
-  const innerW = W - pad.l - pad.r;
-  const innerH = H - pad.t - pad.b;
-  
-  let series, colors, ySuffix, yTicks, isPct;
+function renderRollingChart(slice, windowSize) {
   if (!ROLLING_ROWS || ROLLING_ROWS.length < windowSize) {
     return '<div style="padding:24px;color:var(--ink-3);font-family:Inter,sans-serif;font-size:12px;">Not enough PA for a ' + windowSize + '-PA window.</div>';
   }
+  const AMBER='#ffd54a',BLUE='#7fb3dd',WHITE='#f5f5f0',RED='#e57373',ORANGE='#d99a6c',INK2='#a6a69e';
   const RS = rollingSeries(ROLLING_ROWS, windowSize);
-  if (metric === 'woba') {
-    series = [
-      { name: 'wOBA',  vals: RS.woba,  color: '#f5f5f0', width: 2, opacity: 0.9, dash: '' },
-      { name: 'xwOBA', vals: RS.xwoba, color: '#ffd54a', width: 2.5, opacity: 1, dash: '' },
-    ];
-    isPct = false;
-  } else {
-    series = [
-      { name: 'Zone%',   vals: RS.zone,   color: '#f5f5f0', width: 2, opacity: 0.9, dash: '' },
-      { name: 'Barrel%', vals: RS.barrel, color: '#ffd54a', width: 2.5, opacity: 1, dash: '' },
-      { name: 'K%',      vals: RS.k,      color: '#e57373', width: 2, opacity: 0.95, dash: '4 3' },
-      { name: 'BB%',     vals: RS.bb,     color: '#7fb3dd', width: 2, opacity: 0.95, dash: '4 3' },
-    ];
-    isPct = true;
+  const SLABELS = {outcomes:'Outcomes',discipline:'Discipline',power:'Power',swing:'Swing path'};
+  let info;
+  if (slice==='discipline') info={unit:'pct',L:[['Z-Swing',WHITE,RS.z_swing,false],['O-Swing',BLUE,RS.o_swing,false],['Z-Contact',AMBER,RS.z_contact,true],['Whiff',RED,RS.whiff,false]]};
+  else if (slice==='power') info={unit:'pct',L:[['Barrel',AMBER,RS.barrel,true],['HardHit',WHITE,RS.hardhit,false]]};
+  else if (slice==='swing') info={unit:'deg',L:[['Attack',AMBER,RS.attack_angle,true],['Direction',BLUE,RS.attack_direction,false],['Tilt',WHITE,RS.tilt,false]]};
+  else info={unit:'woba',base:0.300,L:[['wOBA',WHITE,RS.woba,false],['xwOBA',AMBER,RS.xwoba,true]]};
+  const unit=info.unit;
+  const lines=info.L.map(function(a){return {name:a[0],color:a[1],v:a[2],thick:a[3],cur:a[2][a[2].length-1]};});
+  const len=lines[0].v.length;
+  const W=960,H=350,mL=58,mR=24,mT=78,mB=38,iw=W-mL-mR,ih=H-mT-mB;
+  let all=[]; lines.forEach(function(L){all=all.concat(L.v);});
+  let lo=Math.min.apply(null,all),hi=Math.max.apply(null,all);
+  if(unit==='woba')lo=Math.min(lo,info.base);
+  const padv=((hi-lo)||1)*0.12; lo-=padv; hi+=padv;
+  function niceTicks(lo,hi,n){var sp=hi-lo||1,raw=sp/n,mag=Math.pow(10,Math.floor(Math.log10(raw))),nm=raw/mag;var st=(nm<1.5?1:nm<3?2:nm<7?5:10)*mag,s=Math.ceil(lo/st)*st,t=[];for(var v=s;v<=hi+1e-9;v+=st)t.push(+v.toFixed(6));return t;}
+  const ticks=niceTicks(lo,hi,4);
+  function fmtYtick(v){return unit==='woba'?'.'+Math.round(v*1000):unit==='pct'?Math.round(v)+'%':Math.round(v)+'\u00b0';}
+  function fmtVal(v){return unit==='woba'?('.'+Math.round(v*1000)):unit==='pct'?v.toFixed(1)+'%':v.toFixed(1)+'\u00b0';}
+  const X=function(i){return mL+(i/(len-1))*iw;};
+  const Y=function(v){return mT+(1-(v-lo)/((hi-lo)||1))*ih;};
+  let s='';
+  const title='Last '+windowSize+' PA';
+  s+='<text x="'+mL+'" y="20" font-size="17" font-weight="800" fill="'+WHITE+'">'+title+'</text>';
+  s+='<text x="'+(mL+title.length*10.2+8)+'" y="20" font-size="13.5" font-weight="600" fill="'+INK2+'">\u00b7 '+SLABELS[slice]+'</text>';
+  s+='<text x="'+(W-mR)+'" y="20" text-anchor="end" font-size="11" font-weight="700" fill="#8a8a85" letter-spacing=".06em">PA AGO \u2192 NOW</text>';
+  let lx=mL;
+  lines.forEach(function(L){
+    var val=fmtVal(L.cur);
+    s+='<rect x="'+lx+'" y="40" width="12" height="12" rx="2" fill="'+L.color+'"/>';
+    s+='<text x="'+(lx+18)+'" y="50" font-size="13.5" font-weight="700" fill="#e0e0da">'+L.name+'</text>';
+    s+='<text x="'+(lx+18+L.name.length*8+8)+'" y="50" font-size="13.5" font-weight="800" fill="'+L.color+'">'+val+'</text>';
+    lx+=18+L.name.length*8+8+val.length*8.5+30;
+  });
+  ticks.forEach(function(t){var y=Y(t).toFixed(1);
+    s+='<line x1="'+mL+'" y1="'+y+'" x2="'+(mL+iw)+'" y2="'+y+'" stroke="rgba(255,255,255,.08)" stroke-width="1"/>';
+    s+='<text x="'+(mL-11)+'" y="'+(+y+5).toFixed(1)+'" text-anchor="end" fill="'+INK2+'" font-size="14" font-weight="600">'+fmtYtick(t)+'</text>';
+  });
+  if(unit==='woba'&&info.base>=lo&&info.base<=hi){var by=Y(info.base).toFixed(1);
+    s+='<line x1="'+mL+'" y1="'+by+'" x2="'+(mL+iw)+'" y2="'+by+'" stroke="'+ORANGE+'" stroke-width="1.5" stroke-dasharray="9 5"/>';
+    s+='<text x="'+(mL+iw-4)+'" y="'+(+by-7)+'" text-anchor="end" fill="'+ORANGE+'" font-size="11.5" font-weight="700">LG AVG</text>';
   }
-  
-  const startPA = windowSize;
-  const allVals = series.flatMap(s => s.vals);
-  const yMin = Math.min(...allVals) * (isPct ? 0.95 : 0.97) - (isPct ? 1 : 0.005);
-  const yMax = Math.max(...allVals) * (isPct ? 1.05 : 1.03) + (isPct ? 1 : 0.005);
-  const xMin = startPA, xMax = startPA + series[0].vals.length - 1;
-  
-  const sx = pa => pad.l + ((pa - xMin) / (xMax - xMin)) * innerW;
-  const sy = v => pad.t + (1 - (v - yMin) / (yMax - yMin)) * innerH;
-  
-  const path = (vals) => vals.map((v, i) => `${i === 0 ? 'M' : 'L'} ${sx(startPA + i).toFixed(1)} ${sy(v).toFixed(1)}`).join(' ');
-  
-  // Y ticks
-  let ticks;
-  if (isPct) {
-    const step = 5;
-    ticks = [];
-    for (let t = Math.ceil(yMin/step)*step; t <= yMax; t += step) ticks.push(t);
-  } else {
-    ticks = [0.30, 0.35, 0.40, 0.45, 0.50].filter(t => t >= yMin && t <= yMax);
-  }
-  const yGrid = ticks.map(t => `<line x1="${pad.l}" y1="${sy(t)}" x2="${W-pad.r}" y2="${sy(t)}" stroke="#252525" stroke-width="1" />`).join('');
-  const yLabels = ticks.map(t => `<text x="${pad.l - 8}" y="${sy(t) + 4}" text-anchor="end" fill="#888" font-family="Inter, sans-serif" font-size="10">${isPct ? t.toFixed(0)+'%' : '.'+(t*1000).toFixed(0)}</text>`).join('');
-  
-  // X ticks every 100 PA
-  const xTicks = [];
-  for (let t = Math.ceil(xMin/100)*100; t <= xMax; t += 100) xTicks.push(t);
-  const xLabels = xTicks.map(t => `<text x="${sx(t)}" y="${H - pad.b + 14}" text-anchor="middle" fill="#888" font-family="Inter, sans-serif" font-size="10">${t}</text>`).join('');
-  const xUnit = `<text x="${W - pad.r}" y="${H - pad.b + 14}" text-anchor="end" fill="#666" font-family="Inter, sans-serif" font-size="9">PA</text>`;
-  
-  _rollingPlot = { series, startPA, xMin, xMax, yMin, yMax, pad, innerW, innerH, W, H, isPct };
-  const paths = series.map(s => `<path d="${path(s.vals)}" fill="none" stroke="${s.color}" stroke-width="${s.width}" opacity="${s.opacity}" ${s.dash ? `stroke-dasharray="${s.dash}"` : ''} />`).join('');
-  
-  return `
-    <svg viewBox="0 0 ${W} ${H}" width="100%" style="display:block;margin:0 auto">
-      ${yGrid}
-      ${paths}
-      ${yLabels}
-      ${xLabels}
-      ${xUnit}
-      <line id="rollCursorLine" x1="0" y1="${pad.t}" x2="0" y2="${H - pad.b}" stroke="#ffd54a" stroke-width="1" stroke-dasharray="3 3" opacity="0" />
-      <g id="rollCursorDots"></g>
-      <g id="rollTip" opacity="0"></g>
-      <rect id="rollHit" x="${pad.l}" y="${pad.t}" width="${innerW}" height="${innerH}" fill="transparent" style="cursor:crosshair" />
-    </svg>
-  `;
+  [0,0.25,0.5,0.75,1].forEach(function(f){var i=Math.round(f*(len-1)),a=f<=0?'start':f>=1?'end':'middle';
+    s+='<text x="'+X(i).toFixed(1)+'" y="'+(H-12)+'" text-anchor="'+a+'" fill="'+INK2+'" font-size="14" font-weight="600">'+Math.round(f*windowSize)+'</text>';
+  });
+  lines.forEach(function(L){var p=L.v.map(function(v,i){return X(i).toFixed(1)+','+Y(v).toFixed(1);}).join(' ');
+    s+='<polyline points="'+p+'" fill="none" stroke="'+L.color+'" stroke-width="'+(L.thick?2.8:2.1)+'" stroke-linejoin="round" stroke-linecap="round"/>';
+  });
+  s+='<line x1="'+mL+'" y1="'+mT+'" x2="'+mL+'" y2="'+(mT+ih)+'" stroke="rgba(255,255,255,.18)" stroke-width="1.5"/>';
+  return '<svg viewBox="0 0 '+W+' '+H+'" width="100%" style="display:block">'+s+'</svg>';
 }
 
 function renderRollingLegend(metric) {
@@ -738,7 +722,7 @@ function renderRollingLegend(metric) {
 }
 
 let _rollingPlot = null;
-let _rollingMetric = 'woba';
+let _rollingMetric = 'outcomes';
 let _rollingWindow = 100;
 function wireRollingHover() {
   const svg = document.querySelector('#rollingChartHost svg');
@@ -778,11 +762,8 @@ function wireRollingHover() {
 
 function refreshRolling() {
   const host = document.getElementById('rollingChartHost');
-  const leg = document.getElementById('rollingLegend');
-  if (!host || !leg) return;
+  if (!host) return;
   host.innerHTML = renderRollingChart(_rollingMetric, _rollingWindow);
-  leg.innerHTML = renderRollingLegend(_rollingMetric);
-  wireRollingHover();
 }
 
 function wireRollingControls() {
@@ -871,10 +852,6 @@ function renderPlayerPage(id) {
           <span>${d.position || ''}</span>
           <span>·</span>
           <span class="platoon-pill p-${d.platoon_tier}">${d.platoon_tier}</span>
-          <span>${d.pa} PA</span>
-          <span>·</span>
-          <span>${fmtWoba(d.woba)} wOBA</span>
-          <span>${fmtWoba(d.xwoba)} xwOBA</span>
         </div>
       </div>
       <div class="pp-grades-row">
@@ -931,18 +908,18 @@ function renderPlayerPage(id) {
         ${ROLLING[d.id] ? `
           <div class="rolling-controls">
             <div class="rolling-tabs" id="rollingMetricTabs">
-              <button class="rt-tab active" data-metric="woba">wOBA suite</button>
-              <button class="rt-tab" data-metric="zone">Outcomes</button>
+              <button class="rt-tab active" data-metric="outcomes">Outcomes</button>
+              <button class="rt-tab" data-metric="discipline">Discipline</button>
+              <button class="rt-tab" data-metric="power">Power</button>
+              <button class="rt-tab" data-metric="swing">Swing path</button>
             </div>
             <div class="rolling-window">
-              <span class="rw-lbl">Window:</span>
+              <span class="rw-lbl">PA</span>
               <button class="rw-btn" data-window="50">50</button>
               <button class="rw-btn active" data-window="100">100</button>
               <button class="rw-btn" data-window="250">250</button>
             </div>
           </div>
-          
-          <div id="rollingLegend" class="rolling-legend"></div>
           
           <div id="rollingChartHost"></div>
         ` : '<div style="padding: 24px 0; color: var(--ink-3); font-family: \'Inter\', sans-serif; font-size: 12px;">Rolling data not available for this hitter.</div>'}

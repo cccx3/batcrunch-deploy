@@ -670,7 +670,7 @@ function renderRollingChart(slice, windowSize) {
   const unit=info.unit;
   const lines=info.L.map(function(a){return {name:a[0],color:a[1],v:a[2],thick:a[3],cur:a[2][a[2].length-1]};});
   const len=lines[0].v.length;
-  const W=960,H=350,mL=58,mR=24,mT=78,mB=38,iw=W-mL-mR,ih=H-mT-mB;
+  const W=960,H=350,mL=58,mR=24,mT=52,mB=38,iw=W-mL-mR,ih=H-mT-mB;
   let all=[]; lines.forEach(function(L){all=all.concat(L.v);});
   let lo=Math.min.apply(null,all),hi=Math.max.apply(null,all);
   if(unit==='woba')lo=Math.min(lo,info.base);
@@ -683,16 +683,16 @@ function renderRollingChart(slice, windowSize) {
   const Y=function(v){return mT+(1-(v-lo)/((hi-lo)||1))*ih;};
   let s='';
   const title='Last '+windowSize+' PA';
-  s+='<text x="'+mL+'" y="20" font-size="17" font-weight="800" fill="'+WHITE+'">'+title+'</text>';
-  s+='<text x="'+(mL+title.length*10.2+8)+'" y="20" font-size="13.5" font-weight="600" fill="'+INK2+'">\u00b7 '+SLABELS[slice]+'</text>';
-  s+='<text x="'+(W-mR)+'" y="20" text-anchor="end" font-size="11" font-weight="700" fill="#8a8a85" letter-spacing=".06em">PA AGO \u2192 NOW</text>';
-  let lx=mL;
-  lines.forEach(function(L){
+  s+='<text x="'+mL+'" y="26" font-size="17" font-weight="800" fill="'+WHITE+'">'+title+'</text>';
+  var segW=lines.map(function(L){var val=fmtVal(L.cur);return 18+L.name.length*8+9+val.length*8.5;});
+  var totW=segW.reduce(function(a,b){return a+b+24;},0)-24;
+  var lx=W-mR-totW;
+  lines.forEach(function(L,i){
     var val=fmtVal(L.cur);
-    s+='<rect x="'+lx+'" y="40" width="12" height="12" rx="2" fill="'+L.color+'"/>';
-    s+='<text x="'+(lx+18)+'" y="50" font-size="13.5" font-weight="700" fill="#e0e0da">'+L.name+'</text>';
-    s+='<text x="'+(lx+18+L.name.length*8+8)+'" y="50" font-size="13.5" font-weight="800" fill="'+L.color+'">'+val+'</text>';
-    lx+=18+L.name.length*8+8+val.length*8.5+30;
+    s+='<rect x="'+lx+'" y="15" width="12" height="12" rx="2" fill="'+L.color+'"/>';
+    s+='<text x="'+(lx+18)+'" y="26" font-size="13.5" font-weight="700" fill="#cfcfc9">'+L.name+'</text>';
+    s+='<text x="'+(lx+18+L.name.length*8+9)+'" y="26" font-size="13.5" font-weight="800" fill="'+L.color+'">'+val+'</text>';
+    lx+=segW[i]+24;
   });
   ticks.forEach(function(t){var y=Y(t).toFixed(1);
     s+='<line x1="'+mL+'" y1="'+y+'" x2="'+(mL+iw)+'" y2="'+y+'" stroke="rgba(255,255,255,.08)" stroke-width="1"/>';
@@ -1308,7 +1308,7 @@ load();
     if(!r){box.style.display='none';pinFooter(false);return;}
     box.style.display='block';
     var dh=pinFooter(true);
-    box.style.left=r.left+'px';box.style.width=r.width+'px';var BUF=5,__key=window.innerWidth+'x'+window.innerHeight+'|'+Math.round(dh);if(window.__boxHKey!==__key){var __dh=Math.max(200,Math.min(480,Math.round(r.height*0.52)));var __rows=document.querySelectorAll('#tbody tr[data-id]'),__h=__dh;if(__rows.length){var __ft=__rows[0].getBoundingClientRect().top,__rh=__rows[0].getBoundingClientRect().height||56;var __raw=window.innerHeight-(dh+BUF)-__dh;var __kM=Math.max(2,Math.floor((window.innerHeight-(dh+BUF)-200-__ft)/__rh));var __k=Math.min(__kM,Math.max(2,Math.round((__raw-__ft)/__rh)));__h=Math.max(180,(window.innerHeight-(dh+BUF)-(__ft+__k*__rh)));}window.__boxH=__h;window.__boxHKey=__key;}box.style.top='auto';box.style.height=window.__boxH+'px';box.style.bottom=(dh+BUF)+'px';
+    box.style.left=r.left+'px';box.style.width=r.width+'px';var BUF=-4,__key=window.innerWidth+'x'+window.innerHeight+'|'+Math.round(dh);if(window.__boxHKey!==__key){var __dh=Math.max(200,Math.min(480,Math.round(r.height*0.52)));var __rows=document.querySelectorAll('#tbody tr[data-id]'),__h=__dh;if(__rows.length){var __ft=__rows[0].getBoundingClientRect().top,__rh=__rows[0].getBoundingClientRect().height||56;var __raw=window.innerHeight-(dh+BUF)-__dh;var __kM=Math.max(2,Math.floor((window.innerHeight-(dh+BUF)-200-__ft)/__rh));var __k=Math.min(__kM,Math.max(2,Math.round((__raw-__ft)/__rh)));__h=Math.max(180,(window.innerHeight-(dh+BUF)-(__ft+__k*__rh)));}window.__boxH=__h;window.__boxHKey=__key;}box.style.top='auto';box.style.height=window.__boxH+'px';box.style.bottom=(dh+BUF)+'px';
     var bb=box.getBoundingClientRect();
     box.innerHTML=rollChart(Math.round(bb.width),Math.round(bb.height));
     box.querySelectorAll('[data-bct]').forEach(function(b){b.onclick=function(){var p=b.dataset.bct;slice=(p==='pow')?'raw':(p==='path')?'ang':p;place();};});

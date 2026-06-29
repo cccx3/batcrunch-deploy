@@ -76,7 +76,7 @@
   .layout { display: grid; grid-template-columns: minmax(0, 1fr) 480px; min-height: calc(100vh - 260px); max-width: 1500px; margin: 0 auto; }
   .table-wrap { overflow-x: auto; border-right: 1px solid var(--line); }
 
-  table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 0; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 880px; }
   thead tr { background: var(--bg-2); border-bottom: 1px solid var(--line); }
   th {
     text-align: left; padding: 12px 12px;
@@ -112,8 +112,8 @@
   .side-pill.S { border-color: #5a4d2a; color: #d9c47d; }
 
   .platoon-pill {
-    display: inline-block; font-family: 'Inter', sans-serif; font-variant-numeric: tabular-nums; font-size: 11px;
-    padding: 2px 5px; border: 1px solid var(--line-2); border-radius: 2px;
+    display: inline-block; font-family: 'Inter', sans-serif; font-variant-numeric: tabular-nums; font-size: 12px;
+    padding: 2px 8px; border: 1px solid var(--line-2); border-radius: 2px;
     color: var(--ink-2); letter-spacing: 0.04em;
   }
   .platoon-pill.p-Everyday { border-color: var(--line-2); color: var(--ink-2); }
@@ -121,8 +121,8 @@
   .platoon-pill.p-Strict { border-color: #6d2a6d; color: #d47de0; background: rgba(212,125,224,0.08); }
   .platoon-pill.p-— { opacity: 0.4; }
   .luck-pill {
-    display: inline-block; font-family: 'Inter', sans-serif; font-variant-numeric: tabular-nums; font-size: 11px;
-    padding: 2px 5px; border: 1px solid var(--line-2); border-radius: 2px;
+    display: inline-block; font-family: 'Inter', sans-serif; font-variant-numeric: tabular-nums; font-size: 12px;
+    padding: 2px 8px; border: 1px solid var(--line-2); border-radius: 2px;
     color: var(--ink-2); letter-spacing: 0.04em;
   }
   /* Hot/Warm = lucky (overperforming xwOBA, regression coming) - red-ish */
@@ -155,7 +155,7 @@
 
   .grade {
     display: inline-flex; align-items: center; justify-content: center;
-    min-width: 0; height: 24px; padding: 0 4px;
+    min-width: 34px; height: 24px; padding: 0 6px;
     font-weight: 800; font-size: 13px; letter-spacing: -0.02em;
     border-radius: 3px; color: #0a0a0a;
   }
@@ -1190,19 +1190,13 @@
   body > .dash-footer { flex:0 0 auto; margin-top:0; padding:13px 24px; text-align:center; }
   .dash-footer p { font-size:12.5px; line-height:1.4; color:var(--ink-3); margin:0 auto; }
   .controls { max-width:none; margin:0; padding-top:14px; padding-bottom:14px; padding-left:max(24px, calc((100% - 1500px) / 2)); padding-right:max(24px, calc((100% - 1500px) / 2)); }
-  .layout { flex:1 1 auto; min-height:0; display:grid; grid-template-columns: minmax(0,1fr) 460px; grid-template-rows: minmax(0,1fr); max-width:1500px; margin:0 auto; width:100%; align-items:stretch; }
+  .layout { flex:1 1 auto; min-height:0; display:grid; grid-template-columns: minmax(0,1fr) 400px; grid-template-rows: minmax(0,1fr); max-width:1500px; margin:0 auto; width:100%; align-items:stretch; }
   .table-wrap { height:100%; min-height:0; overflow-y:auto; overflow-x:hidden; }
-  #lb { width:100%; min-width:0; table-layout:fixed; font-size:12.5px; }
-  #lb th { font-size:9.5px; letter-spacing:0.03em; }
+  #lb { width:100%; min-width:0; }
   #lb thead th { position:sticky; top:0; z-index:2; background:var(--bg); }
-  #lb th, #lb td { padding-left:6px; padding-right:6px; overflow:hidden; text-overflow:ellipsis; }
-  #lb th[data-k="team"]{width:7%;}  #lb th[data-k="side"]{width:5%;}
-  #lb th[data-k="platoon"]{width:10%;}  #lb th[data-k="overall"]{width:7%;}
-  #lb th[data-k="power"]{width:7%;}  #lb th[data-k="contact"]{width:7%;}
-  #lb th[data-k="discipline"]{width:7%;}  #lb th[data-k="luck"]{width:8%;}
-  #lb th[data-k="form"]{width:9%;}  #lb th[data-k="park"]{width:9%;}
-  #lb th[data-k="rank"], #lb td.rank { box-sizing:border-box; width:5%; padding-left:10px; padding-right:4px; }
-  #lb th[data-k="name"], #lb td.name-cell { box-sizing:border-box; width:19%; max-width:none; padding-left:8px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  #lb th, #lb td { padding-left:11px; padding-right:11px; }
+  #lb th[data-k="rank"], #lb td.rank { box-sizing:border-box; width:46px; padding-left:12px; padding-right:6px; }
+  #lb th[data-k="name"], #lb td.name-cell { box-sizing:border-box; width:auto; min-width:150px; padding-left:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
   aside#panel { height:100%; min-height:0; max-height:none; top:auto; position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center; background:var(--bg); overflow:hidden; padding:0 16px; box-sizing:border-box; }
   .panel-card { display:flex; flex-direction:column; align-items:center; justify-content:flex-start; gap:14px; min-height:0; width:100%; height:100%; padding:24px 0 14px; box-sizing:border-box; position:relative; }

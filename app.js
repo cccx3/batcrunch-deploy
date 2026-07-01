@@ -98,6 +98,7 @@ function recompute() {
   barrel_pct: [...src].map(d=>d.barrel_pct).filter(x=>x!=null).sort((a,b)=>a-b),
   sweet_pct: [...src].map(d=>d.sweet_pct).filter(x=>x!=null).sort((a,b)=>a-b),
   woba: [...src].map(d=>d.woba).filter(x=>x!=null).sort((a,b)=>a-b),
+  xwoba: [...src].map(d=>d.xwoba).filter(x=>x!=null).sort((a,b)=>a-b),
   luck_diff: [...src].map(d=>(d.xwoba!=null && d.woba!=null) ? (d.xwoba-d.woba) : null).filter(x=>x!=null).sort((a,b)=>a-b),
   ev90: [...src].map(d=>d.ev90).filter(x=>x!=null).sort((a,b)=>a-b),
   bat_speed_s: [...src].map(d=>d.bat_speed).filter(x=>x!=null).sort((a,b)=>a-b),
@@ -670,7 +671,7 @@ function renderRollingChart(slice, windowSize) {
   const unit=info.unit;
   const lines=info.L.map(function(a){return {name:a[0],color:a[1],v:a[2],thick:a[3],cur:a[2][a[2].length-1]};});
   const len=lines[0].v.length;
-  const W=960,H=350,mL=58,mR=24,mT=52,mB=38,iw=W-mL-mR,ih=H-mT-mB;
+  const W=960,H=528,mL=58,mR=24,mT=40,mB=42,iw=W-mL-mR,ih=H-mT-mB;
   let all=[]; lines.forEach(function(L){all=all.concat(L.v);});
   let lo=Math.min.apply(null,all),hi=Math.max.apply(null,all);
   if(unit==='woba')lo=Math.min(lo,info.base);
@@ -683,7 +684,7 @@ function renderRollingChart(slice, windowSize) {
   const Y=function(v){return mT+(1-(v-lo)/((hi-lo)||1))*ih;};
   let s='';
   const title='Last '+windowSize+' PA';
-  s+='<text x="'+mL+'" y="26" font-size="17" font-weight="800" fill="'+WHITE+'">'+title+'</text>';
+
   var segW=lines.map(function(L){var val=fmtVal(L.cur);return 18+L.name.length*8+9+val.length*8.5;});
   var totW=segW.reduce(function(a,b){return a+b+24;},0)-24;
   var lx=W-mR-totW;
@@ -813,134 +814,195 @@ function yoyLegendHTML() {
     + '<span class="yoy-bar-legend-item"><span class="yoy-bar-legend-sw curr"></span>'+curYear+'</span></div>';
 }
 
-function renderPlayerPage(id) {
-  const d = DATA.find(x => x.id === id);
-  ROLLING_ROWS = (d && ROLLING[d.id]) || null;
-  const pp = document.getElementById('playerPage');
-  if (!d || !pp) {
-    if (pp) pp.style.display = 'none';
-    return;
-  }
-  document.body.style.overflow = 'hidden';
-  pp.style.display = 'block';
-  
-  function bar(value, label, sortedArr, invert) {
-    if (value == null) return `<b style="color:#8a8a85">—</b>`;
-    return `<b style="color: #f5f5f0;font-weight:600">${label}</b>`;
-  }
-  
-  const fmt = (v, suf='') => v == null ? '—' : (typeof v === 'number' ? v.toFixed(1) + suf : v);
-  const fmtRate = (v) => v == null ? '—' : (v * 100).toFixed(1) + '%';
-  const fmtWoba = (v) => v == null ? '—' : v.toFixed(3).replace(/^0/, '');
-  const fmtSigned = (v) => v == null ? '—' : (v >= 0 ? '+' : '') + v.toFixed(3).replace(/^(-?)0/, '$1');
+function ppRamp(p, boost){
+  var MID=[141,131,122],RED=[214,32,40],BLUE=[46,96,182];
+  var base, b; if(p>=50){base=(p-50)/50;b=RED;}else{base=(50-p)/50;b=BLUE;}
+  var t=Math.min(1,Math.pow(base,0.7)+(boost||0));
+  var L=(x,y)=>Math.round(x+(y-x)*t);
+  return 'rgb('+L(MID[0],b[0])+','+L(MID[1],b[1])+','+L(MID[2],b[2])+')';
+}
+function ppBarsHTML(d){
+  var woba3=v=>v.toFixed(3).replace(/^0/,'');
+  var R=[
+    ['Z-Swing%', percentile(S.z_swing,d.z_swing), (d.z_swing*100).toFixed(1)+'%'],
+    ['Z-Contact%', percentile(S.z_contact_s,d.z_contact), (d.z_contact*100).toFixed(1)+'%'],
+    ['O-Contact%', percentile(S.o_contact,d.o_contact), (d.o_contact*100).toFixed(1)+'%'],
+    ['Ideal AA%', percentile(S.iaa,d.iaa), d.iaa.toFixed(1)+'%'],
+    ['Bat speed', percentile(S.bat_speed_s,d.bat_speed), d.bat_speed.toFixed(1)],
+    ['Barrel%', percentile(S.barrel_pct,d.barrel_pct), d.barrel_pct.toFixed(1)+'%'],
+    ['wOBA', percentile(S.woba,d.woba), woba3(d.woba)],
+    ['xwOBA', percentile(S.xwoba,d.xwoba), woba3(d.xwoba)]
+  ];
+  return R.map(function(r){var lab=r[0],pct=Math.round(r[1]),val=r[2];
+    var fill=ppRamp(pct,0),dotc=ppRamp(pct,0.22),dl=Math.max(4,Math.min(96,pct));
+    return '<div class="row"><div class="r-lab">'+lab+'</div><div class="track"><div class="fill" style="width:'+dl+'%;background:'+fill+'"></div><div class="dot" style="left:'+dl+'%;background:'+dotc+'">'+pct+'</div></div><div class="r-val">'+val+'</div></div>';
+  }).join('');
+}
+var PP_STATS={bat:{lab:'Bat speed',u:'',key:'bat_speed',up:true},barrel:{lab:'Barrel%',u:'%',key:'barrel',up:true},zct:{lab:'Z-Contact%',u:'%',key:'z_contact',up:true},bb:{lab:'BB%',u:'%',key:'bb',up:true},k:{lab:'K%',u:'%',key:'k',up:false}};
+var PP_CLOUD=null;
+var PP_CSS=`.ppx{--bg:#0a0a0a;--bg-3:#1a1a1a;--line:#252525;--line-2:#353535;--ink:#f5f5f0;--ink-2:#9a9a95;--ink-3:#8a8a85;--accent:#ffd54a;--ink2:#9a9a95;--ink3:#8a8a85;--warm:#e0a878;--cool:#7fb3dd}.ppx *{box-sizing:border-box}.ppx{margin:0;min-height:100vh;background:linear-gradient(155deg,#1a140c 0%,#0c0a07 56%,#0a0a0a 100%);background-attachment:fixed}.ppx .ppx-main{max-width:1500px;margin:0 auto;padding:28px 30px 52px;font-family:'Inter',sans-serif;font-variant-numeric:tabular-nums;color:var(--ink)}.ppx .ph-top{display:flex;align-items:center;gap:22px}.ppx .ph-name{font-size:57px;font-weight:800;letter-spacing:-.03em;margin:0;line-height:.95}.ppx .ph-grade{flex:none;width:78px;height:78px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:36px;font-weight:800;color:#fff;background:#e63946}.ppx .ph-meta{margin-top:15px;display:flex;gap:9px;align-items:center;font-size:14.5px;color:var(--ink2);font-weight:500;margin-bottom:29px}.ppx .pill{border:1px solid #313131;border-radius:4px;padding:3px 9px;font-size:12px;font-weight:600}.ppx .pill.team{color:#e07d5a;border-color:#6e3526}.ppx .main{display:flex;gap:26px;align-items:stretch}.ppx .left{flex:0 0 42%;display:flex}.ppx .right{flex:1;min-width:0;display:flex;flex-direction:column;gap:18px}.ppx .viz{border:1px solid #2a2a2a;border-radius:10px;background:#121212;overflow:hidden;flex:1;display:flex;flex-direction:column}.ppx .viz-head{padding:10px 12px;border-bottom:1px solid #232323;background:#161616;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}.ppx .viz-sel{background:#1e1e1e;color:#e8e4da;border:1px solid #343434;border-radius:6px;padding:6px 10px;font-size:12.5px;font-weight:600;font-family:inherit;cursor:pointer}.ppx .viz-cap{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink3);font-weight:600}.ppx .vz-body{padding:18px 20px 22px;flex:1;display:flex;flex-direction:column;position:relative}.ppx #vz-bars{flex:1;display:flex;flex-direction:column}.ppx #vz-radar{display:none;align-items:center;justify-content:center;position:absolute;inset:18px 20px 22px}.ppx #vz-radar svg{width:100%;height:auto;max-width:none}.ppx #vz-quad{display:none;position:absolute;inset:18px 20px 22px;flex-direction:column}.ppx #quadHost{flex:1;display:flex;align-items:center;justify-content:center;min-height:0;width:100%}.ppx .swing-top{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding-bottom:15px;margin-bottom:15px;border-bottom:1px solid #242424}.ppx .stp{display:flex;flex-direction:column;gap:3px}.ppx .stp span{font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink3);font-weight:700}.ppx .stp b{font-size:16px;color:var(--ink)}.ppx .scale{display:grid;grid-template-columns:104px 1fr 52px;margin-bottom:12px}.ppx .scale-mk{grid-column:2;position:relative;height:26px}.ppx .smk{position:absolute;transform:translateX(-50%);text-align:center;font-size:10.5px;font-weight:700;letter-spacing:.04em}.ppx .smk b{display:block;line-height:1}.ppx .smk i{display:block;width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;margin:4px auto 0}.ppx .smk.poor{color:#5b82c8}.ppx .smk.poor i{border-bottom:6px solid #5b82c8}.ppx .smk.avg{color:#8a8a85}.ppx .smk.avg i{border-bottom:6px solid #8a8a85}.ppx .smk.great{color:#e0454a}.ppx .smk.great i{border-bottom:6px solid #e0454a}.ppx .row{display:grid;grid-template-columns:104px 1fr 52px;align-items:center;column-gap:13px;height:46px}.ppx .r-lab{text-align:right;font-size:13px;font-weight:600;color:#cdcbc3}.ppx .r-val{text-align:left;font-size:14px;font-weight:700;color:#f2f0ea}.ppx .track{position:relative;height:22px;background:#202225;border-radius:2px;overflow:visible}.ppx .fill{height:100%}.ppx .dot{position:absolute;top:50%;transform:translate(-50%,-50%);width:29px;height:29px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;border:2.5px solid #fff}.ppx .qpick{display:flex;align-items:center;gap:10px;margin-bottom:14px;font-size:13px;color:var(--ink3);font-weight:600}.ppx .qpick select{background:#1e1e1e;color:#e8e4da;border:1px solid #343434;border-radius:5px;padding:6px 10px;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer}.ppx .qpick .vs{color:#666}.ppx .qstat{margin:2px 0 10px;font-size:12px;font-weight:600;color:var(--ink3);display:flex;align-items:center;gap:8px}.ppx .qstat .jp{font-size:13px;font-weight:800;color:#cfcdc6}.ppx .qstat .ar{color:#555}.ppx .qstat .now{color:#ffd54a}.ppx .qlegend{display:flex;gap:20px;justify-content:center;margin-top:10px;font-size:12.5px;font-weight:600;color:var(--ink2)}.ppx .qlegend .d{display:inline-flex;align-items:center;gap:6px}.ppx .qlegend .gd{width:11px;height:11px;border-radius:50%;border:2px solid #777;background:#0a0a0a;display:inline-block}.ppx .qlegend .sd{width:13px;height:13px;border-radius:50%;background:#ffd54a;display:inline-block}.ppx .rollpanel{border:1px solid #2c2c30;border-radius:10px;background:#181b1e;overflow:hidden;flex:1;display:flex;flex-direction:column}.ppx .rolling-controls{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;width:100%;padding:11px 14px;border-bottom:1px solid #2a2d31;background:#15181b}.ppx .rolling-tabs{display:flex;gap:6px}.ppx .rt-tab{background:#1a1a1a;border:1px solid var(--line-2);color:#d8d8d2;padding:9px 16px;font-family:'Inter',sans-serif;font-size:14px;font-weight:700;letter-spacing:.01em;cursor:pointer;border-radius:3px}.ppx .rt-tab.active{background:#f0f0ea;color:#0a0a0a;border-color:#f0f0ea}.ppx .rolling-window{display:flex;align-items:center;gap:8px}.ppx .rw-lbl{font-family:'Inter',sans-serif;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}.ppx .rw-btn{background:#1a1a1a;border:1px solid var(--line-2);color:#d8d8d2;padding:8px 13px;font-family:'Inter',sans-serif;font-size:13.5px;font-weight:700;cursor:pointer;border-radius:3px;font-variant-numeric:tabular-nums}.ppx .rw-btn.active{background:#f0f0ea;color:#0a0a0a;border-color:#f0f0ea}.ppx .rolling-tab-body{display:block;width:100%}.ppx #rollingChartHost{margin:0;background:transparent;border:none;border-radius:0;padding:16px 18px 14px;flex:1;display:flex;align-items:center}.ppx #rollingChartHost svg{display:block;width:100%}.ppx #rollHost{flex:1;min-height:0;width:100%;display:block}.ppx .roll-cap{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink3);font-weight:600;margin:0 0 12px 2px}.ppx .prof-below{margin-top:18px}.ppx .prof-h{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3);font-weight:600;margin-bottom:11px}.ppx .prof{display:grid;grid-template-columns:repeat(3,1fr);gap:11px}.ppx .prof .pc{border:1px solid #2a2a2a;border-radius:7px;background:#161616;padding:11px 14px;display:flex;flex-direction:column;gap:4px}.ppx .prof .pc span{font-size:11px;color:var(--ink3);font-weight:600}.ppx .prof .pc b{font-size:16px}
 
-  const luck = (d.woba != null && d.xwoba != null) ? d.woba - d.xwoba : null;
-  const luckGap = luck == null ? '—' : fmtSigned(luck);
-  const luckColor = luck == null ? 'var(--ink-2)' : (Math.abs(luck) < 0.005 ? 'var(--ink-2)' : (luck > 0 ? '#d99a6c' : '#7fb3dd'));
-  const yoyLegend = yoyLegendHTML();
-  const yoyBars = renderYoYRows(d);
-
-  
-  pp.querySelector('.pp-inner').innerHTML = `
-    <button class="pp-back" onclick="history.back()">← Back to all hitters</button>
-    <div class="pp-header">
-      <div>
-        <div class="pp-name">${d.first} ${d.last}</div>
-        <div class="pp-meta">
-          <span class="side-pill ${d.side}">${d.side}</span>
-          ${d.team ? `<span class="team-pill team-${d.team}">${d.team}</span>` : ''}
-          <span>${d.position || ''}</span>
-          <span>·</span>
-          <span class="platoon-pill p-${d.platoon_tier}">${d.platoon_tier}</span>
-        </div>
-      </div>
-      <div class="pp-grades-row">
-        <div class="pp-grade pp-grade-overall"><div class="pp-grade-label">Overall</div>${gradeBadge(d.overall)}</div>
-      </div>
-    </div>
-    <div class="pp-tabs" id="ppTabs">
-      <button data-tab="stats" class="active">Stats + YoY</button>
-      <button data-tab="rolling">Rolling</button>
-    </div>
-    
-    <div class="pp-tab-panel active" data-panel="stats">
-      <div class="pp-overview">
-        <div class="pp-overview-stats">
-          <div class="pp-panel">
-            <div class="pp-bnr">Plate skills</div>
-            <div class="pp-rows">
-              <div class="pp-stat-row"><span>Z-Swing%</span>${bar(d.z_swing, fmtRate(d.z_swing), S.z_swing)}</div>
-              <div class="pp-stat-row"><span>Z-Contact%</span>${bar(d.z_contact, fmtRate(d.z_contact), S.z_contact_s)}</div>
-              <div class="pp-stat-row"><span>O-Contact%</span>${bar(d.o_contact, fmtRate(d.o_contact), S.o_contact)}</div>
-            </div>
-          </div>
-          <div class="pp-panel">
-            <div class="pp-bnr">Swing path</div>
-            <div class="pp-rows">
-              <div class="pp-stat-row"><span>Attack angle</span>${bar(d.attack_angle, fmt(d.attack_angle, '°'), S.attack_angle)}</div>
-              <div class="pp-stat-row"><span>Ideal AA%</span>${bar(d.iaa, d.iaa != null ? d.iaa.toFixed(1) + '%' : '—', S.iaa)}</div>
-              <div class="pp-stat-row"><span>Attack direction</span>${bar(d.attack_direction, attackDirLabel(d.attack_direction), S.attack_direction)}</div>
-              <div class="pp-stat-row"><span>Swing tilt</span>${bar(d.tilt, swingTiltLabel(d.tilt), S.tilt)}</div>
-            </div>
-          </div>
-          <div class="pp-panel">
-            <div class="pp-bnr">Value</div>
-            <div class="pp-rows">
-              <div class="pp-stat-row"><span>wOBA</span><b style="color:#f5f5f0;font-weight:600">${fmtWoba(d.woba)}</b></div>
-              <div class="pp-stat-row"><span>xwOBA</span><b style="color:var(--accent);font-weight:600">${fmtWoba(d.xwoba)}</b></div>
-              <div class="pp-stat-row"><span>Luck gap</span><b style="color:${luckColor};font-weight:600">${luckGap}</b></div>
-            </div>
-          </div>
-        </div>
-        <div class="pp-panel pp-overview-radar">
-          <div class="pp-bnr">Year over year</div>
-          ${yoyLegend}
-          <div class="pp-radar-row">
-            <div class="pp-radar-wrap">${renderRadar(d)}</div>
-            <div class="pp-yoy-bars">${yoyBars}</div>
-          </div>
-        </div>
-      </div>
-    </div>
-    
-    <div class="pp-tab-panel" data-panel="rolling">
-      <div class="rolling-tab-body">
-        ${ROLLING[d.id] ? `
-          <div class="rolling-controls">
-            <div class="rolling-tabs" id="rollingMetricTabs">
-              <button class="rt-tab active" data-metric="outcomes">Outcomes</button>
-              <button class="rt-tab" data-metric="discipline">Discipline</button>
-              <button class="rt-tab" data-metric="power">Power</button>
-              <button class="rt-tab" data-metric="swing">Swing path</button>
-            </div>
-            <div class="rolling-window">
-              <span class="rw-lbl">PA</span>
-              <button class="rw-btn" data-window="50">50</button>
-              <button class="rw-btn active" data-window="100">100</button>
-              <button class="rw-btn" data-window="250">250</button>
-            </div>
-          </div>
-          
-          <div id="rollingChartHost"></div>
-        ` : '<div style="padding: 24px 0; color: var(--ink-3); font-family: \'Inter\', sans-serif; font-size: 12px;">Rolling data not available for this hitter.</div>'}
-      </div>
-    </div>
-    
-
-
-  `;
-  
-  // Wire up tab switching
-  pp.querySelectorAll('.pp-tabs button').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const target = btn.dataset.tab;
-      pp.querySelectorAll('.pp-tabs button').forEach(b => b.classList.toggle('active', b.dataset.tab === target));
-      pp.querySelectorAll('.pp-tab-panel').forEach(p => p.classList.toggle('active', p.dataset.panel === target));
-        if (target === 'rolling') { setTimeout(wireRollingControls, 0); }
-    });
+@media (max-width:900px){.ppx .ppx-main{padding:20px 16px 30px;max-width:100%}.ppx .ph-name{font-size:34px;line-height:1}.ppx .ph-grade{width:52px;height:52px;font-size:24px;border-radius:11px}.ppx .ph-top{gap:14px}.ppx .ph-meta{font-size:12.5px;margin-bottom:20px}.ppx .main{flex-direction:column;gap:18px;align-items:stretch}.ppx .left, .ppx .right{flex:1 1 auto;width:100%}.ppx .viz{flex:none}.ppx .rollpanel{flex:none}.ppx #rollHost{flex:none;height:265px}.ppx .prof-below .prof, .ppx .prof{grid-template-columns:repeat(3,1fr)}.ppx .qpick{flex-wrap:wrap;gap:8px}.ppx .qpick select{flex:1 1 40%;min-width:0}.ppx .rolling-tabs{flex-wrap:wrap;gap:7px;width:100%}.ppx .rt-tab{flex:1 1 42%;padding:9px 10px;font-size:13px;white-space:nowrap;text-align:center}.ppx .rw-btn{padding:7px 12px;font-size:13px}.ppx .row{height:43px}.ppx .swing-top{padding-bottom:12px;margin-bottom:12px}.ppx .stp b{font-size:15px}}.ppx svg text{font-family:'Inter',sans-serif}`;
+function ppBuildCloud(d){
+  var pool=DATA.filter(x=>x.pa>=QUALPA);
+  var rows=[];
+  pool.forEach(function(x){
+    var r={bat_speed:x.bat_speed,barrel:x.barrel_pct,z_contact:x.z_contact!=null?x.z_contact*100:null,bb:x.bb_pct!=null?x.bb_pct*100:null,k:x.k_pct!=null?x.k_pct*100:null,id:x.id};
+    if(r.bat_speed!=null&&r.barrel!=null&&r.z_contact!=null&&r.bb!=null&&r.k!=null) rows.push(r);
   });
-  // render the rolling chart on load so it shows on desktop (no tab click needed)
-  setTimeout(wireRollingControls, 0);
+  var y26={bat_speed:d.bat_speed,barrel:d.barrel_pct,z_contact:d.z_contact*100,bb:d.bb_pct*100,k:d.k_pct*100};
+  var prevYear=String(+curYear-1);
+  var py=(typeof YEARS!=='undefined'&&YEARS[prevYear])?YEARS[prevYear].players[d.id]:null;
+  var y25=py?{bat_speed:py.bat_speed,barrel:py.barrel,z_contact:py.z_contact,bb:py.bb,k:py.k}:y26;
+  PP_CLOUD={rows:rows,y25:y25,y26:y26};
+}
+function ppDrawQuad(){
+  if(!PP_CLOUD)return;
+  var X=PP_STATS[document.getElementById('qx').value],Y=PP_STATS[document.getElementById('qy').value];
+  var rows=PP_CLOUD.rows,y25=PP_CLOUD.y25,y26=PP_CLOUD.y26;
+  var W=500,H=346,PL=50,PR=18,PT=16,PB=44,pw=W-PL-PR,ph=H-PT-PB;
+  function dom(k){var vs=rows.map(r=>r[k]).concat([y25[k],y26[k]]);var mn=Math.min.apply(null,vs),mx=Math.max.apply(null,vs);var pad=(mx-mn)*0.08||1;return [mn-pad,mx+pad];}
+  function mean(k){return rows.reduce((a,r)=>a+r[k],0)/rows.length;}
+  var dX=dom(X.key),dY=dom(Y.key);
+  var xs=v=>PL+(v-dX[0])/(dX[1]-dX[0])*pw, ys=v=>PT+(1-(v-dY[0])/(dY[1]-dY[0]))*ph;
+  var cx=xs(mean(X.key)),cy=ys(mean(Y.key));
+  var gx=X.up?'right':'left',gy=Y.up?'top':'bottom';
+  var ixr=gx==='right'?[cx,PL+pw]:[PL,cx], iyr=gy==='top'?[PT,cy]:[cy,PT+ph];
+  var x25=xs(y25[X.key]),y25p=ys(y25[Y.key]),x26=xs(y26[X.key]),y26p=ys(y26[Y.key]);
+  var dx=x26-x25,dy=y26p-y25p,len=Math.hypot(dx,dy)||1,ex=x26-dx/len*11,ey=y26p-dy/len*11;
+  var dk=Math.abs(dx)>=Math.abs(dy)?X:Y;
+  var fm=(v,u)=>v.toFixed(1)+u;
+  var cloud=rows.map(r=>'<circle cx="'+xs(r[X.key]).toFixed(1)+'" cy="'+ys(r[Y.key]).toFixed(1)+'" r="3.6" fill="#74747e" fill-opacity="0.5"/>').join('');
+  var tagx=gx==='right'?PL+pw-8:PL+8,ta=gx==='right'?'end':'start',tagy=gy==='top'?PT+16:PT+ph-9;
+  var svg='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;max-height:100%;display:block;margin:0 auto">'
+   +'<rect x="'+PL+'" y="'+PT+'" width="'+pw+'" height="'+ph+'" fill="#13151a"/>'
+   +'<rect x="'+ixr[0]+'" y="'+iyr[0]+'" width="'+(ixr[1]-ixr[0])+'" height="'+(iyr[1]-iyr[0])+'" fill="#1b2128"/>'
+   +'<line x1="'+cx+'" y1="'+PT+'" x2="'+cx+'" y2="'+(PT+ph)+'" stroke="#565662" stroke-width="1.2"/>'
+   +'<line x1="'+PL+'" y1="'+cy+'" x2="'+(PL+pw)+'" y2="'+cy+'" stroke="#565662" stroke-width="1.2"/>'
+   +'<text x="'+(cx+6)+'" y="'+(cy-7)+'" font-size="11" fill="#9a9a92" font-weight="700" letter-spacing=".05em">LG AVG</text>'
+   +cloud
+   +'<rect x="'+PL+'" y="'+PT+'" width="'+pw+'" height="'+ph+'" fill="none" stroke="#3a3a44" stroke-width="1.2"/>'
+   +'<text x="'+tagx+'" y="'+tagy+'" text-anchor="'+ta+'" font-size="11.5" letter-spacing=".14em" font-weight="800" fill="#e0a878">IDEAL</text>'
+   +'<text x="'+PL+'" y="'+(PT+ph+18)+'" text-anchor="middle" font-size="11" fill="#86867e" font-weight="600">'+dX[0].toFixed(0)+'</text>'
+   +'<text x="'+(PL+pw)+'" y="'+(PT+ph+18)+'" text-anchor="middle" font-size="11" fill="#86867e" font-weight="600">'+dX[1].toFixed(0)+X.u+'</text>'
+   +'<text x="'+(PL-9)+'" y="'+(PT+ph+4)+'" text-anchor="end" font-size="11" fill="#86867e" font-weight="600">'+dY[0].toFixed(0)+'</text>'
+   +'<text x="'+(PL-9)+'" y="'+(PT+9)+'" text-anchor="end" font-size="11" fill="#86867e" font-weight="600">'+dY[1].toFixed(0)+Y.u+'</text>'
+   +(len>4?'<line x1="'+x25+'" y1="'+y25p+'" x2="'+ex+'" y2="'+ey+'" stroke="#efeee7" stroke-width="2.4" marker-end="url(#qarw)"/>':'')
+   +'<circle cx="'+x25+'" cy="'+y25p+'" r="5.5" fill="#13151a" stroke="#ecebe2" stroke-width="2.2"/>'
+   +'<text x="'+(x25-9)+'" y="'+(y25p+3.5)+'" text-anchor="end" font-size="10.5" font-weight="700" fill="#eceadf" stroke="#0a0a0a" stroke-width="2.6" paint-order="stroke">'+fm(y25[dk.key],dk.u)+'</text>'
+   +'<circle cx="'+x26+'" cy="'+y26p+'" r="8" fill="#ffd54a"/>'
+   +'<text x="'+(x26+12)+'" y="'+(y26p+3.5)+'" text-anchor="start" font-size="10.5" font-weight="800" fill="#ffd54a" stroke="#0a0a0a" stroke-width="2.6" paint-order="stroke">'+fm(y26[dk.key],dk.u)+'</text>'
+   +'<text x="'+(PL+pw/2)+'" y="'+(H-10)+'" text-anchor="middle" font-size="12" font-weight="700" fill="#cfcdc6">'+X.lab+'</text>'
+   +'<text x="15" y="'+(PT+ph/2)+'" text-anchor="middle" font-size="12" font-weight="700" fill="#cfcdc6" transform="rotate(-90 15 '+(PT+ph/2)+')">'+Y.lab+'</text>'
+   +'<defs><marker id="qarw" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#efeee7"/></marker></defs></svg>';
+  document.getElementById('quadHost').innerHTML=svg;
+}
+function ppSetMode(m){
+  var bars=document.getElementById('vz-bars'),quad=document.getElementById('vz-quad'),radar=document.getElementById('vz-radar');
+  var mob=window.innerWidth<=900;
+  quad.style.position=mob?'static':'absolute'; radar.style.position=mob?'static':'absolute';
+  if(mob){bars.style.visibility='visible';bars.style.display=m==='bars'?'block':'none';}
+  else{bars.style.display='block';bars.style.visibility=m==='bars'?'visible':'hidden';}
+  quad.style.display=m==='quad'?'flex':'none';
+  radar.style.display=m==='radar'?'flex':'none';
+  var cap=document.getElementById('vcap'); if(cap)cap.textContent=m==='quad'?'2025 \u2192 2026':'2026 \u00b7 vs qualified hitters';
+  if(m==='quad')ppDrawQuad();
+}
+function ppDrawRolling(){
+  var host=document.getElementById('rollHost'); if(!host||!ROLLING_ROWS)return;
+  var w=host.clientWidth,h=host.clientHeight; if(w<20||h<20)return;
+  var win=_rollingWindow, slice=_rollingMetric;
+  if(ROLLING_ROWS.length<win){host.innerHTML='<div style="padding:24px;color:var(--ink-3);font-family:Inter,sans-serif;font-size:12px;">Not enough PA for a '+win+'-PA window.</div>';return;}
+  var AMBER='#ffd54a',BLUE='#7fb3dd',WHITE='#f5f5f0',RED='#e57373',ORANGE='#d99a6c',INK2='#8a8a85';
+  var RS=rollingSeries(ROLLING_ROWS,win);
+  var info;
+  if(slice==='discipline')info={unit:'pct',L:[['Z-Swing',WHITE,RS.z_swing],['O-Swing',BLUE,RS.o_swing],['Z-Contact',AMBER,RS.z_contact],['Whiff',RED,RS.whiff]]};
+  else if(slice==='power')info={unit:'pct',L:[['Barrel',AMBER,RS.barrel],['HardHit',WHITE,RS.hardhit]]};
+  else if(slice==='swing')info={unit:'deg',L:[['Attack',AMBER,RS.attack_angle],['Direction',BLUE,RS.attack_direction],['Tilt',WHITE,RS.tilt]]};
+  else info={unit:'woba',base:0.300,L:[['wOBA',AMBER,RS.woba],['xwOBA',BLUE,RS.xwoba]]};
+  var unit=info.unit;
+  var lines=info.L.map(a=>({name:a[0],color:a[1],v:a[2],cur:a[2][a[2].length-1]}));
+  var len=lines[0].v.length;
+  var mL=46,mR=18,mT=32,mB=28,iw=w-mL-mR,ih=h-mT-mB;
+  var all=[];lines.forEach(L=>{all=all.concat(L.v);});
+  var lo=Math.min.apply(null,all),hi=Math.max.apply(null,all);
+  if(unit==='woba')lo=Math.min(lo,info.base);
+  var padv=((hi-lo)||1)*0.12;lo-=padv;hi+=padv;
+  function niceTicks(lo,hi,n){var sp=hi-lo||1,raw=sp/n,mag=Math.pow(10,Math.floor(Math.log10(raw))),nm=raw/mag;var st=(nm<1.5?1:nm<3?2:nm<7?5:10)*mag,s=Math.ceil(lo/st)*st,t=[];for(var v=s;v<=hi+1e-9;v+=st)t.push(+v.toFixed(6));return t;}
+  var ticks=niceTicks(lo,hi,4);
+  var fmtYtick=v=>unit==='woba'?'.'+Math.round(v*1000):unit==='pct'?Math.round(v)+'%':Math.round(v)+'\u00b0';
+  var fmtVal=v=>unit==='woba'?('.'+Math.round(v*1000)):unit==='pct'?v.toFixed(1)+'%':v.toFixed(1)+'\u00b0';
+  var X=i=>mL+(i/(len-1))*iw, Y=v=>mT+(1-(v-lo)/((hi-lo)||1))*ih;
+  var s='';
+  var segW=lines.map(L=>18+L.name.length*7.2+8+fmtVal(L.cur).length*7.6);
+  var totW=segW.reduce((a,b)=>a+b+18,0)-18; var lx=w-mR-totW;
+  lines.forEach(function(L,i){var val=fmtVal(L.cur);
+    s+='<rect x="'+lx+'" y="9" width="11" height="11" rx="2" fill="'+L.color+'"/>';
+    s+='<text x="'+(lx+17)+'" y="18.5" font-size="11.5" font-weight="700" fill="#cfcfc9">'+L.name+'</text>';
+    s+='<text x="'+(lx+17+L.name.length*7.2+8)+'" y="18.5" font-size="11.5" font-weight="800" fill="'+L.color+'">'+val+'</text>';
+    lx+=segW[i]+18;
+  });
+  ticks.forEach(function(t){var y=Y(t).toFixed(1);
+    s+='<line x1="'+mL+'" y1="'+y+'" x2="'+(mL+iw)+'" y2="'+y+'" stroke="rgba(255,255,255,.08)" stroke-width="1"/>';
+    s+='<text x="'+(mL-9)+'" y="'+(+y+4).toFixed(1)+'" text-anchor="end" fill="'+INK2+'" font-size="11" font-weight="600">'+fmtYtick(t)+'</text>';
+  });
+  if(unit==='woba'&&info.base>=lo&&info.base<=hi){var by=Y(info.base).toFixed(1);
+    s+='<line x1="'+mL+'" y1="'+by+'" x2="'+(mL+iw)+'" y2="'+by+'" stroke="'+ORANGE+'" stroke-width="1.4" stroke-dasharray="6 5"/>';
+    s+='<text x="'+(mL+iw)+'" y="'+(+by-5)+'" text-anchor="end" fill="'+ORANGE+'" font-size="9.5" font-weight="700" letter-spacing=".06em">LG AVG</text>';
+  }
+  [0,0.25,0.5,0.75,1].forEach(function(f){var i=Math.round(f*(len-1)),a=f<=0?'start':f>=1?'end':'middle';
+    s+='<text x="'+X(i).toFixed(1)+'" y="'+(h-9)+'" text-anchor="'+a+'" fill="'+INK2+'" font-size="11" font-weight="600">'+Math.round(f*win)+'</text>';
+  });
+  lines.forEach(function(L){var p=L.v.map((v,i)=>X(i).toFixed(1)+','+Y(v).toFixed(1)).join(' ');
+    s+='<polyline points="'+p+'" fill="none" stroke="'+L.color+'" stroke-width="'+(L.name==='xwOBA'?2.6:2.1)+'" stroke-linejoin="round" stroke-linecap="round"/>';
+  });
+  host.innerHTML='<svg width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'" style="display:block">'+s+'</svg>';
+}
+function ppWireRolling(){
+  var tabs=document.getElementById('rollingMetricTabs');
+  if(tabs)tabs.querySelectorAll('.rt-tab').forEach(function(b){b.onclick=function(){tabs.querySelectorAll('.rt-tab').forEach(x=>x.classList.remove('active'));b.classList.add('active');_rollingMetric=b.dataset.metric;ppDrawRolling();};});
+  document.querySelectorAll('.rw-btn').forEach(function(b){b.onclick=function(){document.querySelectorAll('.rw-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');_rollingWindow=parseInt(b.dataset.window,10);ppDrawRolling();};});
+  var host=document.getElementById('rollHost');
+  if(host&&window.ResizeObserver){var ro=new ResizeObserver(function(){ppDrawRolling();});ro.observe(host);}
+  ppDrawRolling();
+}
+function renderPlayerPage(id){
+  var d=DATA.find(x=>x.id===id);
+  ROLLING_ROWS=(d&&ROLLING[d.id])||null;
+  var pp=document.getElementById('playerPage');
+  if(!d||!pp){if(pp)pp.style.display='none';return;}
+  document.body.style.overflow='hidden'; pp.style.display='block';
+  _rollingMetric='outcomes'; _rollingWindow=100;
+  ppBuildCloud(d);
+  var pills='<span class="pill">'+(d.side==='S'?'SWITCH':d.side==='L'?'LHH':'RHH')+'</span>'
+    +(d.team?'<span class="pill team">'+d.team+'</span>':'')
+    +(d.position?'<span class="pill">'+d.position+'</span>':'')
+    +'<span>'+d.pa+' PA \u00b7 '+curYear+'</span>';
+  var swing='<div class="stp"><span>Attack angle</span><b>'+(d.attack_angle!=null?d.attack_angle.toFixed(1)+'\u00b0':'\u2014')+'</b></div>'
+    +'<div class="stp"><span>Direction</span><b>'+attackDirLabel(d.attack_direction)+'</b></div>'
+    +'<div class="stp"><span>Tilt</span><b>'+swingTiltLabel(d.tilt)+'</b></div>';
+  var rollControls=ROLLING[d.id]?'<div class="rolling-controls"><div class="rolling-tabs" id="rollingMetricTabs"><button class="rt-tab active" data-metric="outcomes">Outcomes</button><button class="rt-tab" data-metric="discipline">Discipline</button><button class="rt-tab" data-metric="power">Power</button><button class="rt-tab" data-metric="swing">Swing path</button></div><div class="rolling-window"><button class="rw-btn" data-window="50">50</button><button class="rw-btn active" data-window="100">100</button><button class="rw-btn" data-window="250">250</button><span class="rw-lbl">PA</span></div></div><div id="rollHost"></div>':'<div style="padding:24px;color:var(--ink-3);font-size:12px">Rolling data not available.</div>';
+  pp.querySelector('.pp-inner').innerHTML='<div class="ppx"><style>'+PP_CSS+'</style>'
+    +'<button class="pp-back" onclick="history.back()" style="background:none;border:none;color:#9a9a95;font:inherit;cursor:pointer;margin-bottom:14px;font-size:13px">\u2190 Back to all hitters</button>'
+    +'<div class="ppx-main">'
+    +'<div class="ph-top"><h1 class="ph-name">'+d.first+' '+d.last+'</h1><div class="ph-grade" style="background:'+d.overall.color+'">'+d.overall.letter+'</div></div>'
+    +'<div class="ph-meta">'+pills+'</div>'
+    +'<div class="main">'
+    +'<div class="left"><div class="viz">'
+    +'<div class="viz-head"><select class="viz-sel" id="mode" onchange="ppSetMode(this.value)"><option value="bars">Percentile bars</option><option value="quad">Quadrant \u00b7 YoY</option><option value="radar">Radar</option></select><span class="viz-cap" id="vcap">2026 \u00b7 vs qualified hitters</span></div>'
+    +'<div class="vz-body">'
+    +'<div id="vz-bars"><div class="swing-top">'+swing+'</div><div id="rows">'+ppBarsHTML(d)+'</div></div>'
+    +'<div id="vz-quad"><div class="qpick">Compare <select id="qx" onchange="ppDrawQuad()"></select><span class="vs">vs</span><select id="qy" onchange="ppDrawQuad()"></select></div><div id="quadHost"></div><div class="qlegend"><span class="d"><span class="gd"></span>2025</span><span class="d"><span class="sd"></span>2026</span></div></div>'
+    +'<div id="vz-radar">'+renderRadar(d)+'</div>'
+    +'</div></div></div>'
+    +'<div class="right"><div class="rollpanel">'+rollControls+'</div></div>'
+    +'</div></div></div>';
+  var ox=document.getElementById('qx'),oy=document.getElementById('qy');
+  for(var k in PP_STATS){ox.add(new Option(PP_STATS[k].lab,k));oy.add(new Option(PP_STATS[k].lab,k));}
+  ox.value='barrel'; oy.value='k';
+  ppSetMode('bars');
+  setTimeout(ppWireRolling,0);
+  window.addEventListener('resize',function(){ppDrawRolling();ppSetMode(document.getElementById('mode').value);});
 }
 document.getElementById('q')?.addEventListener('input', e => { state.query = e.target.value; renderTable(); renderMobileCards(); });
 document.querySelectorAll('#sideSeg button').forEach(b => {

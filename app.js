@@ -900,6 +900,7 @@ function ppSetMode(m){
   var mob=window.innerWidth<=900;
   var cap=document.getElementById('vcap');
   if(mob){
+    var rm=document.getElementById('rmetric'); if(rm)rm.style.display=(m==='rolling')?'':'none';
     if(m==='rolling'){ if(body)body.style.display='none'; if(right)right.style.display='block'; if(cap)cap.textContent=''; ppDrawRolling(); return; }
     if(body)body.style.display=''; if(right)right.style.display='none';
     quad.style.position='static'; radar.style.position='static';
@@ -995,10 +996,10 @@ function renderPlayerPage(id){
     +'<div class="ph-meta">'+pills+'</div>'
     +'<div class="main">'
     +'<div class="left"><div class="viz">'
-    +'<div class="viz-head"><select class="viz-sel" id="mode" onchange="ppSetMode(this.value)"><option value="bars">Percentile bars</option><option value="quad">Quadrant \u00b7 YoY</option><option value="radar">Radar</option><option value="rolling" class="ppopt-roll">Rolling</option></select><span class="viz-cap" id="vcap">2026 \u00b7 vs qualified hitters</span></div>'
+    +'<div class="viz-head"><select class="viz-sel" id="mode" onchange="ppSetMode(this.value)"><option value="bars">Percentile bars</option><option value="quad">Quadrant \u00b7 YoY</option><option value="radar">Radar</option><option value="rolling" class="ppopt-roll">Rolling</option></select><select class="viz-sel" id="rmetric" style="display:none" onchange="_rollingMetric=this.value;ppDrawRolling()"><option value="outcomes">Outcomes</option><option value="discipline">Discipline</option><option value="power">Power</option><option value="swing">Swing path</option></select><span class="viz-cap" id="vcap">2026 \u00b7 vs qualified hitters</span></div>'
     +'<div class="vz-body">'
     +'<div id="vz-bars"><div class="swing-top">'+swing+'</div><div id="rows">'+ppBarsHTML(d)+'</div></div>'
-    +'<div id="vz-quad"><div class="qpick">Compare <select id="qx" onchange="ppDrawQuad()"></select><span class="vs">vs</span><select id="qy" onchange="ppDrawQuad()"></select></div><div id="quadHost"></div><div class="qlegend"><span class="d"><span class="gd"></span>2025</span><span class="d"><span class="sd"></span>2026</span></div></div>'
+    +'<div id="vz-quad"><div class="qpick"><span class="cmp-lbl">Compare </span><select id="qx" onchange="ppDrawQuad()"></select><span class="vs">vs</span><select id="qy" onchange="ppDrawQuad()"></select></div><div id="quadHost"></div><div class="qlegend"><span class="d"><span class="gd"></span>2025</span><span class="d"><span class="sd"></span>2026</span></div></div>'
     +'<div id="vz-radar">'+renderRadar(d)+'</div>'
     +'</div></div></div>'
     +'<div class="right"><div class="rollpanel">'+rollControls+'</div></div>'

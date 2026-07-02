@@ -824,14 +824,14 @@ function ppRamp(p, boost){
 function ppBarsHTML(d){
   var woba3=v=>v.toFixed(3).replace(/^0/,'');
   var R=[
+    ['wOBA', percentile(S.woba,d.woba), woba3(d.woba)],
+    ['xwOBA', percentile(S.xwoba,d.xwoba), woba3(d.xwoba)],
+    ['Bat speed', percentile(S.bat_speed_s,d.bat_speed), d.bat_speed.toFixed(1)],
+    ['Barrel%', percentile(S.barrel_pct,d.barrel_pct), d.barrel_pct.toFixed(1)+'%'],
     ['Z-Swing%', percentile(S.z_swing,d.z_swing), (d.z_swing*100).toFixed(1)+'%'],
     ['Z-Contact%', percentile(S.z_contact_s,d.z_contact), (d.z_contact*100).toFixed(1)+'%'],
     ['O-Contact%', percentile(S.o_contact,d.o_contact), (d.o_contact*100).toFixed(1)+'%'],
-    ['Ideal AA%', percentile(S.iaa,d.iaa), d.iaa.toFixed(1)+'%'],
-    ['Bat speed', percentile(S.bat_speed_s,d.bat_speed), d.bat_speed.toFixed(1)],
-    ['Barrel%', percentile(S.barrel_pct,d.barrel_pct), d.barrel_pct.toFixed(1)+'%'],
-    ['wOBA', percentile(S.woba,d.woba), woba3(d.woba)],
-    ['xwOBA', percentile(S.xwoba,d.xwoba), woba3(d.xwoba)]
+    ['Ideal AA%', percentile(S.iaa,d.iaa), d.iaa.toFixed(1)+'%']
   ];
   return R.map(function(r){var lab=r[0],pct=Math.round(r[1]),val=r[2];
     var fill=ppRamp(pct,0),dotc=ppRamp(pct,0.22),dl=Math.max(4,Math.min(96,pct));

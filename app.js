@@ -896,13 +896,22 @@ function ppDrawQuad(){
 }
 function ppSetMode(m){
   var bars=document.getElementById('vz-bars'),quad=document.getElementById('vz-quad'),radar=document.getElementById('vz-radar');
+  var body=document.querySelector('.ppx .vz-body'),right=document.querySelector('.ppx .right');
   var mob=window.innerWidth<=900;
-  quad.style.position=mob?'static':'absolute'; radar.style.position=mob?'static':'absolute';
-  if(mob){bars.style.visibility='visible';bars.style.display=m==='bars'?'block':'none';}
-  else{bars.style.display='block';bars.style.visibility=m==='bars'?'visible':'hidden';}
-  quad.style.display=m==='quad'?'flex':'none';
-  radar.style.display=m==='radar'?'flex':'none';
-  var cap=document.getElementById('vcap'); if(cap)cap.textContent=m==='quad'?'2025 \u2192 2026':'2026 \u00b7 vs qualified hitters';
+  var cap=document.getElementById('vcap');
+  if(mob){
+    if(m==='rolling'){ if(body)body.style.display='none'; if(right)right.style.display='block'; if(cap)cap.textContent=''; ppDrawRolling(); return; }
+    if(body)body.style.display=''; if(right)right.style.display='none';
+    quad.style.position='static'; radar.style.position='static';
+    bars.style.visibility='visible'; bars.style.display=m==='bars'?'block':'none';
+    quad.style.display=m==='quad'?'flex':'none'; radar.style.display=m==='radar'?'flex':'none';
+  } else {
+    if(body)body.style.display=''; if(right)right.style.display='';
+    quad.style.position='absolute'; radar.style.position='absolute';
+    bars.style.display='block'; bars.style.visibility=(m==='bars'||m==='rolling')?'visible':'hidden';
+    quad.style.display=m==='quad'?'flex':'none'; radar.style.display=m==='radar'?'flex':'none';
+  }
+  if(cap)cap.textContent=m==='quad'?'2025 \u2192 2026':'2026 \u00b7 vs qualified hitters';
   if(m==='quad')ppDrawQuad();
 }
 function ppDrawRolling(){
@@ -986,7 +995,7 @@ function renderPlayerPage(id){
     +'<div class="ph-meta">'+pills+'</div>'
     +'<div class="main">'
     +'<div class="left"><div class="viz">'
-    +'<div class="viz-head"><select class="viz-sel" id="mode" onchange="ppSetMode(this.value)"><option value="bars">Percentile bars</option><option value="quad">Quadrant \u00b7 YoY</option><option value="radar">Radar</option></select><span class="viz-cap" id="vcap">2026 \u00b7 vs qualified hitters</span></div>'
+    +'<div class="viz-head"><select class="viz-sel" id="mode" onchange="ppSetMode(this.value)"><option value="bars">Percentile bars</option><option value="quad">Quadrant \u00b7 YoY</option><option value="radar">Radar</option><option value="rolling" class="ppopt-roll">Rolling</option></select><span class="viz-cap" id="vcap">2026 \u00b7 vs qualified hitters</span></div>'
     +'<div class="vz-body">'
     +'<div id="vz-bars"><div class="swing-top">'+swing+'</div><div id="rows">'+ppBarsHTML(d)+'</div></div>'
     +'<div id="vz-quad"><div class="qpick">Compare <select id="qx" onchange="ppDrawQuad()"></select><span class="vs">vs</span><select id="qy" onchange="ppDrawQuad()"></select></div><div id="quadHost"></div><div class="qlegend"><span class="d"><span class="gd"></span>2025</span><span class="d"><span class="sd"></span>2026</span></div></div>'

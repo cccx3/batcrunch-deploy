@@ -420,7 +420,7 @@ function renderMobileCards() {
 }
 
 
-const RADAR_LABELS = ['Bat Speed','Barrel','Discipline','Speed','Contact'];
+const RADAR_LABELS = ['Bat Speed','Barrel','Discipline','Speed','Bat/Ball'];
 
 function renderRadar(d) {
   // 5 axes (shared with _radarAxes / compareRadar)
@@ -977,33 +977,37 @@ function ppWireRolling(){
 function ppDumbbell(d){
   var prevYear=String(+curYear-1);
   var py=(typeof YEARS!=='undefined'&&YEARS[prevYear])?YEARS[prevYear].players[d.id]:null;
-  var oSw=d.o_swing!=null?d.o_swing:null;
+  var U={'Bat Speed':'mph','Barrel':'%','Bat/Ball':'%','Discipline':'%','Speed':'ft/s'};
   var cur={
-    'Bat Speed':[percentile(S.bat_speed_s,d.bat_speed), d.bat_speed.toFixed(0)],
-    'Barrel':[percentile(S.barrel_pct,d.barrel_pct), Math.round(d.barrel_pct)+'%'],
-    'Contact':[100-percentile(S.whiff_s,d.whiff), Math.round(d.z_contact*100)+'%'],
-    'Discipline':[100-percentile(S.o_swing,d.o_swing), Math.round(d.o_swing*100)+'%'],
-    'Speed':[percentile(S.sprint,d.sprint), d.sprint.toFixed(0)]
+    'Bat Speed':[percentile(S.bat_speed_s,d.bat_speed), Math.round(d.bat_speed)],
+    'Barrel':[percentile(S.barrel_pct,d.barrel_pct), Math.round(d.barrel_pct)],
+    'Bat/Ball':[100-percentile(S.whiff_s,d.whiff), Math.round(d.z_contact*100)],
+    'Discipline':[100-percentile(S.o_swing,d.o_swing), Math.round(d.o_swing*100)],
+    'Speed':[percentile(S.sprint,d.sprint), Math.round(d.sprint)]
   };
   function pv(k){ if(!py)return null;
-    if(k==='Bat Speed')return py.bat_speed!=null?[percentile(S.bat_speed_s,py.bat_speed),py.bat_speed.toFixed(0)]:null;
-    if(k==='Barrel')return py.barrel!=null?[percentile(S.barrel_pct,py.barrel),Math.round(py.barrel)+'%']:null;
-    if(k==='Contact')return py.whiff!=null?[100-percentile(S.whiff_s,py.whiff),(py.z_contact!=null?Math.round(py.z_contact):'')+'%']:null;
-    if(k==='Discipline')return py.o_swing!=null?[100-percentile(S.o_swing,py.o_swing/100),Math.round(py.o_swing)+'%']:null;
-    if(k==='Speed')return py.sprint!=null?[percentile(S.sprint,py.sprint),py.sprint.toFixed(0)]:null;
+    if(k==='Bat Speed')return py.bat_speed!=null?[percentile(S.bat_speed_s,py.bat_speed),Math.round(py.bat_speed)]:null;
+    if(k==='Barrel')return py.barrel!=null?[percentile(S.barrel_pct,py.barrel),Math.round(py.barrel)]:null;
+    if(k==='Bat/Ball')return py.whiff!=null?[100-percentile(S.whiff_s,py.whiff),(py.z_contact!=null?Math.round(py.z_contact):null)]:null;
+    if(k==='Discipline')return py.o_swing!=null?[100-percentile(S.o_swing,py.o_swing/100),Math.round(py.o_swing)]:null;
+    if(k==='Speed')return py.sprint!=null?[percentile(S.sprint,py.sprint),Math.round(py.sprint)]:null;
   }
-  var order=['Barrel','Bat Speed','Contact','Discipline','Speed'];
-  var arr=order.map(function(k){var c=cur[k],p=pv(k);return {k:k,p26:Math.round(c[0]),r26:c[1],p25:p?Math.round(p[0]):Math.round(c[0]),r25:p?p[1]:c[1],has:!!p};});
+  var order=['Barrel','Bat Speed','Bat/Ball','Discipline','Speed'];
+  var arr=order.map(function(k){var c=cur[k],p=pv(k);return {k:k,u:U[k],p26:Math.round(c[0]),r26:c[1],p25:p?Math.round(p[0]):Math.round(c[0]),r25:(p&&p[1]!=null)?p[1]:c[1],has:!!(p&&p[1]!=null)};});
   arr.sort(function(a,b){return Math.abs(b.p26-b.p25)-Math.abs(a.p26-a.p25);});
-  var rows=arr.map(function(a){var up=a.p26>=a.p25,c=up?'#e0a878':'#7fb3dd',lo=Math.min(a.p25,a.p26),hi=Math.max(a.p25,a.p26);
-    var delta='<span class="db-25">'+(a.has?a.r25:'')+'</span><span class="db-ar" style="color:'+(a.has?c:'transparent')+'">\u2192</span><span class="db-26" style="color:'+c+'">'+a.r26+'</span>';
+  var rows=arr.map(function(a){
+    var pd=a.p26-a.p25, vc=pd>0?'#e0a878':pd<0?'#7fb3dd':'#c9c9c2';
+    var barc=pd>0?'#e0a878':pd<0?'#7fb3dd':'#6f6f6a', lo=Math.min(a.p25,a.p26),hi=Math.max(a.p25,a.p26);
+    var dl=a.has?(a.r26-a.r25):0, cc=dl>0?'#e0a878':dl<0?'#7fb3dd':'#6f6f6a';
+    var chip=!a.has?'':dl>0?'\u25B2 +'+dl:dl<0?'\u25BC \u2212'+Math.abs(dl):'0';
+    var yy='<div class="db-yy"><span class="db-n" style="color:'+vc+'">'+a.r26+'</span><span class="db-u" style="color:'+vc+'">'+a.u+'</span>'
+      +(a.has?'<span class="db-chip" style="color:'+cc+';background:'+cc+'22">'+chip+'</span>':'<span></span>')+'</div>';
     return '<div class="db-row"><div class="db-lab">'+a.k+'</div><div class="db-bar"><div class="db-tk"></div>'
-      +'<div class="db-ln" style="left:'+lo+'%;width:'+(hi-lo)+'%;background:'+c+'"></div>'
+      +'<div class="db-ln" style="left:'+lo+'%;width:'+(hi-lo)+'%;background:'+barc+'"></div>'
       +(a.has?'<div class="db-d25" style="left:'+a.p25+'%"></div>':'')
-      +'<div class="db-d26" style="left:'+a.p26+'%;background:'+c+'"></div></div>'
-      +delta+'</div>';}).join('');
+      +'<div class="db-d26" style="left:'+a.p26+'%;background:'+barc+'"></div></div>'+yy+'</div>';}).join('');
   var ticks=[0,25,50,75,100].map(function(t){return '<span style="left:'+t+'%">'+t+'</span>';}).join('');
-  return '<div class="db"><div class="db-h">Year over year \u00b7 percentile</div>'+rows
+  return '<div class="db"><div class="db-h">Year over year</div>'+rows
     +'<div class="db-ax"><div></div><div class="db-ticks">'+ticks+'</div><div class="db-sp"></div></div></div>';
 }
 

@@ -1006,7 +1006,7 @@ function ppDumbbell(d){
       +'<div class="db-ln" style="left:'+lo+'%;width:'+(hi-lo)+'%;background:'+barc+'"></div>'
       +(a.has?'<div class="db-d25" style="left:'+a.p25+'%"></div>':'')
       +'<div class="db-d26" style="left:'+a.p26+'%;background:'+barc+'"></div></div>'+yy+'</div>';}).join('');
-  var ticks=[0,25,50,75,100].map(function(t){return '<span style="left:'+t+'%">'+t+'</span>';}).join('');
+  var ticks=[0,50,100].map(function(t){return '<span style="left:'+t+'%">'+t+'</span>';}).join('');
   return '<div class="db"><div class="db-h">Year over year</div>'+rows
     +'<div class="db-ax"><div></div><div class="db-ticks">'+ticks+'</div><div class="db-sp"></div></div></div>';
 }

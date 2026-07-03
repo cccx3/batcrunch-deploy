@@ -273,7 +273,7 @@ function expandedPanel(d) {
   const woba = d.woba!=null ? d.woba.toFixed(3).replace(/^0\./,'.') : dash;
   const xwoba = d.xwoba!=null ? d.xwoba.toFixed(3).replace(/^0\./,'.') : dash;
   const aa = d.attack_angle!=null ? d.attack_angle.toFixed(1)+deg : dash;
-  const bat = d.bat_speed!=null ? d.bat_speed.toFixed(1) : dash;
+  const bat = d.bat_speed!=null ? d.bat_speed.toFixed(0) : dash;
   const la = d.launch_angle!=null ? d.launch_angle.toFixed(1)+deg : '16.2'+deg; // FAKE until build.py emits launch_angle
 
   if (L === 'v2') return `
@@ -420,13 +420,13 @@ function renderMobileCards() {
 }
 
 
-const RADAR_LABELS = ['Raw Power','Game Power','Discipline','Speed','Bat-to|Ball'];
+const RADAR_LABELS = ['Bat Speed','Barrel','Discipline','Speed','Contact'];
 
 function renderRadar(d) {
   // 5 axes (shared with _radarAxes / compareRadar)
   const _v = _radarAxes(d);
   const axes = RADAR_LABELS.map((label, i) => ({ label, value: _v[i] }));
-  const cx = 230, cy = 176, R = 120;
+  const cx = 230, cy = 150, R = 96;
   const N = axes.length;
   
   // Polar to cartesian
@@ -479,7 +479,7 @@ function renderRadar(d) {
     let anchor = 'middle';
     if (lx > cx + 5) anchor = 'start';
     else if (lx < cx - 5) anchor = 'end';
-    const words = axes[i].label.toUpperCase().split(/[ |]/);
+    const words = axes[i].label.toUpperCase().split('|');
     if (words.length > 1) {
       const lh = 15;
       const yStart = ly - (lh * (words.length - 1)) / 2;
@@ -495,7 +495,7 @@ function renderRadar(d) {
   }
   
   return `
-    <svg viewBox="20 -10 450 380" width="100%" style="max-width:560px;display:block;margin:0 auto">
+    <svg viewBox="12 2 436 304" width="100%" style="max-width:560px;display:block;margin:0 auto">
       ${grid}
       ${spokes}
       ${prevPoints ? `<polygon points="${prevPoints}" fill="#888" fill-opacity="0.14" stroke="#888" stroke-width="1.5" stroke-dasharray="4 3" />` : ''}
@@ -541,7 +541,7 @@ function compareRadar(a, b){
     const [lx, ly] = pt(i, R + 22);
     let anchor = 'middle';
     if (lx > cx + 5) anchor = 'start'; else if (lx < cx - 5) anchor = 'end';
-    const words = labels[i].toUpperCase().split(/[ |]/);
+    const words = labels[i].toUpperCase().split('|');
     if (words.length > 1) {
       const lh = 15, yStart = ly - (lh*(words.length-1))/2;
       const tspans = words.map((w, j) => `<tspan x="${lx}" dy="${j===0?0:lh}">${w}</tspan>`).join('');
@@ -826,10 +826,10 @@ function ppBarsHTML(d){
   var R=[
     ['wOBA', percentile(S.woba,d.woba), woba3(d.woba)],
     ['xwOBA', percentile(S.xwoba,d.xwoba), woba3(d.xwoba)],
-    ['Bat speed', percentile(S.bat_speed_s,d.bat_speed), d.bat_speed.toFixed(1)],
-    ['Barrel%', percentile(S.barrel_pct,d.barrel_pct), d.barrel_pct.toFixed(1)+'%'],
+    ['Bat speed', percentile(S.bat_speed_s,d.bat_speed), d.bat_speed.toFixed(0)],
+    ['Barrel%', percentile(S.barrel_pct,d.barrel_pct), Math.round(d.barrel_pct)+'%'],
     ['Z-Swing%', percentile(S.z_swing,d.z_swing), (d.z_swing*100).toFixed(1)+'%'],
-    ['Z-Contact%', percentile(S.z_contact_s,d.z_contact), (d.z_contact*100).toFixed(1)+'%'],
+    ['Z-Contact%', percentile(S.z_contact_s,d.z_contact), Math.round(d.z_contact*100)+'%'],
     ['O-Contact%', percentile(S.o_contact,d.o_contact), (d.o_contact*100).toFixed(1)+'%'],
     ['Ideal AA%', percentile(S.iaa,d.iaa), d.iaa.toFixed(1)+'%']
   ];
@@ -900,7 +900,7 @@ function ppSetMode(m){
   var mob=window.innerWidth<=900;
   var cap=document.getElementById('vcap');
   if(mob){
-    var rm=document.getElementById('rmetric'); if(rm)rm.style.display=(m==='rolling')?'':'none';
+    var rm=document.getElementById('rmetric'); if(rm)rm.style.display=(mob&&m!=='rolling')?'none':'';
     if(m==='rolling'){ if(body)body.style.display='none'; if(right)right.style.display='block'; if(cap)cap.textContent=''; ppDrawRolling(); return; }
     if(body)body.style.display=''; if(right)right.style.display='none';
     quad.style.position='static'; radar.style.position='static';
@@ -930,7 +930,7 @@ function ppDrawRolling(){
   var unit=info.unit;
   var lines=info.L.map(a=>({name:a[0],color:a[1],v:a[2],cur:a[2][a[2].length-1]}));
   var len=lines[0].v.length;
-  var mL=46,mR=18,mT=32,mB=28,iw=w-mL-mR,ih=h-mT-mB;
+  var mL=48,mR=26,mT=34,mB=40,iw=w-mL-mR,ih=h-mT-mB;
   var all=[];lines.forEach(L=>{all=all.concat(L.v);});
   var lo=Math.min.apply(null,all),hi=Math.max.apply(null,all);
   if(unit==='woba')lo=Math.min(lo,info.base);
@@ -958,7 +958,7 @@ function ppDrawRolling(){
     s+='<text x="'+(mL+iw)+'" y="'+(+by-5)+'" text-anchor="end" fill="'+ORANGE+'" font-size="9.5" font-weight="700" letter-spacing=".06em">LG AVG</text>';
   }
   [0,0.25,0.5,0.75,1].forEach(function(f){var i=Math.round(f*(len-1)),a=f<=0?'start':f>=1?'end':'middle';
-    s+='<text x="'+X(i).toFixed(1)+'" y="'+(h-9)+'" text-anchor="'+a+'" fill="'+INK2+'" font-size="11" font-weight="600">'+Math.round(f*win)+'</text>';
+    s+='<text x="'+X(i).toFixed(1)+'" y="'+(h-16)+'" text-anchor="'+a+'" fill="'+INK2+'" font-size="11" font-weight="600">'+Math.round(f*win)+'</text>';
   });
   lines.forEach(function(L){var p=L.v.map((v,i)=>X(i).toFixed(1)+','+Y(v).toFixed(1)).join(' ');
     s+='<polyline points="'+p+'" fill="none" stroke="'+L.color+'" stroke-width="'+(L.name==='xwOBA'?2.6:2.1)+'" stroke-linejoin="round" stroke-linecap="round"/>';
@@ -973,6 +973,40 @@ function ppWireRolling(){
   if(host&&window.ResizeObserver){var ro=new ResizeObserver(function(){ppDrawRolling();});ro.observe(host);}
   ppDrawRolling();
 }
+
+function ppDumbbell(d){
+  var prevYear=String(+curYear-1);
+  var py=(typeof YEARS!=='undefined'&&YEARS[prevYear])?YEARS[prevYear].players[d.id]:null;
+  var oSw=d.o_swing!=null?d.o_swing:null;
+  var cur={
+    'Bat Speed':[percentile(S.bat_speed_s,d.bat_speed), d.bat_speed.toFixed(0)],
+    'Barrel':[percentile(S.barrel_pct,d.barrel_pct), Math.round(d.barrel_pct)+'%'],
+    'Contact':[100-percentile(S.whiff_s,d.whiff), Math.round(d.z_contact*100)+'%'],
+    'Discipline':[100-percentile(S.o_swing,d.o_swing), Math.round(d.o_swing*100)+'%'],
+    'Speed':[percentile(S.sprint,d.sprint), d.sprint.toFixed(0)]
+  };
+  function pv(k){ if(!py)return null;
+    if(k==='Bat Speed')return py.bat_speed!=null?[percentile(S.bat_speed_s,py.bat_speed),py.bat_speed.toFixed(0)]:null;
+    if(k==='Barrel')return py.barrel!=null?[percentile(S.barrel_pct,py.barrel),Math.round(py.barrel)+'%']:null;
+    if(k==='Contact')return py.whiff!=null?[100-percentile(S.whiff_s,py.whiff),(py.z_contact!=null?Math.round(py.z_contact):'')+'%']:null;
+    if(k==='Discipline')return py.o_swing!=null?[100-percentile(S.o_swing,py.o_swing/100),Math.round(py.o_swing)+'%']:null;
+    if(k==='Speed')return py.sprint!=null?[percentile(S.sprint,py.sprint),py.sprint.toFixed(0)]:null;
+  }
+  var order=['Barrel','Bat Speed','Contact','Discipline','Speed'];
+  var arr=order.map(function(k){var c=cur[k],p=pv(k);return {k:k,p26:Math.round(c[0]),r26:c[1],p25:p?Math.round(p[0]):Math.round(c[0]),r25:p?p[1]:c[1],has:!!p};});
+  arr.sort(function(a,b){return Math.abs(b.p26-b.p25)-Math.abs(a.p26-a.p25);});
+  var rows=arr.map(function(a){var up=a.p26>=a.p25,c=up?'#e0a878':'#7fb3dd',lo=Math.min(a.p25,a.p26),hi=Math.max(a.p25,a.p26);
+    var delta='<span class="db-25">'+(a.has?a.r25:'')+'</span><span class="db-ar" style="color:'+(a.has?c:'transparent')+'">\u2192</span><span class="db-26" style="color:'+c+'">'+a.r26+'</span>';
+    return '<div class="db-row"><div class="db-lab">'+a.k+'</div><div class="db-bar"><div class="db-tk"></div>'
+      +'<div class="db-ln" style="left:'+lo+'%;width:'+(hi-lo)+'%;background:'+c+'"></div>'
+      +(a.has?'<div class="db-d25" style="left:'+a.p25+'%"></div>':'')
+      +'<div class="db-d26" style="left:'+a.p26+'%;background:'+c+'"></div></div>'
+      +delta+'</div>';}).join('');
+  var ticks=[0,25,50,75,100].map(function(t){return '<span style="left:'+t+'%">'+t+'</span>';}).join('');
+  return '<div class="db"><div class="db-h">Year over year \u00b7 percentile</div>'+rows
+    +'<div class="db-ax"><div></div><div class="db-ticks">'+ticks+'</div><div class="db-sp"></div></div></div>';
+}
+
 function renderPlayerPage(id){
   var d=DATA.find(x=>x.id===id);
   ROLLING_ROWS=(d&&ROLLING[d.id])||null;
@@ -1000,7 +1034,7 @@ function renderPlayerPage(id){
     +'<div class="vz-body">'
     +'<div id="vz-bars"><div class="swing-top">'+swing+'</div><div id="rows">'+ppBarsHTML(d)+'</div></div>'
     +'<div id="vz-quad"><div class="qpick"><span class="cmp-lbl">Compare </span><select id="qx" onchange="ppDrawQuad()"></select><span class="vs">vs</span><select id="qy" onchange="ppDrawQuad()"></select></div><div id="quadHost"></div><div class="qlegend"><span class="d"><span class="gd"></span>2025</span><span class="d"><span class="sd"></span>2026</span></div></div>'
-    +'<div id="vz-radar">'+renderRadar(d)+'</div>'
+    +'<div id="vz-radar">'+renderRadar(d)+ppDumbbell(d)+'</div>'
     +'</div></div></div>'
     +'<div class="right"><div class="rollpanel">'+rollControls+'</div></div>'
     +'</div></div></div>';

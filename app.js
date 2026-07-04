@@ -1028,7 +1028,7 @@ function renderPlayerPage(id){
     +'<div class="stp"><span>Tilt</span><b>'+swingTiltLabel(d.tilt)+'</b></div>';
   var rollControls=ROLLING[d.id]?'<div class="rolling-controls"><div class="rolling-tabs" id="rollingMetricTabs"><button class="rt-tab active" data-metric="outcomes">Outcomes</button><button class="rt-tab" data-metric="discipline">Discipline</button><button class="rt-tab" data-metric="power">Power</button><button class="rt-tab" data-metric="swing">Swing path</button></div><div class="rolling-window"><button class="rw-btn" data-window="50">50</button><button class="rw-btn active" data-window="100">100</button><button class="rw-btn" data-window="250">250</button><span class="rw-lbl">PA</span></div></div><div id="rollHost"></div>':'<div style="padding:24px;color:var(--ink-3);font-size:12px">Rolling data not available.</div>';
   pp.querySelector('.pp-inner').innerHTML='<div class="ppx">'
-    +'<button class="pp-back" onclick="history.back()" style="background:none;border:none;color:#9a9a95;font:inherit;cursor:pointer;margin-bottom:14px;font-size:13px">\u2190 Back to all hitters</button>'
+    +'<button class="pp-back" onclick="history.back()" style="background:none;border:none;color:#9a9a95;font:inherit;cursor:pointer;margin:0;font-size:13px">\u2190 Back to all hitters</button>'
     +'<div class="ppx-main">'
     +'<div class="ph-top"><h1 class="ph-name">'+d.first+' '+d.last+'</h1><div class="ph-grade" style="background:'+d.overall.color+'">'+d.overall.letter+'</div></div>'
     +'<div class="ph-meta">'+pills+'</div>'

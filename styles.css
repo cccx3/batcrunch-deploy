@@ -1371,3 +1371,17 @@
   .ppx .rolling-controls{border:none!important;background:none!important;padding:2px 0 12px!important}
   .ppx #rollHost{height:300px}
 }
+
+/* mobile fixes v53: drop all view-boxes lower from player sublabel */
+@media (max-width:900px){
+  .ppx .ph-meta{margin-bottom:30px}
+}
+
+/* mobile fixes v54: rolling HTML wrap-legend + back button drop/right */
+@media (max-width:900px){
+  .ppx #rollLegend{display:grid;grid-template-columns:auto auto;justify-content:start;column-gap:28px;row-gap:7px;padding:2px 2px 12px;font-size:13px;font-weight:700}
+  .ppx #rollLegend .rl{display:inline-flex;align-items:center;gap:7px;color:#cfcfc9;white-space:nowrap}
+  .ppx #rollLegend .rl i{width:11px;height:11px;border-radius:2px;flex:none}
+  .ppx #rollLegend .rl b{margin-left:5px}
+  .ppx .pp-back{margin:18px 0 8px 24px!important}
+}

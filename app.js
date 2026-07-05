@@ -826,7 +826,7 @@ function ppBarsHTML(d){
   var R=[
     ['wOBA', percentile(S.woba,d.woba), woba3(d.woba)],
     ['xwOBA', percentile(S.xwoba,d.xwoba), woba3(d.xwoba)],
-    ['Bat speed', percentile(S.bat_speed_s,d.bat_speed), d.bat_speed.toFixed(0)],
+    ['Bat speed', percentile(S.bat_speed_s,d.bat_speed), d.bat_speed.toFixed(0)+' mph'],
     ['Barrel%', percentile(S.barrel_pct,d.barrel_pct), Math.round(d.barrel_pct)+'%'],
     ['Z-Swing%', percentile(S.z_swing,d.z_swing), (d.z_swing*100).toFixed(1)+'%'],
     ['Z-Contact%', percentile(S.z_contact_s,d.z_contact), Math.round(d.z_contact*100)+'%'],
@@ -858,8 +858,8 @@ function ppDrawQuad(){
   var X=PP_STATS[document.getElementById('qx').value],Y=PP_STATS[document.getElementById('qy').value];
   var rows=PP_CLOUD.rows,y25=PP_CLOUD.y25,y26=PP_CLOUD.y26;
   var mob=window.innerWidth<=900;
-  var FT=mob?1.42:1;
-  var W=500,H=mob?452:346,PL=mob?52:50,PR=mob?20:18,PT=mob?20:16,PB=mob?56:44,pw=W-PL-PR,ph=H-PT-PB;
+  var FT=mob?1.7:1;
+  var W=500,H=mob?372:346,PL=mob?58:50,PR=mob?22:18,PT=mob?22:16,PB=mob?60:44,pw=W-PL-PR,ph=H-PT-PB;
   var fs=x=>(x*FT).toFixed(1);
   function dom(k){var vs=rows.map(r=>r[k]).concat([y25[k],y26[k]]);var mn=Math.min.apply(null,vs),mx=Math.max.apply(null,vs);var pad=(mx-mn)*0.08||1;return [mn-pad,mx+pad];}
   function mean(k){return rows.reduce((a,r)=>a+r[k],0)/rows.length;}
@@ -872,7 +872,7 @@ function ppDrawQuad(){
   var dx=x26-x25,dy=y26p-y25p,len=Math.hypot(dx,dy)||1,ex=x26-dx/len*11,ey=y26p-dy/len*11;
   var dk=Math.abs(dx)>=Math.abs(dy)?X:Y;
   var fm=(v,u)=>v.toFixed(1)+u;
-  var cloud=rows.map(r=>'<circle cx="'+xs(r[X.key]).toFixed(1)+'" cy="'+ys(r[Y.key]).toFixed(1)+'" r="'+(mob?4.4:3.6)+'" fill="#74747e" fill-opacity="0.5"/>').join('');
+  var cloud=rows.map(r=>'<circle cx="'+xs(r[X.key]).toFixed(1)+'" cy="'+ys(r[Y.key]).toFixed(1)+'" r="'+(mob?5:3.6)+'" fill="#74747e" fill-opacity="0.5"/>').join('');
   var tagx=gx==='right'?PL+pw-8:PL+8,ta=gx==='right'?'end':'start',tagy=gy==='top'?PT+16:PT+ph-9;
   var svg='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;max-height:100%;display:block;margin:0 auto">'
    +'<rect x="'+PL+'" y="'+PT+'" width="'+pw+'" height="'+ph+'" fill="#13151a"/>'
@@ -888,10 +888,10 @@ function ppDrawQuad(){
    +'<text x="'+(PL-9)+'" y="'+(PT+ph+4)+'" text-anchor="end" font-size="'+fs(11)+'" fill="#86867e" font-weight="600">'+dY[0].toFixed(0)+'</text>'
    +'<text x="'+(PL-9)+'" y="'+(PT+9)+'" text-anchor="end" font-size="'+fs(11)+'" fill="#86867e" font-weight="600">'+dY[1].toFixed(0)+Y.u+'</text>'
    +(len>4?'<line x1="'+x25+'" y1="'+y25p+'" x2="'+ex+'" y2="'+ey+'" stroke="#efeee7" stroke-width="2.4" marker-end="url(#qarw)"/>':'')
-   +'<circle cx="'+x25+'" cy="'+y25p+'" r="'+(mob?6.6:5.5)+'" fill="#13151a" stroke="#ecebe2" stroke-width="2.2"/>'
-   +'<text x="'+(x25-(mob?11:9))+'" y="'+(y25p+3.5)+'" text-anchor="end" font-size="'+fs(10.5)+'" font-weight="700" fill="#eceadf" stroke="#0a0a0a" stroke-width="2.6" paint-order="stroke">'+fm(y25[dk.key],dk.u)+'</text>'
-   +'<circle cx="'+x26+'" cy="'+y26p+'" r="'+(mob?9.5:8)+'" fill="#ffd54a"/>'
-   +'<text x="'+(x26+(mob?14:12))+'" y="'+(y26p+3.5)+'" text-anchor="start" font-size="'+fs(10.5)+'" font-weight="800" fill="#ffd54a" stroke="#0a0a0a" stroke-width="2.6" paint-order="stroke">'+fm(y26[dk.key],dk.u)+'</text>'
+   +'<circle cx="'+x25+'" cy="'+y25p+'" r="'+(mob?7.6:5.5)+'" fill="#13151a" stroke="#ecebe2" stroke-width="2.2"/>'
+   +'<text x="'+(x25-(mob?13:9))+'" y="'+(y25p+3.5)+'" text-anchor="end" font-size="'+fs(10.5)+'" font-weight="700" fill="#eceadf" stroke="#0a0a0a" stroke-width="2.6" paint-order="stroke">'+fm(y25[dk.key],dk.u)+'</text>'
+   +'<circle cx="'+x26+'" cy="'+y26p+'" r="'+(mob?10.5:8)+'" fill="#ffd54a"/>'
+   +'<text x="'+(x26+(mob?16:12))+'" y="'+(y26p+3.5)+'" text-anchor="start" font-size="'+fs(10.5)+'" font-weight="800" fill="#ffd54a" stroke="#0a0a0a" stroke-width="2.6" paint-order="stroke">'+fm(y26[dk.key],dk.u)+'</text>'
    +'<text x="'+(PL+pw/2)+'" y="'+(H-(mob?12:10))+'" text-anchor="middle" font-size="'+fs(12)+'" font-weight="700" fill="#cfcdc6">'+X.lab+'</text>'
    +'<text x="'+(mob?16:15)+'" y="'+(PT+ph/2)+'" text-anchor="middle" font-size="'+fs(12)+'" font-weight="700" fill="#cfcdc6" transform="rotate(-90 '+(mob?16:15)+' '+(PT+ph/2)+')">'+Y.lab+'</text>'
    +'<defs><marker id="qarw" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#efeee7"/></marker></defs></svg>';
@@ -921,6 +921,8 @@ function ppSetMode(m){
 }
 function ppDrawRolling(){
   var host=document.getElementById('rollHost'); if(!host||!ROLLING_ROWS)return;
+  var mob=window.innerWidth<=900;
+  var leg=document.getElementById('rollLegend');
   var w=host.clientWidth,h=host.clientHeight; if(w<20||h<20)return;
   var win=_rollingWindow, slice=_rollingMetric;
   if(ROLLING_ROWS.length<win){host.innerHTML='<div style="padding:24px;color:var(--ink-3);font-family:Inter,sans-serif;font-size:12px;">Not enough PA for a '+win+'-PA window.</div>';return;}
@@ -934,7 +936,7 @@ function ppDrawRolling(){
   var unit=info.unit;
   var lines=info.L.map(a=>({name:a[0],color:a[1],v:a[2],cur:a[2][a[2].length-1]}));
   var len=lines[0].v.length;
-  var mL=48,mR=26,mT=34,mB=40,iw=w-mL-mR,ih=h-mT-mB;
+  var mL=48,mR=26,mT=mob?12:34,mB=40,iw=w-mL-mR,ih=h-mT-mB;
   var all=[];lines.forEach(L=>{all=all.concat(L.v);});
   var lo=Math.min.apply(null,all),hi=Math.max.apply(null,all);
   if(unit==='woba')lo=Math.min(lo,info.base);
@@ -945,14 +947,20 @@ function ppDrawRolling(){
   var fmtVal=v=>unit==='woba'?('.'+Math.round(v*1000)):unit==='pct'?v.toFixed(1)+'%':v.toFixed(1)+'\u00b0';
   var X=i=>mL+(i/(len-1))*iw, Y=v=>mT+(1-(v-lo)/((hi-lo)||1))*ih;
   var s='';
-  var segW=lines.map(L=>18+L.name.length*7.2+8+fmtVal(L.cur).length*7.6);
-  var totW=segW.reduce((a,b)=>a+b+18,0)-18; var lx=w-mR-totW;
-  lines.forEach(function(L,i){var val=fmtVal(L.cur);
-    s+='<rect x="'+lx+'" y="9" width="11" height="11" rx="2" fill="'+L.color+'"/>';
-    s+='<text x="'+(lx+17)+'" y="18.5" font-size="11.5" font-weight="700" fill="#cfcfc9">'+L.name+'</text>';
-    s+='<text x="'+(lx+17+L.name.length*7.2+8)+'" y="18.5" font-size="11.5" font-weight="800" fill="'+L.color+'">'+val+'</text>';
-    lx+=segW[i]+18;
-  });
+  var fmtLeg=v=>unit==='woba'?('.'+Math.round(v*1000)):unit==='pct'?Math.round(v)+'%':Math.round(v)+'\u00b0';
+  if(mob){
+    if(leg)leg.innerHTML=lines.map(L=>'<span class="rl"><i style="background:'+L.color+'"></i>'+L.name+'<b style="color:'+L.color+'">'+fmtLeg(L.cur)+'</b></span>').join('');
+  } else {
+    if(leg)leg.innerHTML='';
+    var segW=lines.map(L=>18+L.name.length*7.2+8+fmtVal(L.cur).length*7.6);
+    var totW=segW.reduce((a,b)=>a+b+18,0)-18; var lx=w-mR-totW;
+    lines.forEach(function(L,i){var val=fmtVal(L.cur);
+      s+='<rect x="'+lx+'" y="9" width="11" height="11" rx="2" fill="'+L.color+'"/>';
+      s+='<text x="'+(lx+17)+'" y="18.5" font-size="11.5" font-weight="700" fill="#cfcfc9">'+L.name+'</text>';
+      s+='<text x="'+(lx+17+L.name.length*7.2+8)+'" y="18.5" font-size="11.5" font-weight="800" fill="'+L.color+'">'+val+'</text>';
+      lx+=segW[i]+18;
+    });
+  }
   ticks.forEach(function(t){var y=Y(t).toFixed(1);
     s+='<line x1="'+mL+'" y1="'+y+'" x2="'+(mL+iw)+'" y2="'+y+'" stroke="rgba(255,255,255,.08)" stroke-width="1"/>';
     s+='<text x="'+(mL-9)+'" y="'+(+y+4).toFixed(1)+'" text-anchor="end" fill="'+INK2+'" font-size="11" font-weight="600">'+fmtYtick(t)+'</text>';
@@ -1030,7 +1038,7 @@ function renderPlayerPage(id){
   var swing='<div class="stp"><span>Attack angle</span><b>'+(d.attack_angle!=null?d.attack_angle.toFixed(1)+'\u00b0':'\u2014')+'</b></div>'
     +'<div class="stp"><span>Direction</span><b>'+attackDirLabel(d.attack_direction)+'</b></div>'
     +'<div class="stp"><span>Tilt</span><b>'+swingTiltLabel(d.tilt)+'</b></div>';
-  var rollControls=ROLLING[d.id]?'<div class="rolling-controls"><div class="rolling-tabs" id="rollingMetricTabs"><button class="rt-tab active" data-metric="outcomes">Outcomes</button><button class="rt-tab" data-metric="discipline">Discipline</button><button class="rt-tab" data-metric="power">Power</button><button class="rt-tab" data-metric="swing">Swing path</button></div><div class="rolling-window"><button class="rw-btn" data-window="50">50</button><button class="rw-btn active" data-window="100">100</button><button class="rw-btn" data-window="250">250</button><span class="rw-lbl">PA</span></div></div><div id="rollHost"></div>':'<div style="padding:24px;color:var(--ink-3);font-size:12px">Rolling data not available.</div>';
+  var rollControls=ROLLING[d.id]?'<div class="rolling-controls"><div class="rolling-tabs" id="rollingMetricTabs"><button class="rt-tab active" data-metric="outcomes">Outcomes</button><button class="rt-tab" data-metric="discipline">Discipline</button><button class="rt-tab" data-metric="power">Power</button><button class="rt-tab" data-metric="swing">Swing path</button></div><div class="rolling-window"><button class="rw-btn" data-window="50">50</button><button class="rw-btn active" data-window="100">100</button><button class="rw-btn" data-window="250">250</button><span class="rw-lbl">PA</span></div></div><div id="rollLegend"></div><div id="rollHost"></div>':'<div style="padding:24px;color:var(--ink-3);font-size:12px">Rolling data not available.</div>';
   pp.querySelector('.pp-inner').innerHTML='<div class="ppx">'
     +'<button class="pp-back" onclick="history.back()" style="background:none;border:none;color:#9a9a95;font:inherit;cursor:pointer;margin:0;font-size:13px">\u2190 Back to all hitters</button>'
     +'<div class="ppx-main">'

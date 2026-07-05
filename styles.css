@@ -1352,3 +1352,13 @@
 .ppx .db-25{text-align:right;color:#6f6f6a}
 .ppx .db-ar{display:flex;align-items:center;justify-content:center}
 .ppx .db-26{text-align:left}
+
+/* mobile fixes v51: #1 zebra corners, #2 barbell inset, #3 rmetric gating (appended last so source-order wins) */
+@media (max-width:900px){
+  .ppx #rows{border-radius:12px;overflow:hidden}
+  .ppx .db{padding:0 14px}
+  .ppx #rmetric{display:none!important}
+  .ppx.roll #rmetric{display:block!important}
+  .ppx .viz-head{grid-template-columns:1fr!important}
+  .ppx.roll .viz-head{grid-template-columns:1fr 1fr!important}
+}

@@ -899,6 +899,7 @@ function ppSetMode(m){
   var body=document.querySelector('.ppx .vz-body'),right=document.querySelector('.ppx .right');
   var mob=window.innerWidth<=900;
   var cap=document.getElementById('vcap');
+  var ppRoot=document.querySelector('.ppx'); if(ppRoot)ppRoot.classList.toggle('roll',m==='rolling');
   if(mob){
     var rm=document.getElementById('rmetric'); if(rm)rm.style.display=(mob&&m!=='rolling')?'none':'';
     if(m==='rolling'){ if(body)body.style.display='none'; if(right)right.style.display='block'; if(cap)cap.textContent=''; ppDrawRolling(); return; }

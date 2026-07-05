@@ -1374,7 +1374,7 @@
 
 /* mobile fixes v53: drop all view-boxes lower from player sublabel */
 @media (max-width:900px){
-  .ppx .ph-meta{margin-bottom:30px}
+  .ppx .ph-meta{margin-bottom:14px}
 }
 
 /* mobile fixes v54: rolling HTML wrap-legend + back button drop/right */
@@ -1384,4 +1384,11 @@
   .ppx #rollLegend .rl i{width:11px;height:11px;border-radius:2px;flex:none}
   .ppx #rollLegend .rl b{margin-left:5px}
   .ppx .pp-back{margin:18px 0 8px 24px!important}
+}
+
+/* mobile fixes v55: widen barbell track */
+@media (max-width:900px){
+  .ppx .db-row{grid-template-columns:60px 1fr auto;column-gap:10px}
+  .ppx .db-sp{width:96px}
+  .ppx .db-yy{grid-template-columns:26px 22px 44px;column-gap:4px}
 }

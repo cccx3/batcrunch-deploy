@@ -1362,3 +1362,12 @@
   .ppx .viz-head{grid-template-columns:1fr!important}
   .ppx.roll .viz-head{grid-template-columns:1fr 1fr!important}
 }
+
+/* mobile fixes v52: quad legend spacing + rolling gets a card */
+@media (max-width:900px){
+  .ppx #vz-quad{padding-bottom:12px}
+  .ppx .qlegend{margin-top:14px}
+  .ppx .rollpanel{background:#141416!important;border:1px solid #242427!important;border-radius:14px!important;overflow:hidden!important;padding:12px 14px}
+  .ppx .rolling-controls{border:none!important;background:none!important;padding:2px 0 12px!important}
+  .ppx #rollHost{height:300px}
+}

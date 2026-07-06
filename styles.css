@@ -1392,3 +1392,6 @@
   .ppx .db-sp{width:96px}
   .ppx .db-yy{grid-template-columns:26px 22px 44px;column-gap:4px}
 }
+
+.ppx .viz-cap{display:none}
+@media(min-width:901px){.ppx .ppx-main{padding-top:20px}}

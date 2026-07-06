@@ -861,6 +861,44 @@ function ppDrawQuad(){
   var FT=mob?1.7:1;
   var W=500,H=mob?372:346,PL=mob?58:50,PR=mob?22:18,PT=mob?22:16,PB=mob?60:44,pw=W-PL-PR,ph=H-PT-PB;
   var fs=x=>(x*FT).toFixed(1);
+  if(mob){
+    var SHARE=0.65;
+    var col=k=>rows.map(r=>r[k]).concat([y25[k],y26[k]]);
+    var flr=k=>{var a=col(k),lo=Math.floor(Math.min.apply(null,a)/2)*2,hi=Math.ceil((Math.max.apply(null,a)+0.5)/2)*2;return [lo<0?0:lo,hi];};
+    var mX=rows.reduce((a,r)=>a+r[X.key],0)/rows.length, mY=rows.reduce((a,r)=>a+r[Y.key],0)/rows.length;
+    var dXm=flr(X.key),dYm=flr(Y.key),bot=PT+ph;
+    var bHi=y26[X.key]>=mX, kHi=y26[Y.key]>=mY;
+    var cxq=bHi?PL+pw*(1-SHARE):PL+pw*SHARE, cyq=kHi?PT+ph*SHARE:PT+ph*(1-SHARE);
+    var xq=v=>v<=mX?PL+(v-dXm[0])/(mX-dXm[0])*(cxq-PL):cxq+(v-mX)/(dXm[1]-mX)*(PL+pw-cxq);
+    var yq=v=>v<=mY?bot+(v-dYm[0])/(mY-dYm[0])*(cyq-bot):cyq+(v-mY)/(dYm[1]-mY)*(PT-cyq);
+    var cl=rows.map(r=>{var g=(r[X.key]>=mX)===bHi&&(r[Y.key]>=mY)===kHi;return '<circle cx="'+xq(r[X.key]).toFixed(1)+'" cy="'+yq(r[Y.key]).toFixed(1)+'" r="3" fill="#54545c" fill-opacity="'+(g?0.3:0.12)+'"/>';}).join('');
+    var qx25=xq(y25[X.key]),qy25=yq(y25[Y.key]),qx26=xq(y26[X.key]),qy26=yq(y26[Y.key]);
+    var qL=Math.hypot(qx26-qx25,qy26-qy25),qshow=qL>=15,qhx=qx26-(qx26-qx25)/(qL||1)*12,qhy=qy26-(qy26-qy25)/(qL||1)*12;
+    var ixL=X.up?cxq:PL, ixW=X.up?(PL+pw-cxq):(cxq-PL), iyT=Y.up?PT:cyq, iyH=Y.up?(cyq-PT):(bot-cyq);
+    var q='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;max-height:100%;display:block;margin:0 auto">'
+     +'<defs><marker id="qarw" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#efeee7"/></marker></defs>'
+     +'<rect x="'+PL+'" y="'+PT+'" width="'+pw+'" height="'+ph+'" fill="#13151a"/>'
+     +'<rect x="'+ixL+'" y="'+iyT+'" width="'+ixW+'" height="'+iyH+'" fill="none" stroke="#e0a878" stroke-opacity="0.6" stroke-width="1.4"/>'
+     +cl
+     +'<line x1="'+cxq+'" y1="'+PT+'" x2="'+cxq+'" y2="'+bot+'" stroke="#565662" stroke-width="1.2"/>'
+     +'<line x1="'+PL+'" y1="'+cyq+'" x2="'+(PL+pw)+'" y2="'+cyq+'" stroke="#565662" stroke-width="1.2"/>'
+     +'<rect x="'+PL+'" y="'+PT+'" width="'+pw+'" height="'+ph+'" fill="none" stroke="#3a3a44" stroke-width="1.2"/>'
+     +'<text x="'+(cxq+6)+'" y="'+(cyq-6)+'" font-size="'+fs(11)+'" fill="#b7b7ae" font-weight="700" letter-spacing=".05em">LG AVG</text>'
+     +'<text x="'+(X.up?PL+pw-8:PL+8)+'" y="'+(Y.up?PT+16:bot-9)+'" text-anchor="'+(X.up?'end':'start')+'" font-size="'+fs(12)+'" letter-spacing=".14em" font-weight="800" fill="#e0a878">IDEAL</text>'
+     +'<text x="'+(PL+12)+'" y="'+(bot+17)+'" text-anchor="start" font-size="'+fs(11.5)+'" fill="#9a9a92" font-weight="600">'+dXm[0]+'</text>'
+     +'<text x="'+cxq+'" y="'+(bot+17)+'" text-anchor="middle" font-size="'+fs(11.5)+'" fill="#9a9a92" font-weight="600">'+mX.toFixed(0)+'</text>'
+     +'<text x="'+(PL+pw)+'" y="'+(bot+17)+'" text-anchor="middle" font-size="'+fs(11.5)+'" fill="#9a9a92" font-weight="600">'+dXm[1]+X.u+'</text>'
+     +'<text x="'+(PL-11)+'" y="'+(bot-2)+'" text-anchor="end" font-size="'+fs(11.5)+'" fill="#9a9a92" font-weight="600">'+dYm[0]+'</text>'
+     +'<text x="'+(PL-11)+'" y="'+(cyq+4)+'" text-anchor="end" font-size="'+fs(11.5)+'" fill="#9a9a92" font-weight="600">'+mY.toFixed(0)+'</text>'
+     +'<text x="'+(PL-11)+'" y="'+(PT+9)+'" text-anchor="end" font-size="'+fs(11.5)+'" fill="#9a9a92" font-weight="600">'+dYm[1]+Y.u+'</text>'
+     +(qshow?'<line x1="'+qx25+'" y1="'+qy25+'" x2="'+qhx+'" y2="'+qhy+'" stroke="#efeee7" stroke-width="2.2" marker-end="url(#qarw)"/><circle cx="'+qx25+'" cy="'+qy25+'" r="4.5" fill="none" stroke="#ecebe2" stroke-width="1.8"/>':'')
+     +'<circle cx="'+qx26+'" cy="'+qy26+'" r="9" fill="#ffd54a" stroke="#0a0a0a" stroke-width="1.5"/>'
+     +'<text x="'+(PL+pw/2)+'" y="'+(H-10)+'" text-anchor="middle" font-size="'+fs(12.5)+'" font-weight="700" fill="#cfcdc6">'+X.lab+'</text>'
+     +'<text x="16" y="'+(PT+ph/2)+'" text-anchor="middle" font-size="'+fs(12.5)+'" font-weight="700" fill="#cfcdc6" transform="rotate(-90 16 '+(PT+ph/2)+')">'+Y.lab+'</text>'
+     +'</svg>';
+    document.getElementById('quadHost').innerHTML=q;
+    return;
+  }
   function dom(k){var vs=rows.map(r=>r[k]).concat([y25[k],y26[k]]);var mn=Math.min.apply(null,vs),mx=Math.max.apply(null,vs);var pad=(mx-mn)*0.08||1;return [mn-pad,mx+pad];}
   function mean(k){return rows.reduce((a,r)=>a+r[k],0)/rows.length;}
   var dX=dom(X.key),dY=dom(Y.key);

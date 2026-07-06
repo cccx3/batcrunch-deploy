@@ -853,52 +853,65 @@ function ppBuildCloud(d){
   var y25=py?{bat_speed:py.bat_speed,barrel:py.barrel,z_contact:py.z_contact,bb:py.bb,k:py.k}:y26;
   PP_CLOUD={rows:rows,y25:y25,y26:y26};
 }
+function ppQuadMobile(X,Y,rows,y25,y26){
+  var FAR=0.30;
+  var W=500,H=372,PL=58,PR=22,PT=22,PB=60,pw=W-PL-PR,ph=H-PT-PB,bot=PT+ph;
+  var mean=k=>rows.reduce((a,r)=>a+r[k],0)/rows.length;
+  var mX=mean(X.key),mY=mean(Y.key);
+  var has25=y25&&y25[X.key]!=null&&y25[Y.key]!=null;
+  var vx=[y26[X.key]].concat(has25?[y25[X.key]]:[]),vy=[y26[Y.key]].concat(has25?[y25[Y.key]]:[]);
+  var allX=rows.map(r=>r[X.key]),allY=rows.map(r=>r[Y.key]);
+  var bHi=y26[X.key]>=mX, kHi=y26[Y.key]>=mY;
+  var xPlayHi=Math.max.apply(null,allX.concat(vx))+0.4, xPlayLo=Math.min.apply(null,allX.concat(vx))-0.4;
+  var yPlayHi=Math.max.apply(null,allY.concat(vy))+0.4, yPlayLo=Math.min.apply(null,allY.concat(vy))-0.4;
+  var sx=X.up?(bHi?PL+pw*FAR:PL+pw*(1-FAR)):(bHi?PL+pw*(1-FAR):PL+pw*FAR);
+  // simpler: player side = side player is on; give it (1-FAR)
+  sx=bHi?PL+pw*FAR:PL+pw*(1-FAR);
+  var sy=kHi?PT+ph*(1-FAR):PT+ph*FAR;
+  var xFar=bHi?xPlayLo:xPlayHi, yFar=kHi?yPlayHi:yPlayLo;
+  var xs=v=>{ if(bHi){ return v>=mX ? sx+(v-mX)/(xPlayHi-mX)*(PL+pw-sx) : PL+(v-xFar)/(mX-xFar)*(sx-PL); }
+    else { return v<=mX ? PL+(v-xPlayLo)/(mX-xPlayLo)*(sx-PL) : sx+(v-mX)/(xFar-mX)*(PL+pw-sx); } };
+  var ys=v=>{ if(kHi){ return v>=mY ? sy-(v-mY)/(yPlayHi-mY)*(sy-PT) : bot-(v-yFar)/(mY-yFar)*(bot-sy); }
+    else { return v<=mY ? bot-(v-yPlayLo)/(mY-yPlayLo)*(bot-sy) : sy-(v-mY)/(yFar-mY)*(sy-PT); } };
+  var loX=Math.min(xPlayLo,xFar),hiX=Math.max(xPlayHi,xFar),loY=Math.min(yPlayLo,yFar),hiY=Math.max(yPlayHi,yFar);
+  var cloud=rows.filter(r=>r[X.key]>=loX&&r[X.key]<=hiX&&r[Y.key]>=loY&&r[Y.key]<=hiY)
+    .map(r=>'<circle cx="'+xs(r[X.key]).toFixed(1)+'" cy="'+ys(r[Y.key]).toFixed(1)+'" r="5" fill="#74747e" fill-opacity="0.42"/>').join('');
+  var mx=xs(mX),my=ys(mY);
+  var ixL=X.up?mx:PL, ixW=X.up?(PL+pw-mx):(mx-PL), iyT=Y.up?PT:my, iyH=Y.up?(my-PT):(bot-my);
+  var qx26=xs(y26[X.key]),qy26=ys(y26[Y.key]);
+  var yoy='';
+  if(has25){var ax=xs(y25[X.key]),ay=ys(y25[Y.key]),L=Math.hypot(qx26-ax,qy26-ay);
+    if(L>=16)yoy+='<line x1="'+ax+'" y1="'+ay+'" x2="'+(qx26-(qx26-ax)/L*13)+'" y2="'+(qy26-(qy26-ay)/L*13)+'" stroke="#efeee7" stroke-width="2.4" marker-end="url(#qarw)"/>';
+    yoy+='<circle cx="'+ax+'" cy="'+ay+'" r="6.5" fill="none" stroke="#ecebe2" stroke-width="2.2"/>';}
+  var lgX=mx+5>PL+pw-70?PL+5:mx+5;
+  var svg='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;max-height:100%;display:block;margin:0 auto">'
+   +'<defs><marker id="qarw" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#efeee7"/></marker></defs>'
+   +'<rect x="'+PL+'" y="'+PT+'" width="'+pw+'" height="'+ph+'" fill="#0d0f13"/>'
+   +'<rect x="'+ixL+'" y="'+iyT+'" width="'+ixW+'" height="'+iyH+'" fill="#1a1509"/>'
+   +cloud
+   +'<line x1="'+mx+'" y1="'+PT+'" x2="'+mx+'" y2="'+bot+'" stroke="#565662" stroke-width="1.4" stroke-dasharray="4 4"/>'
+   +'<line x1="'+PL+'" y1="'+my+'" x2="'+(PL+pw)+'" y2="'+my+'" stroke="#565662" stroke-width="1.4" stroke-dasharray="4 4"/>'
+   +'<rect x="'+PL+'" y="'+PT+'" width="'+pw+'" height="'+ph+'" fill="none" stroke="#3a3a44" stroke-width="1.2"/>'
+   +'<text x="'+lgX+'" y="'+(my-7)+'" font-size="17" fill="#b7b7ae" font-weight="700" letter-spacing=".04em">LG AVG</text>'
+   +'<text x="'+(X.up?PL+pw-8:PL+8)+'" y="'+(Y.up?PT+20:bot-10)+'" text-anchor="'+(X.up?'end':'start')+'" font-size="18" letter-spacing=".14em" font-weight="800" fill="#e0a878">IDEAL</text>'
+   +'<text x="'+mx+'" y="'+(bot+22)+'" text-anchor="middle" font-size="16" fill="#b7b7ae" font-weight="700">'+mX.toFixed(0)+X.u+'</text>'
+   +'<text x="'+(PL-12)+'" y="'+(my+5)+'" text-anchor="end" font-size="16" fill="#b7b7ae" font-weight="700">'+mY.toFixed(0)+Y.u+'</text>'
+   +yoy
+   +'<circle cx="'+qx26+'" cy="'+qy26+'" r="12" fill="#ffd54a" stroke="#0a0a0a" stroke-width="2"/>'
+   +'<text x="'+(PL+pw/2)+'" y="'+(H-12)+'" text-anchor="middle" font-size="17" font-weight="700" fill="#cfcdc6">'+X.lab+'</text>'
+   +'<text x="18" y="'+(PT+ph/2)+'" text-anchor="middle" font-size="17" font-weight="700" fill="#cfcdc6" transform="rotate(-90 18 '+(PT+ph/2)+')">'+Y.lab+'</text>'
+   +'</svg>';
+  document.getElementById('quadHost').innerHTML=svg;
+}
 function ppDrawQuad(){
   if(!PP_CLOUD)return;
   var X=PP_STATS[document.getElementById('qx').value],Y=PP_STATS[document.getElementById('qy').value];
   var rows=PP_CLOUD.rows,y25=PP_CLOUD.y25,y26=PP_CLOUD.y26;
   var mob=window.innerWidth<=900;
-  var FT=mob?1.7:1;
-  var W=500,H=mob?372:346,PL=mob?58:50,PR=mob?22:18,PT=mob?22:16,PB=mob?60:44,pw=W-PL-PR,ph=H-PT-PB;
+  if(mob){ppQuadMobile(X,Y,rows,y25,y26);return;}
+  var FT=1;
+  var W=500,H=346,PL=50,PR=18,PT=16,PB=44,pw=W-PL-PR,ph=H-PT-PB;
   var fs=x=>(x*FT).toFixed(1);
-  if(mob){
-    var SHARE=0.65;
-    var col=k=>rows.map(r=>r[k]).concat([y25[k],y26[k]]);
-    var flr=k=>{var a=col(k),lo=Math.floor(Math.min.apply(null,a)/2)*2,hi=Math.ceil((Math.max.apply(null,a)+0.5)/2)*2;return [lo<0?0:lo,hi];};
-    var mX=rows.reduce((a,r)=>a+r[X.key],0)/rows.length, mY=rows.reduce((a,r)=>a+r[Y.key],0)/rows.length;
-    var dXm=flr(X.key),dYm=flr(Y.key),bot=PT+ph;
-    var bHi=y26[X.key]>=mX, kHi=y26[Y.key]>=mY;
-    var cxq=bHi?PL+pw*(1-SHARE):PL+pw*SHARE, cyq=kHi?PT+ph*SHARE:PT+ph*(1-SHARE);
-    var xq=v=>v<=mX?PL+(v-dXm[0])/(mX-dXm[0])*(cxq-PL):cxq+(v-mX)/(dXm[1]-mX)*(PL+pw-cxq);
-    var yq=v=>v<=mY?bot+(v-dYm[0])/(mY-dYm[0])*(cyq-bot):cyq+(v-mY)/(dYm[1]-mY)*(PT-cyq);
-    var cl=rows.map(r=>{var g=(r[X.key]>=mX)===bHi&&(r[Y.key]>=mY)===kHi;return '<circle cx="'+xq(r[X.key]).toFixed(1)+'" cy="'+yq(r[Y.key]).toFixed(1)+'" r="3" fill="#54545c" fill-opacity="'+(g?0.3:0.12)+'"/>';}).join('');
-    var qx25=xq(y25[X.key]),qy25=yq(y25[Y.key]),qx26=xq(y26[X.key]),qy26=yq(y26[Y.key]);
-    var qL=Math.hypot(qx26-qx25,qy26-qy25),qshow=qL>=15,qhx=qx26-(qx26-qx25)/(qL||1)*12,qhy=qy26-(qy26-qy25)/(qL||1)*12;
-    var ixL=X.up?cxq:PL, ixW=X.up?(PL+pw-cxq):(cxq-PL), iyT=Y.up?PT:cyq, iyH=Y.up?(cyq-PT):(bot-cyq);
-    var q='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;max-height:100%;display:block;margin:0 auto">'
-     +'<defs><marker id="qarw" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#efeee7"/></marker></defs>'
-     +'<rect x="'+PL+'" y="'+PT+'" width="'+pw+'" height="'+ph+'" fill="#13151a"/>'
-     +'<rect x="'+ixL+'" y="'+iyT+'" width="'+ixW+'" height="'+iyH+'" fill="none" stroke="#e0a878" stroke-opacity="0.6" stroke-width="1.4"/>'
-     +cl
-     +'<line x1="'+cxq+'" y1="'+PT+'" x2="'+cxq+'" y2="'+bot+'" stroke="#565662" stroke-width="1.2"/>'
-     +'<line x1="'+PL+'" y1="'+cyq+'" x2="'+(PL+pw)+'" y2="'+cyq+'" stroke="#565662" stroke-width="1.2"/>'
-     +'<rect x="'+PL+'" y="'+PT+'" width="'+pw+'" height="'+ph+'" fill="none" stroke="#3a3a44" stroke-width="1.2"/>'
-     +'<text x="'+(cxq+6)+'" y="'+(cyq-6)+'" font-size="'+fs(11)+'" fill="#b7b7ae" font-weight="700" letter-spacing=".05em">LG AVG</text>'
-     +'<text x="'+(X.up?PL+pw-8:PL+8)+'" y="'+(Y.up?PT+16:bot-9)+'" text-anchor="'+(X.up?'end':'start')+'" font-size="'+fs(12)+'" letter-spacing=".14em" font-weight="800" fill="#e0a878">IDEAL</text>'
-     +'<text x="'+(PL+12)+'" y="'+(bot+17)+'" text-anchor="start" font-size="'+fs(11.5)+'" fill="#9a9a92" font-weight="600">'+dXm[0]+'</text>'
-     +'<text x="'+cxq+'" y="'+(bot+17)+'" text-anchor="middle" font-size="'+fs(11.5)+'" fill="#9a9a92" font-weight="600">'+mX.toFixed(0)+'</text>'
-     +'<text x="'+(PL+pw)+'" y="'+(bot+17)+'" text-anchor="middle" font-size="'+fs(11.5)+'" fill="#9a9a92" font-weight="600">'+dXm[1]+X.u+'</text>'
-     +'<text x="'+(PL-11)+'" y="'+(bot-2)+'" text-anchor="end" font-size="'+fs(11.5)+'" fill="#9a9a92" font-weight="600">'+dYm[0]+'</text>'
-     +'<text x="'+(PL-11)+'" y="'+(cyq+4)+'" text-anchor="end" font-size="'+fs(11.5)+'" fill="#9a9a92" font-weight="600">'+mY.toFixed(0)+'</text>'
-     +'<text x="'+(PL-11)+'" y="'+(PT+9)+'" text-anchor="end" font-size="'+fs(11.5)+'" fill="#9a9a92" font-weight="600">'+dYm[1]+Y.u+'</text>'
-     +(qshow?'<line x1="'+qx25+'" y1="'+qy25+'" x2="'+qhx+'" y2="'+qhy+'" stroke="#efeee7" stroke-width="2.2" marker-end="url(#qarw)"/><circle cx="'+qx25+'" cy="'+qy25+'" r="4.5" fill="none" stroke="#ecebe2" stroke-width="1.8"/>':'')
-     +'<circle cx="'+qx26+'" cy="'+qy26+'" r="9" fill="#ffd54a" stroke="#0a0a0a" stroke-width="1.5"/>'
-     +'<text x="'+(PL+pw/2)+'" y="'+(H-10)+'" text-anchor="middle" font-size="'+fs(12.5)+'" font-weight="700" fill="#cfcdc6">'+X.lab+'</text>'
-     +'<text x="16" y="'+(PT+ph/2)+'" text-anchor="middle" font-size="'+fs(12.5)+'" font-weight="700" fill="#cfcdc6" transform="rotate(-90 16 '+(PT+ph/2)+')">'+Y.lab+'</text>'
-     +'</svg>';
-    document.getElementById('quadHost').innerHTML=q;
-    return;
-  }
   function dom(k){var vs=rows.map(r=>r[k]).concat([y25[k],y26[k]]);var mn=Math.min.apply(null,vs),mx=Math.max.apply(null,vs);var pad=(mx-mn)*0.08||1;return [mn-pad,mx+pad];}
   function mean(k){return rows.reduce((a,r)=>a+r[k],0)/rows.length;}
   var dX=dom(X.key),dY=dom(Y.key);
@@ -1072,7 +1085,7 @@ function renderPlayerPage(id){
   var pills='<span class="pill">'+(d.side==='S'?'SWITCH':d.side==='L'?'LHH':'RHH')+'</span>'
     +(d.team?'<span class="pill team">'+d.team+'</span>':'')
     +(d.position?'<span class="pill">'+d.position+'</span>':'')
-    +'<span>'+d.pa+' PA \u00b7 '+curYear+'</span>';
+    +'<span>'+d.pa+' PA</span>';
   var swing='<div class="stp"><span>Attack angle</span><b>'+(d.attack_angle!=null?d.attack_angle.toFixed(1)+'\u00b0':'\u2014')+'</b></div>'
     +'<div class="stp"><span>Direction</span><b>'+attackDirLabel(d.attack_direction)+'</b></div>'
     +'<div class="stp"><span>Tilt</span><b>'+swingTiltLabel(d.tilt)+'</b></div>';

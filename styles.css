@@ -1393,5 +1393,20 @@
   .ppx .db-yy{grid-template-columns:26px 22px 44px;column-gap:4px}
 }
 
-.ppx .viz-cap{display:none}
-@media(min-width:901px){.ppx .ppx-main{padding-top:20px}}
+/* v56: bars labels legibility, radar icon shrink, divider up+gap, rolling compress, swing header nudge */
+@media (max-width:900px){
+  /* percentile-bar labels: name white/big/bold, value greyish/big/bold */
+  .ppx .r-lab{font-size:15px;font-weight:700;color:#f2f0ea;text-align:left}
+  .ppx .r-val{font-size:15px;font-weight:700;color:#b0aea6;text-align:right}
+  /* radar icon shrink */
+  .ppx #vz-radar svg{max-width:88%!important}
+  /* divider: slightly above barbell + close gap to radar */
+  .ppx .db{border-top:1px solid #202024;margin-top:-6px;padding-top:10px}
+  /* rolling: compress chart */
+  .ppx #rollHost{height:250px}
+  /* rolling key: numbers snug to labels */
+  .ppx #rollLegend{column-gap:22px}
+  .ppx #rollLegend .rl b{margin-left:3px}
+  /* attack angle / direction / tilt nudged right */
+  .ppx .swing-top{padding-left:8px}
+}

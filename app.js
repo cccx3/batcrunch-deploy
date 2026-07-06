@@ -855,7 +855,7 @@ function ppBuildCloud(d){
 }
 function ppQuadMobile(X,Y,rows,y25,y26){
   var FAR=0.30;
-  var W=500,H=372,PL=58,PR=22,PT=22,PB=60,pw=W-PL-PR,ph=H-PT-PB,bot=PT+ph;
+  var W=500,H=486,PL=58,PR=22,PT=24,PB=64,pw=W-PL-PR,ph=H-PT-PB,bot=PT+ph;
   var mean=k=>rows.reduce((a,r)=>a+r[k],0)/rows.length;
   var mX=mean(X.key),mY=mean(Y.key);
   var has25=y25&&y25[X.key]!=null&&y25[Y.key]!=null;
@@ -887,7 +887,7 @@ function ppQuadMobile(X,Y,rows,y25,y26){
   var svg='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;max-height:100%;display:block;margin:0 auto">'
    +'<defs><marker id="qarw" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#efeee7"/></marker></defs>'
    +'<rect x="'+PL+'" y="'+PT+'" width="'+pw+'" height="'+ph+'" fill="#0d0f13"/>'
-   +'<rect x="'+ixL+'" y="'+iyT+'" width="'+ixW+'" height="'+iyH+'" fill="#1a1509"/>'
+   +'<rect x="'+ixL+'" y="'+iyT+'" width="'+ixW+'" height="'+iyH+'" fill="#e0a878" fill-opacity="0.06"/>'
    +cloud
    +'<line x1="'+mx+'" y1="'+PT+'" x2="'+mx+'" y2="'+bot+'" stroke="#565662" stroke-width="1.4" stroke-dasharray="4 4"/>'
    +'<line x1="'+PL+'" y1="'+my+'" x2="'+(PL+pw)+'" y2="'+my+'" stroke="#565662" stroke-width="1.4" stroke-dasharray="4 4"/>'
@@ -898,8 +898,8 @@ function ppQuadMobile(X,Y,rows,y25,y26){
    +'<text x="'+(PL-12)+'" y="'+(my+5)+'" text-anchor="end" font-size="16" fill="#b7b7ae" font-weight="700">'+mY.toFixed(0)+Y.u+'</text>'
    +yoy
    +'<circle cx="'+qx26+'" cy="'+qy26+'" r="12" fill="#ffd54a" stroke="#0a0a0a" stroke-width="2"/>'
-   +'<text x="'+(PL+pw/2)+'" y="'+(H-12)+'" text-anchor="middle" font-size="17" font-weight="700" fill="#cfcdc6">'+X.lab+'</text>'
-   +'<text x="18" y="'+(PT+ph/2)+'" text-anchor="middle" font-size="17" font-weight="700" fill="#cfcdc6" transform="rotate(-90 18 '+(PT+ph/2)+')">'+Y.lab+'</text>'
+   +'<text x="8" y="'+(PT+ph/2+6)+'" font-size="18" font-weight="700" fill="#cfcdc6">'+Y.lab+'</text>'
+   +'<text x="'+(PL+pw/2)+'" y="'+(H-10)+'" text-anchor="middle" font-size="18" font-weight="700" fill="#cfcdc6">'+X.lab+'</text>'
    +'</svg>';
   document.getElementById('quadHost').innerHTML=svg;
 }

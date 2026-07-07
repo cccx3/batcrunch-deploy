@@ -1413,3 +1413,19 @@
 }
 /* desktop: hide grey caption */
 .ppx .viz-cap{display:none}
+
+/* v58: hero cut on mobile, smaller bar text/rows, swing header nudge, trim quad+rolling height */
+@media (max-width:720px){
+  .hero{display:none!important}
+}
+@media (max-width:900px){
+  .ppx .row{grid-template-columns:88px 1fr 44px!important;height:33px!important;column-gap:10px}
+  .ppx .r-lab{font-size:12.5px!important;font-weight:700;color:#f2f0ea;text-align:left;white-space:nowrap}
+  .ppx .r-val{font-size:12.5px!important;font-weight:700;color:#b0aea6;text-align:right}
+  .ppx .track{height:14px}
+  .ppx .dot{width:18px;height:18px;font-size:8px;border-width:1.5px}
+  .ppx .swing-top{padding-left:20px!important}
+  .ppx #quadHost{height:210px;flex:none}
+  .ppx .rollpanel{min-height:370px}
+  .ppx #rollHost{height:200px!important}
+}

@@ -1345,14 +1345,14 @@ function buildYear(year) {
 
 function applyYearChrome() {
   const floor = DATA.length ? Math.max(1, Math.floor(Math.min(...DATA.map(d => d.pa)) / 10) * 10) : QUALPA;
-  state.min = QUALPA;
+  state.min = floor;
   const mn = document.getElementById('min');
   if (mn) {
     mn.min = floor;
     if (QUALPA > +mn.max) mn.max = QUALPA;
-    mn.value = QUALPA;
+    mn.value = floor;
     const mv = document.getElementById('minVal');
-    if (mv) mv.textContent = QUALPA;
+    if (mv) mv.textContent = floor;
   }
   document.querySelectorAll('#yearSeg button').forEach(b => b.classList.toggle('on', b.dataset.v === curYear));
 }

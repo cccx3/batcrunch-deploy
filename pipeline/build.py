@@ -23,6 +23,9 @@ SEASON = {
     2026: ("2026-03-26", None),          # None -> today
 }
 
+# 2025 raw is too big for one <100MB parquet -> split by date into two cached parts.
+SPLIT_2025 = "2025-07-15"                # H1: start..07-14, H2: 07-15..end
+
 SWING = {"swinging_strike", "swinging_strike_blocked", "foul", "foul_tip", "hit_into_play"}
 WHIFF = {"swinging_strike", "swinging_strike_blocked"}
 K_EVENTS = {"strikeout", "strikeout_double_play"}
@@ -42,16 +45,39 @@ def dpath(name):
 
 
 def get_raw(year):
-    path = dpath(f"raw_{year}.parquet")
-    if year < CURRENT_YEAR and os.path.exists(path):
-        print(f"raw {year}: cached")
-        return pd.read_parquet(path)
+    # 2025: one-time backfill, cached as two date-split parts (each < GitHub's 100MB cap).
+    if year == 2025:
+        h1, h2 = dpath("raw_2025-H1.parquet"), dpath("raw_2025-H2.parquet")
+        if os.path.exists(h1) and os.path.exists(h2):
+            print("raw 2025: cached (2 parts)")
+            return pd.concat([pd.read_parquet(h1), pd.read_parquet(h2)], ignore_index=True)
+        start, end = SEASON[2025]
+        print(f"raw 2025: pulling {start}..{end} (split at {SPLIT_2025})")
+        raw = pull_raw(start, end, chunk_days=5)
+        # game_date is an ISO string and pull_raw returns it sorted -> lexical slice is safe.
+        part1 = raw[raw["game_date"] < SPLIT_2025]
+        part2 = raw[raw["game_date"] >= SPLIT_2025]
+        part1.to_parquet(h1, compression="zstd", compression_level=19)
+        part2.to_parquet(h2, compression="zstd", compression_level=19)
+        for name, part in (("H1", part1), ("H2", part2)):
+            mb = os.path.getsize(dpath(f"raw_2025-{name}.parquet")) / 1e6
+            print(f"raw 2025 {name}: {len(part):>6} rows, {mb:.1f}MB")
+            if mb >= 100:
+                print(f"  WARN: raw_2025-{name}.parquet >= 100MB; move SPLIT_2025 or go to thirds.")
+        return raw
+
+    # other frozen seasons: single cached parquet (zstd). current year always fresh.
+    if year < CURRENT_YEAR:
+        path = dpath(f"raw_{year}.parquet")
+        if os.path.exists(path):
+            print(f"raw {year}: cached")
+            return pd.read_parquet(path)
     start, end = SEASON[year]
     end = end or dt.date.today().isoformat()
     print(f"raw {year}: pulling {start}..{end}")
     raw = pull_raw(start, end, chunk_days=5)
     if year < CURRENT_YEAR:
-        raw.to_parquet(path)
+        raw.to_parquet(dpath(f"raw_{year}.parquet"), compression="zstd", compression_level=19)
     return raw
 
 

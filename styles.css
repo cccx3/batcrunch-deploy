@@ -671,8 +671,9 @@
   .cp-content { margin-top: 8px; }
   .cp-layout {
     display: grid; grid-template-columns: minmax(0, 1fr) 500px;
-    gap: 24px; align-items: start;
+    gap: 24px; align-items: stretch;
   }
+  .cp-card { display: flex; flex-direction: column; }
   .cp-right {
     display: flex; flex-direction: column; overflow: hidden;
     background: #111; border: 1px solid #252525; border-radius: 4px;
@@ -1413,6 +1414,8 @@
 }
 /* desktop: hide grey caption */
 .ppx .viz-cap{display:none}
+.ppx .roll-empty{padding:40px 24px;color:var(--ink-3);font-size:13px;text-align:center;display:flex;align-items:center;justify-content:center;flex:1;min-height:200px}
+.ppx .db-noprev{color:var(--ink-3);font-size:14px;text-align:center;padding:28px 24px 12px}
 
 /* v60b: desktop swing nudge, panel height trim, rolling controls spacing */
 @media (min-width:901px){
@@ -1423,14 +1426,16 @@
 }
 
 /* glossary page */
-.glossary-page{background:#0d0d0d;min-height:100vh;color:#f5f5f0}
-.gl-inner{max-width:760px;margin:0 auto;padding:28px 30px 60px;font-family:'Inter',sans-serif}
+.glossary-page{position:fixed;inset:0;z-index:50;overflow-y:auto;background:#0d0d0d;color:#f5f5f0}
+.gl-inner{max-width:920px;margin:0 auto;padding:28px 30px 60px;font-family:'Inter',sans-serif}
 .gl-title{font-size:44px;font-weight:800;letter-spacing:-.03em;margin:14px 0 6px}
 .gl-sub{color:#9a9a95;font-size:14px;line-height:1.5;margin:0 0 24px}
 .gl-tabs{display:none;gap:8px;margin-bottom:18px}
 .gl-tab{flex:1;background:#1a1a1a;color:#d8d8d2;border:1px solid #353535;border-radius:6px;padding:10px;font-family:'Inter',sans-serif;font-size:14px;font-weight:700;cursor:pointer}
 .gl-tab.active{background:#f0f0ea;color:#0a0a0a;border-color:#f0f0ea}
+.gl-panels{display:grid;grid-template-columns:1fr 1fr;gap:0 40px}
 .gl-panel{border-top:1px solid #242424}
+.gl-panel::before{content:attr(data-head);display:block;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#8a8a85;font-weight:700;padding:14px 0 2px}
 .gl-row{border-bottom:1px solid #242424;padding:14px 0}
 .gl-term{font-size:16px;font-weight:800;margin-bottom:3px}
 .gl-def{color:#a8a6a0;font-size:14px;line-height:1.5;margin:0}
@@ -1438,6 +1443,8 @@
   .gl-inner{padding:16px 16px 40px}
   .gl-title{font-size:32px}
   .gl-tabs{display:flex}
+  .gl-panels{grid-template-columns:1fr}
+  .gl-panel::before{display:none}
 }
 
 /* v58: hero cut on mobile, smaller bar text/rows, swing header nudge, trim quad+rolling height */

@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Geist:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=61">
+<link rel="stylesheet" href="styles.css?v=65">
 </head>
 <body>
 
@@ -108,7 +108,8 @@
       <button class="gl-tab active" data-tab="grades">Grades</button>
       <button class="gl-tab" data-tab="radar">Radar axes</button>
     </div>
-    <div class="gl-panel" data-panel="grades">
+    <div class="gl-panels">
+    <div class="gl-panel" data-panel="grades" data-head="Grades">
       <div class="gl-row"><div class="gl-term">Power</div><p class="gl-def">Barrel% percentile.</p></div>
       <div class="gl-row"><div class="gl-term">Contact</div><p class="gl-def">Z-Contact% percentile.</p></div>
       <div class="gl-row"><div class="gl-term">Discipline</div><p class="gl-def">BB% minus K% (stronger indicator than most other discipline stats), percentile.</p></div>
@@ -117,12 +118,13 @@
       <div class="gl-row"><div class="gl-term">Overall</div><p class="gl-def">wOBA percentile.</p></div>
       <div class="gl-row"><div class="gl-term">Park</div><p class="gl-def">Savant park factors, 100 neutral.</p></div>
     </div>
-    <div class="gl-panel" data-panel="radar" style="display:none">
+    <div class="gl-panel" data-panel="radar" data-head="Radar axes">
       <div class="gl-row"><div class="gl-term">Bat Speed</div><p class="gl-def">Average swing speed percentile.</p></div>
       <div class="gl-row"><div class="gl-term">Barrel</div><p class="gl-def">Barrel% percentile.</p></div>
       <div class="gl-row"><div class="gl-term">Chase</div><p class="gl-def">Chase avoidance, inverse O-Swing%.</p></div>
       <div class="gl-row"><div class="gl-term">Speed</div><p class="gl-def">Sprint speed percentile.</p></div>
       <div class="gl-row"><div class="gl-term">Bat/Ball</div><p class="gl-def">Inverse whiff rate.</p></div>
+    </div>
     </div>
   </div>
 </div>
@@ -150,7 +152,7 @@
   </div>
 </div>
 
-<script src="app.js?v=61"></script>
+<script src="app.js?v=65"></script>
 
 
 <footer class="dash-footer">

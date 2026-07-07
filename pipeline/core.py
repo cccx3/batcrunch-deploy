@@ -324,7 +324,7 @@ def write_json(obj, path):
 def write_current(stats, log, qual):
     """Write current-year data.json + rolling.json (qualified + sub-qualified floor).
     Shared by build.py (full backfill) and update.py (nightly)."""
-    floor = max(50, round(qual * 0.5))      # emit sub-qualified down to ~half qualPA
+    floor = 10      # emit everyone down to 10 PA; low-PA flagged in UI, rolling gated separately
     write_json(year_payload(stats, qual, CURRENT_YEAR, floor=floor), dpath("data.json"))
     qual_ids = set(int(i) for i in stats[stats["pa"] >= qual].index)
     emit_ids = set(int(i) for i in stats[stats["pa"] >= floor].index)

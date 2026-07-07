@@ -426,7 +426,7 @@ function renderRadar(d) {
   // 5 axes (shared with _radarAxes / compareRadar)
   const _v = _radarAxes(d);
   const axes = RADAR_LABELS.map((label, i) => ({ label, value: _v[i] }));
-  const cx = 230, cy = 150, R = 96;
+  const cx = 230, cy = 168, R = 112;
   const N = axes.length;
   
   // Polar to cartesian
@@ -495,7 +495,7 @@ function renderRadar(d) {
   }
   
   return `
-    <svg viewBox="12 2 436 304" width="100%" style="max-width:560px;display:block;margin:0 auto">
+    <svg viewBox="12 8 436 320" width="100%" style="max-width:600px;display:block;margin:0 auto">
       ${grid}
       ${spokes}
       ${prevPoints ? `<polygon points="${prevPoints}" fill="#888" fill-opacity="0.14" stroke="#888" stroke-width="1.5" stroke-dasharray="4 3" />` : ''}
@@ -1056,6 +1056,7 @@ function ppDumbbell(d){
     if(k==='Speed')return py.sprint!=null?[percentile(S.sprint,py.sprint),Math.round(py.sprint)]:null;
   }
   var order=['Barrel','Bat Speed','Bat/Ball','Chase','Speed'];
+  if(!py) return '<div class="db-noprev">No prior-year data.</div>';
   var arr=order.map(function(k){var c=cur[k],p=pv(k);return {k:k,u:U[k],p26:Math.round(c[0]),r26:c[1],p25:p?Math.round(p[0]):Math.round(c[0]),r25:(p&&p[1]!=null)?p[1]:c[1],has:!!(p&&p[1]!=null)};});
   arr.sort(function(a,b){return Math.abs(b.p26-b.p25)-Math.abs(a.p26-a.p25);});
   var rows=arr.map(function(a){
@@ -1089,7 +1090,8 @@ function renderPlayerPage(id){
   var swing='<div class="stp"><span>Attack angle</span><b>'+(d.attack_angle!=null?d.attack_angle.toFixed(1)+'\u00b0':'\u2014')+'</b></div>'
     +'<div class="stp"><span>Direction</span><b>'+attackDirLabel(d.attack_direction)+'</b></div>'
     +'<div class="stp"><span>Tilt</span><b>'+swingTiltLabel(d.tilt)+'</b></div>';
-  var rollControls=ROLLING[d.id]?'<div class="rolling-controls"><div class="rolling-tabs" id="rollingMetricTabs"><button class="rt-tab active" data-metric="outcomes">Outcomes</button><button class="rt-tab" data-metric="discipline">Discipline</button><button class="rt-tab" data-metric="power">Power</button><button class="rt-tab" data-metric="swing">Swing path</button></div><div class="rolling-window"><button class="rw-btn" data-window="50">50</button><button class="rw-btn active" data-window="100">100</button><button class="rw-btn" data-window="250">250</button><span class="rw-lbl">PA</span></div></div><div id="rollLegend"></div><div id="rollHost"></div>':'<div style="padding:24px;color:var(--ink-3);font-size:12px">Rolling data not available.</div>';
+  var _rr=ROLLING[d.id]; var _rollOK=_rr&&_rr.length>=50;
+  var rollControls=_rollOK?'<div class="rolling-controls"><div class="rolling-tabs" id="rollingMetricTabs"><button class="rt-tab active" data-metric="outcomes">Outcomes</button><button class="rt-tab" data-metric="discipline">Discipline</button><button class="rt-tab" data-metric="power">Power</button><button class="rt-tab" data-metric="swing">Swing path</button></div><div class="rolling-window"><button class="rw-btn" data-window="50">50</button><button class="rw-btn active" data-window="100">100</button><button class="rw-btn" data-window="250">250</button><span class="rw-lbl">PA</span></div></div><div id="rollLegend"></div><div id="rollHost"></div>':'<div class="roll-empty">Insufficient PA for rolling trends.</div>';
   pp.querySelector('.pp-inner').innerHTML='<div class="ppx">'
     +'<button class="pp-back" onclick="history.back()" style="background:none;border:none;color:#9a9a95;font:inherit;cursor:pointer;margin:0;font-size:13px">\u2190 Back to all hitters</button>'
     +'<div class="ppx-main">'
@@ -1182,12 +1184,14 @@ function renderCompare() {
   const stats = [
     ['__section', 'Rate'],
     ['wOBA',            d => d.woba,       fmtWoba,    true],
+    ['xwOBA',           d => d.xwoba,      fmtWoba,    true],
     ['BB − K%',         d => d.bb_minus_k, fmtPctSign, true],
     ['Whiff %',         d => d.whiff,      v => v == null ? '—' : v.toFixed(1) + '%', false],
     ['__section', 'Plate skills'],
     ['Z-Contact %',     d => d.z_contact,  fmtPct,     true],
     ['O-Swing %',       d => d.o_swing,    fmtPct,     false],
     ['__section', 'Swing path'],
+    ['Barrel %',        d => d.barrel_pct, v => v == null ? '—' : v.toFixed(1) + '%', true],
     ['Sweet Spot %',    d => d.sweet_pct,  fmtPctDirect, true],
     ['Bat speed',       d => d.bat_speed,  v => v == null ? '—' : v.toFixed(1), true],
   ];
@@ -1312,7 +1316,12 @@ function handleRoute() {
   } else if (hash === '#glossary') {
     document.getElementById('playerPage').style.display = 'none';
     document.getElementById('comparePage').style.display = 'none';
-    if (gp) gp.style.display = 'block';
+    if (gp) {
+      gp.style.display = 'block';
+      const mob = window.innerWidth <= 720;
+      gp.querySelectorAll('.gl-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === 'grades'));
+      gp.querySelectorAll('.gl-panel').forEach(p => p.style.display = (!mob || p.dataset.panel === 'grades') ? '' : 'none');
+    }
     document.body.style.overflow = '';
     window.scrollTo(0, 0);
   } else {
@@ -1329,7 +1338,8 @@ document.addEventListener('click', function(e){
   if (!t) return;
   const which = t.dataset.tab;
   document.querySelectorAll('.gl-tab').forEach(b => b.classList.toggle('active', b === t));
-  document.querySelectorAll('.gl-panel').forEach(p => p.style.display = p.dataset.panel === which ? '' : 'none');
+  const mob = window.innerWidth <= 720;
+  document.querySelectorAll('.gl-panel').forEach(p => p.style.display = (!mob || p.dataset.panel === which) ? '' : 'none');
 });
 
 let YEARS = {};

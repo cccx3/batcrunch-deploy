@@ -6,22 +6,22 @@
 <title>SWING PATH — Hitter Report Cards</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700;800&family=Geist:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=58">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Geist:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css?v=61">
 </head>
 <body>
 
 <header>
   <a href="javascript:void(0)" class="brand-link" onclick="window.location.hash='';return false;"><span class="brand-mark">BATCRUNCH</span></a>
   <nav class="top-nav">
-    <a href="javascript:void(0)" onclick="window.location.hash='methodology';return false;">About</a>
+    <a href="javascript:void(0)" onclick="window.location.hash='glossary';return false;">Glossary</a>
+    <a href="javascript:void(0)" onclick="window.location.hash='compare';return false;">Compare</a>
   </nav>
 </header>
 
 <section class="hero">
   <div class="hero-inner">
     <h1 class="hero-h1-underlined">Batter Leaderboard</h1>
-    <p class="hero-blurb">Hitters graded across five axes — power, contact, discipline, luck, form — benchmarked against the qualified pool. <a href="javascript:void(0)" onclick="window.location.hash='methodology';return false;" style="color:var(--accent);text-decoration:none;border-bottom:1px solid var(--accent)">Methodology</a></p>
   </div>
 </section>
 
@@ -99,6 +99,34 @@
   <div class="pp-inner"></div>
 </div>
 
+<div id="glossaryPage" class="glossary-page" style="display:none">
+  <div class="gl-inner">
+    <button class="pp-back" onclick="window.location.hash='';return false;">← Back to all hitters</button>
+    <h1 class="gl-title">Glossary</h1>
+    <p class="gl-sub">Grades are percentiles vs the qualified pool for the selected season.</p>
+    <div class="gl-tabs">
+      <button class="gl-tab active" data-tab="grades">Grades</button>
+      <button class="gl-tab" data-tab="radar">Radar axes</button>
+    </div>
+    <div class="gl-panel" data-panel="grades">
+      <div class="gl-row"><div class="gl-term">Power</div><p class="gl-def">Barrel% percentile.</p></div>
+      <div class="gl-row"><div class="gl-term">Contact</div><p class="gl-def">Z-Contact% percentile.</p></div>
+      <div class="gl-row"><div class="gl-term">Discipline</div><p class="gl-def">BB% minus K% (stronger indicator than most other discipline stats), percentile.</p></div>
+      <div class="gl-row"><div class="gl-term">Luck</div><p class="gl-def">xwOBA minus wOBA, percentile.</p></div>
+      <div class="gl-row"><div class="gl-term">Form</div><p class="gl-def">Last-14-day wOBA vs season wOBA.</p></div>
+      <div class="gl-row"><div class="gl-term">Overall</div><p class="gl-def">wOBA percentile.</p></div>
+      <div class="gl-row"><div class="gl-term">Park</div><p class="gl-def">Savant park factors, 100 neutral.</p></div>
+    </div>
+    <div class="gl-panel" data-panel="radar" style="display:none">
+      <div class="gl-row"><div class="gl-term">Bat Speed</div><p class="gl-def">Average swing speed percentile.</p></div>
+      <div class="gl-row"><div class="gl-term">Barrel</div><p class="gl-def">Barrel% percentile.</p></div>
+      <div class="gl-row"><div class="gl-term">Chase</div><p class="gl-def">Chase avoidance, inverse O-Swing%.</p></div>
+      <div class="gl-row"><div class="gl-term">Speed</div><p class="gl-def">Sprint speed percentile.</p></div>
+      <div class="gl-row"><div class="gl-term">Bat/Ball</div><p class="gl-def">Inverse whiff rate.</p></div>
+    </div>
+  </div>
+</div>
+
 
 <div id="comparePage" class="compare-page" style="display:none">
   <div class="cp-inner">
@@ -122,7 +150,7 @@
   </div>
 </div>
 
-<script src="app.js?v=58"></script>
+<script src="app.js?v=61"></script>
 
 
 <footer class="dash-footer">

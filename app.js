@@ -420,7 +420,7 @@ function renderMobileCards() {
 }
 
 
-const RADAR_LABELS = ['Bat Speed','Barrel','Discipline','Speed','Bat/Ball'];
+const RADAR_LABELS = ['Bat Speed','Barrel','Chase','Speed','Bat/Ball'];
 
 function renderRadar(d) {
   // 5 axes (shared with _radarAxes / compareRadar)
@@ -1040,22 +1040,22 @@ function ppWireRolling(){
 function ppDumbbell(d){
   var prevYear=String(+curYear-1);
   var py=(typeof YEARS!=='undefined'&&YEARS[prevYear])?YEARS[prevYear].players[d.id]:null;
-  var U={'Bat Speed':'mph','Barrel':'%','Bat/Ball':'%','Discipline':'%','Speed':'ft/s'};
+  var U={'Bat Speed':'mph','Barrel':'%','Bat/Ball':'%','Chase':'%','Speed':'ft/s'};
   var cur={
     'Bat Speed':[percentile(S.bat_speed_s,d.bat_speed), Math.round(d.bat_speed)],
     'Barrel':[percentile(S.barrel_pct,d.barrel_pct), Math.round(d.barrel_pct)],
     'Bat/Ball':[100-percentile(S.whiff_s,d.whiff), Math.round(d.z_contact*100)],
-    'Discipline':[100-percentile(S.o_swing,d.o_swing), Math.round(d.o_swing*100)],
+    'Chase':[100-percentile(S.o_swing,d.o_swing), Math.round(d.o_swing*100)],
     'Speed':[percentile(S.sprint,d.sprint), Math.round(d.sprint)]
   };
   function pv(k){ if(!py)return null;
     if(k==='Bat Speed')return py.bat_speed!=null?[percentile(S.bat_speed_s,py.bat_speed),Math.round(py.bat_speed)]:null;
     if(k==='Barrel')return py.barrel!=null?[percentile(S.barrel_pct,py.barrel),Math.round(py.barrel)]:null;
     if(k==='Bat/Ball')return py.whiff!=null?[100-percentile(S.whiff_s,py.whiff),(py.z_contact!=null?Math.round(py.z_contact):null)]:null;
-    if(k==='Discipline')return py.o_swing!=null?[100-percentile(S.o_swing,py.o_swing/100),Math.round(py.o_swing)]:null;
+    if(k==='Chase')return py.o_swing!=null?[100-percentile(S.o_swing,py.o_swing/100),Math.round(py.o_swing)]:null;
     if(k==='Speed')return py.sprint!=null?[percentile(S.sprint,py.sprint),Math.round(py.sprint)]:null;
   }
-  var order=['Barrel','Bat Speed','Bat/Ball','Discipline','Speed'];
+  var order=['Barrel','Bat Speed','Bat/Ball','Chase','Speed'];
   var arr=order.map(function(k){var c=cur[k],p=pv(k);return {k:k,u:U[k],p26:Math.round(c[0]),r26:c[1],p25:p?Math.round(p[0]):Math.round(c[0]),r25:(p&&p[1]!=null)?p[1]:c[1],has:!!(p&&p[1]!=null)};});
   arr.sort(function(a,b){return Math.abs(b.p26-b.p25)-Math.abs(a.p26-a.p25);});
   var rows=arr.map(function(a){
@@ -1299,20 +1299,38 @@ setupCompareSearch();
 
 function handleRoute() {
   const hash = window.location.hash;
+  const gp = document.getElementById('glossaryPage');
   const m = hash.match(/^#player\/(\d+)$/);
   if (m) {
     document.getElementById('comparePage').style.display = 'none';
+    if (gp) gp.style.display = 'none';
     renderPlayerPage(parseInt(m[1]));
   } else if (hash === '#compare') {
     document.getElementById('playerPage').style.display = 'none';
+    if (gp) gp.style.display = 'none';
     renderCompare();
+  } else if (hash === '#glossary') {
+    document.getElementById('playerPage').style.display = 'none';
+    document.getElementById('comparePage').style.display = 'none';
+    if (gp) gp.style.display = 'block';
+    document.body.style.overflow = '';
+    window.scrollTo(0, 0);
   } else {
     document.getElementById('playerPage').style.display = 'none';
     document.getElementById('comparePage').style.display = 'none';
+    if (gp) gp.style.display = 'none';
     document.body.style.overflow = '';
   }
 }
 window.addEventListener('hashchange', handleRoute);
+
+document.addEventListener('click', function(e){
+  const t = e.target.closest('.gl-tab');
+  if (!t) return;
+  const which = t.dataset.tab;
+  document.querySelectorAll('.gl-tab').forEach(b => b.classList.toggle('active', b === t));
+  document.querySelectorAll('.gl-panel').forEach(p => p.style.display = p.dataset.panel === which ? '' : 'none');
+});
 
 let YEARS = {};
 let curYear = '2026';

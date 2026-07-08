@@ -988,7 +988,7 @@ function ppDrawRolling(){
   var unit=info.unit;
   var lines=info.L.map(a=>({name:a[0],color:a[1],v:a[2],cur:a[2][a[2].length-1]}));
   var len=lines[0].v.length;
-  var mL=48,mR=26,mT=mob?12:34,mB=40,iw=w-mL-mR,ih=h-mT-mB;
+  var mL=48,mR=26,mT=mob?12:44,mB=40,iw=w-mL-mR,ih=h-mT-mB;
   var all=[];lines.forEach(L=>{all=all.concat(L.v);});
   var lo=Math.min.apply(null,all),hi=Math.max.apply(null,all);
   if(unit==='woba')lo=Math.min(lo,info.base);
@@ -1005,7 +1005,7 @@ function ppDrawRolling(){
   } else {
     if(leg)leg.innerHTML='';
     var segW=lines.map(L=>18+L.name.length*7.2+8+fmtVal(L.cur).length*7.6);
-    var totW=segW.reduce((a,b)=>a+b+18,0)-18; var lx=w-mR-totW;
+    var lx=mL;
     lines.forEach(function(L,i){var val=fmtVal(L.cur);
       s+='<rect x="'+lx+'" y="9" width="11" height="11" rx="2" fill="'+L.color+'"/>';
       s+='<text x="'+(lx+17)+'" y="18.5" font-size="11.5" font-weight="700" fill="#cfcfc9">'+L.name+'</text>';

@@ -471,7 +471,7 @@
 
   .player-page {
     position: fixed; inset: 0; z-index: 100;
-    background: linear-gradient(100deg, #0a0a0a 0%, #0a0a0a 45%, #12100b 72%, #1a140c 100%);
+    background: linear-gradient(155deg, #140f09 0%, #0b0906 50%, #0a0a0a 100%);
     overflow-y: auto; overflow-x: hidden;
   }
   .pp-inner {
@@ -1438,7 +1438,8 @@
 }
 /* desktop bars mirror mobile: row striping (full-bleed to card edge) + muted values */
 @media (min-width:901px){
-  .ppx #rows>.row{margin:0 -20px;padding:0 20px}
+  .ppx #rows>.row{margin:0 -20px;padding:0 20px;grid-template-columns:92px 1fr 48px;column-gap:14px}
+  .ppx .scale{grid-template-columns:92px 1fr 48px}
   .ppx #rows>.row:nth-child(even){background:#161616}
   .ppx .r-val{color:#b0aea6}
   /* rolling: legend its own breathing band, chart contained with margins */

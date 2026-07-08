@@ -988,7 +988,7 @@ function ppDrawRolling(){
   var unit=info.unit;
   var lines=info.L.map(a=>({name:a[0],color:a[1],v:a[2],cur:a[2][a[2].length-1]}));
   var len=lines[0].v.length;
-  var mL=48,mR=26,mT=mob?12:16,mB=40,iw=w-mL-mR,ih=h-mT-mB;
+  var mL=58,mR=26,mT=mob?12:16,mB=30,iw=w-mL-mR,ih=h-mT-mB;
   var all=[];lines.forEach(L=>{all=all.concat(L.v);});
   var lo=Math.min.apply(null,all),hi=Math.max.apply(null,all);
   if(unit==='woba')lo=Math.min(lo,info.base);
@@ -1014,7 +1014,7 @@ function ppDrawRolling(){
     s+='<text x="'+(mL+iw)+'" y="'+(+by-5)+'" text-anchor="end" fill="'+ORANGE+'" font-size="9.5" font-weight="700" letter-spacing=".06em">LG AVG</text>';
   }
   [0,0.25,0.5,0.75,1].forEach(function(f){var i=Math.round(f*(len-1)),a=f<=0?'start':f>=1?'end':'middle';
-    s+='<text x="'+X(i).toFixed(1)+'" y="'+(h-16)+'" text-anchor="'+a+'" fill="'+INK2+'" font-size="11" font-weight="600">'+Math.round(f*win)+'</text>';
+    s+='<text x="'+X(i).toFixed(1)+'" y="'+(h-mB+18)+'" text-anchor="'+a+'" fill="'+INK2+'" font-size="11" font-weight="600">'+Math.round(f*win)+'</text>';
   });
   lines.forEach(function(L){var p=L.v.map((v,i)=>X(i).toFixed(1)+','+Y(v).toFixed(1)).join(' ');
     s+='<polyline points="'+p+'" fill="none" stroke="'+L.color+'" stroke-width="'+(L.name==='xwOBA'?2.6:2.1)+'" stroke-linejoin="round" stroke-linecap="round"/>';

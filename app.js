@@ -898,8 +898,8 @@ function ppQuadMobile(X,Y,rows,y25,y26){
    +'<text x="'+(PL-12)+'" y="'+(my+5)+'" text-anchor="end" font-size="16" fill="#b7b7ae" font-weight="700">'+mY.toFixed(0)+Y.u+'</text>'
    +yoy
    +'<circle cx="'+qx26+'" cy="'+qy26+'" r="12" fill="#ffd54a" stroke="#0a0a0a" stroke-width="2"/>'
-   +'<text x="8" y="'+(PT+ph/2+6)+'" font-size="18" font-weight="700" fill="#cfcdc6">'+Y.lab+'</text>'
-   +'<text x="'+(PL+pw/2)+'" y="'+(H-10)+'" text-anchor="middle" font-size="18" font-weight="700" fill="#cfcdc6">'+X.lab+'</text>'
+   +'<text x="8" y="'+(PT+14)+'" font-size="18" font-weight="700" fill="#cfcdc6">'+Y.lab+'</text>'
+   +'<text x="'+(W/2)+'" y="'+(H-10)+'" text-anchor="middle" font-size="18" font-weight="700" fill="#cfcdc6">'+X.lab+'</text>'
    +'</svg>';
   document.getElementById('quadHost').innerHTML=svg;
 }
@@ -925,7 +925,7 @@ function ppDrawQuad(){
   var fm=(v,u)=>v.toFixed(1)+u;
   var cloud=rows.map(r=>'<circle cx="'+xs(r[X.key]).toFixed(1)+'" cy="'+ys(r[Y.key]).toFixed(1)+'" r="'+(mob?5:3.6)+'" fill="#74747e" fill-opacity="0.5"/>').join('');
   var tagx=gx==='right'?PL+pw-8:PL+8,ta=gx==='right'?'end':'start',tagy=gy==='top'?PT+16:PT+ph-9;
-  var svg='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;max-height:100%;display:block;margin:0 auto">'
+  var svg='<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%;max-height:100%;display:block;margin:0 auto">'
    +'<rect x="'+PL+'" y="'+PT+'" width="'+pw+'" height="'+ph+'" fill="#13151a"/>'
    +'<rect x="'+ixr[0]+'" y="'+iyr[0]+'" width="'+(ixr[1]-ixr[0])+'" height="'+(iyr[1]-iyr[0])+'" fill="#1b2128"/>'
    +'<line x1="'+cx+'" y1="'+PT+'" x2="'+cx+'" y2="'+(PT+ph)+'" stroke="#565662" stroke-width="1.2"/>'
@@ -956,6 +956,7 @@ function ppSetMode(m){
   var cap=document.getElementById('vcap');
   var ppRoot=document.querySelector('.ppx'); if(ppRoot)ppRoot.classList.toggle('roll',m==='rolling');
   if(mob){
+    var rm=document.getElementById('rmetric'); if(rm)rm.style.display=(m==='rolling')?'':'none';
     if(m==='rolling'){ if(body)body.style.display='none'; if(right)right.style.display='block'; if(cap)cap.textContent=''; ppDrawRolling(); return; }
     if(body)body.style.display=''; if(right)right.style.display='none';
     quad.style.position='static'; radar.style.position='static';
@@ -1099,7 +1100,7 @@ function renderPlayerPage(id){
     +'<div class="ph-meta">'+pills+'</div>'
     +'<div class="main">'
     +'<div class="left"><div class="viz">'
-    +'<div class="viz-head"><select class="viz-sel viz-sel-solo" id="mode" onchange="ppSetMode(this.value)"><option value="bars">Percentile bars</option><option value="quad">Quadrant \u00b7 YoY</option><option value="radar">Radar</option><option value="rolling" class="ppopt-roll">Rolling</option></select><span class="viz-cap" id="vcap">2026 \u00b7 vs qualified hitters</span></div>'
+    +'<div class="viz-head"><select class="viz-sel viz-sel-solo" id="mode" onchange="ppSetMode(this.value)"><option value="bars">Percentile bars</option><option value="quad">Quadrant \u00b7 YoY</option><option value="radar">Radar</option><option value="rolling" class="ppopt-roll">Rolling</option></select><select class="viz-sel viz-sel-metric" id="rmetric" onchange="_rollingMetric=this.value;ppDrawRolling()"><option value="outcomes">Outcomes</option><option value="discipline">Discipline</option><option value="power">Power</option><option value="swing">Swing path</option></select><span class="viz-cap" id="vcap">2026 \u00b7 vs qualified hitters</span></div>'
     +'<div class="vz-body">'
     +'<div id="vz-bars"><div class="swing-top">'+swing+'</div><div id="rows">'+ppBarsHTML(d)+'</div></div>'
     +'<div id="vz-quad"><div class="qpick"><span class="cmp-lbl">Compare </span><select id="qx" onchange="ppDrawQuad()"></select><span class="vs">vs</span><select id="qy" onchange="ppDrawQuad()"></select></div><div id="quadHost"></div><div class="qlegend"><span class="d"><span class="gd"></span>2025</span><span class="d"><span class="sd"></span>2026</span></div></div>'

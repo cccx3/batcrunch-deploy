@@ -1436,10 +1436,17 @@
   .ppx .viz-sel{font-size:15px;padding:11px 14px;border-radius:8px}
   .ppx .qpick select{font-size:15px;padding:9px 12px}
 }
-/* desktop bars mirror mobile: row striping + muted value text */
+/* desktop bars mirror mobile: row striping (full-bleed to card edge) + muted values */
 @media (min-width:901px){
+  .ppx #rows>.row{margin:0 -20px;padding:0 20px}
   .ppx #rows>.row:nth-child(even){background:#161616}
   .ppx .r-val{color:#b0aea6}
+  /* rolling: legend its own breathing band, chart contained with margins */
+  .ppx #rollLegend{display:flex;flex-wrap:wrap;gap:18px;padding:14px 18px 10px;align-items:center}
+  .ppx #rollLegend .rl{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:700;color:#cfcfc9}
+  .ppx #rollLegend .rl i{width:11px;height:11px;border-radius:2px;display:inline-block}
+  .ppx #rollLegend .rl b{font-weight:800}
+  .ppx #rollingChartHost{padding:6px 16px 12px}
 }
 .ppx .roll-empty{padding:40px 24px;color:var(--ink-3);font-size:13px;text-align:center;display:flex;align-items:center;justify-content:center;flex:1;min-height:200px}
 .ppx .db-noprev{color:var(--ink-3);font-size:14px;text-align:center;padding:28px 24px 12px}

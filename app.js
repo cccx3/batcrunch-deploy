@@ -426,7 +426,7 @@ function renderRadar(d) {
   // 5 axes (shared with _radarAxes / compareRadar)
   const _v = _radarAxes(d);
   const axes = RADAR_LABELS.map((label, i) => ({ label, value: _v[i] }));
-  const cx = 230, cy = 168, R = 112;
+  const cx = 230, cy = 158, R = 104;
   const N = axes.length;
   
   // Polar to cartesian
@@ -1185,13 +1185,11 @@ function renderCompare() {
     ['__section', 'Rate'],
     ['wOBA',            d => d.woba,       fmtWoba,    true],
     ['xwOBA',           d => d.xwoba,      fmtWoba,    true],
-    ['BB − K%',         d => d.bb_minus_k, fmtPctSign, true],
     ['Whiff %',         d => d.whiff,      v => v == null ? '—' : v.toFixed(1) + '%', false],
     ['__section', 'Plate skills'],
     ['Z-Contact %',     d => d.z_contact,  fmtPct,     true],
     ['O-Swing %',       d => d.o_swing,    fmtPct,     false],
     ['__section', 'Swing path'],
-    ['Barrel %',        d => d.barrel_pct, v => v == null ? '—' : v.toFixed(1) + '%', true],
     ['Sweet Spot %',    d => d.sweet_pct,  fmtPctDirect, true],
     ['Bat speed',       d => d.bat_speed,  v => v == null ? '—' : v.toFixed(1), true],
   ];
@@ -1373,14 +1371,14 @@ function buildYear(year) {
 
 function applyYearChrome() {
   const floor = DATA.length ? Math.max(1, Math.floor(Math.min(...DATA.map(d => d.pa)) / 10) * 10) : QUALPA;
-  state.min = floor;
+  state.min = QUALPA;
   const mn = document.getElementById('min');
   if (mn) {
     mn.min = floor;
     if (QUALPA > +mn.max) mn.max = QUALPA;
-    mn.value = floor;
+    mn.value = QUALPA;
     const mv = document.getElementById('minVal');
-    if (mv) mv.textContent = floor;
+    if (mv) mv.textContent = QUALPA;
   }
   document.querySelectorAll('#yearSeg button').forEach(b => b.classList.toggle('on', b.dataset.v === curYear));
 }

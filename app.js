@@ -882,7 +882,8 @@ function ppQuadMobile(X,Y,rows,y25,y26){
   var yoy='';
   if(has25){var ax=xs(y25[X.key]),ay=ys(y25[Y.key]),L=Math.hypot(qx26-ax,qy26-ay);
     if(L>=16)yoy+='<line x1="'+ax+'" y1="'+ay+'" x2="'+(qx26-(qx26-ax)/L*13)+'" y2="'+(qy26-(qy26-ay)/L*13)+'" stroke="#efeee7" stroke-width="2.4" marker-end="url(#qarw)"/>';
-    yoy+='<circle cx="'+ax+'" cy="'+ay+'" r="6.5" fill="none" stroke="#ecebe2" stroke-width="2.2"/>';}
+    yoy+='<circle cx="'+ax+'" cy="'+ay+'" r="6.5" fill="none" stroke="#ecebe2" stroke-width="2.2"/>';
+    yoy+='<text x="'+ax+'" y="'+(ay-13)+'" text-anchor="middle" font-size="14" font-weight="800" fill="#d8d6ce" stroke="#0a0a0a" stroke-width="3" paint-order="stroke">\u201925</text>';}
   var lgX=mx+5>PL+pw-70?PL+5:mx+5;
   var svg='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;max-height:100%;display:block;margin:0 auto">'
    +'<defs><marker id="qarw" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#efeee7"/></marker></defs>'
@@ -898,6 +899,7 @@ function ppQuadMobile(X,Y,rows,y25,y26){
    +'<text x="'+(PL-12)+'" y="'+(my+5)+'" text-anchor="end" font-size="16" fill="#b7b7ae" font-weight="700">'+mY.toFixed(0)+Y.u+'</text>'
    +yoy
    +'<circle cx="'+qx26+'" cy="'+qy26+'" r="12" fill="#ffd54a" stroke="#0a0a0a" stroke-width="2"/>'
+   +'<text x="'+qx26+'" y="'+(qy26-18)+'" text-anchor="middle" font-size="14" font-weight="800" fill="#ffd54a" stroke="#0a0a0a" stroke-width="3" paint-order="stroke">\u201926</text>'
    +'<text x="8" y="'+(PT+16)+'" font-size="22" font-weight="800" fill="#e8e6de">'+Y.lab+'</text>'
    +'<text x="'+(W/2)+'" y="'+(H-8)+'" text-anchor="middle" font-size="22" font-weight="800" fill="#e8e6de">'+X.lab+'</text>'
    +'</svg>';

@@ -1452,7 +1452,7 @@
 @media (min-width:901px){
   .ppx .swing-top{padding-left:16px}
   .ppx .main{align-items:flex-start}
-  .ppx .left,.ppx .right,.ppx .viz,.ppx .rollpanel{height:calc(100vh - 260px);min-height:480px}
+  .ppx .left,.ppx .right,.ppx .viz,.ppx .rollpanel{height:calc(100vh - 220px);min-height:520px}
   .ppx .rolling-controls{justify-content:flex-start;gap:18px}
 }
 

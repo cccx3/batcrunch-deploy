@@ -240,31 +240,6 @@ function luckCell(d) {
   return `<span class="luck-pill ${cls}" title="xwOBA − wOBA = ${sign}${diff.toFixed(3)}">${label}</span>`;
 }
 
-function wobaCell(d) {
-  if (d.woba == null || d.xwoba == null) return '<span class="dim">—</span>';
-  const LG = 0.320; // 2025 league avg wOBA
-  const wCls = d.woba >= LG ? 'woba-pos' : 'woba-neg';
-  const xCls = d.xwoba >= LG ? 'woba-pos' : 'woba-neg';
-  const diff = d.xwoba - d.woba;
-  let diffCls = 'diff-neu';
-  if (diff > 0.015) diffCls = 'diff-pos';
-  else if (diff < -0.015) diffCls = 'diff-neg';
-  const sign = diff >= 0 ? '+' : '';
-  return `<span class="woba-stack">
-    <span class="woba-v ${wCls}">${d.woba.toFixed(3).replace(/^0/,'')}</span>
-    <span class="woba-x ${xCls}">${d.xwoba.toFixed(3).replace(/^0/,'')}</span>
-    <span class="woba-d ${diffCls}">${sign}${diff.toFixed(3).replace(/^(-?)0/,'$1')}</span>
-  </span>`;
-}
-
-
-
-function rankOf(pct, total) {
-  const v = Math.max(1, Math.min(total, Math.round(1 + (100 - pct) * (total - 1) / 100)));
-  const s = ['th','st','nd','rd'], m = v % 100;
-  return v + (s[(m-20)%10] || s[m] || s[0]);
-}
-
 
 function expandedPanel(d) {
   const L = 'v2'; // Tiles (locked)
@@ -618,16 +593,6 @@ function cmpRoll(kind, val){
   if (a && b && wrap) wrap.innerHTML = cmpRollPanel(a, b);
 }
 
-function computeRollingMean(arr, window) {
-  const out = [];
-  for (let i = window - 1; i < arr.length; i++) {
-    let s = 0;
-    for (let j = i - window + 1; j <= i; j++) s += arr[j];
-    out.push(s / window);
-  }
-  return out;
-}
-
 function rollingSeries(rows, W) {
   const n = rows.length;
   const woba=[],xwoba=[],zone=[],barrel=[],k=[],bb=[];
@@ -713,100 +678,14 @@ function renderRollingChart(slice, windowSize) {
   return '<svg viewBox="0 0 '+W+' '+H+'" width="100%" style="display:block">'+s+'</svg>';
 }
 
-function renderRollingLegend(metric) {
-  const items = metric === 'woba'
-    ? [['wOBA','#f5f5f0',''], ['xwOBA','#ffd54a','']]
-    : [['Zone%','#f5f5f0',''], ['Barrel%','#ffd54a',''], ['K%','#e57373','dashed'], ['BB%','#7fb3dd','dashed']];
-  return items.map(([name, color, dash]) =>
-    `<span class="rl-item"><span class="rl-sw" style="background:${color};${dash === 'dashed' ? 'border-top: 2px dashed '+color+';background:transparent;height:0;' : ''}"></span>${name}</span>`
-  ).join('');
-}
-
 let _rollingPlot = null;
 let _rollingMetric = 'outcomes';
 let _rollingWindow = 100;
-function wireRollingHover() {
-  const svg = document.querySelector('#rollingChartHost svg');
-  const hit = document.getElementById('rollHit');
-  const P = _rollingPlot;
-  if (!svg || !hit || !P) return;
-  const line = document.getElementById('rollCursorLine');
-  const dots = document.getElementById('rollCursorDots');
-  const tip = document.getElementById('rollTip');
-  const sx = pa => P.pad.l + ((pa - P.xMin) / (P.xMax - P.xMin)) * P.innerW;
-  const sy = v => P.pad.t + (1 - (v - P.yMin) / (P.yMax - P.yMin)) * P.innerH;
-  const fmtV = v => P.isPct ? v.toFixed(1) + '%' : v.toFixed(3).replace(/^0/, '');
-  hit.addEventListener('mousemove', e => {
-    const r = svg.getBoundingClientRect();
-    const mx = (e.clientX - r.left) / r.width * P.W;
-    let pa = Math.round(P.xMin + (mx - P.pad.l) / P.innerW * (P.xMax - P.xMin));
-    pa = Math.max(P.xMin, Math.min(P.xMax, pa));
-    const idx = pa - P.startPA, x = sx(pa);
-    line.setAttribute('x1', x); line.setAttribute('x2', x); line.setAttribute('opacity', 1);
-    let d = '', rows = '';
-    const vis = P.series.filter(s => s.vals[idx] != null);
-    vis.forEach((s, i) => {
-      const v = s.vals[idx], y = sy(v);
-      d += '<circle cx="' + x + '" cy="' + y + '" r="3" fill="' + s.color + '" />';
-    });
-    dots.innerHTML = d;
-    const tw = 104, th = 20 + vis.length * 14;
-    let tx = x + 12; if (tx + tw > P.W) tx = x - 12 - tw;
-    const ty = P.pad.t + 4;
-    rows = vis.map((s, i) => '<text x="' + (tx + 9) + '" y="' + (ty + 31 + i * 14) + '" font-family="Inter,sans-serif" font-size="10" fill="' + s.color + '">' + s.name + '  ' + fmtV(s.vals[idx]) + '</text>').join('');
-    tip.innerHTML = '<rect x="' + tx + '" y="' + ty + '" width="' + tw + '" height="' + th + '" rx="4" fill="#16160f" stroke="#3a3a30" opacity="0.96" />' +
-      '<text x="' + (tx + 9) + '" y="' + (ty + 15) + '" font-family="Inter,sans-serif" font-size="10" fill="#888">PA ' + pa + '</text>' + rows;
-    tip.setAttribute('opacity', 1);
-  });
-  hit.addEventListener('mouseleave', () => { line.setAttribute('opacity', 0); dots.innerHTML = ''; tip.setAttribute('opacity', 0); });
-}
 
 function refreshRolling() {
   const host = document.getElementById('rollingChartHost');
   if (!host) return;
   host.innerHTML = renderRollingChart(_rollingMetric, _rollingWindow);
-}
-
-function wireRollingControls() {
-  const tabs = document.getElementById('rollingMetricTabs');
-  if (!tabs) return;
-  tabs.querySelectorAll('.rt-tab').forEach(b => {
-    b.onclick = () => {
-      tabs.querySelectorAll('.rt-tab').forEach(x => x.classList.remove('active'));
-      b.classList.add('active');
-      _rollingMetric = b.dataset.metric;
-      refreshRolling();
-    };
-  });
-  document.querySelectorAll('.rw-btn').forEach(b => {
-    b.onclick = () => {
-      document.querySelectorAll('.rw-btn').forEach(x => x.classList.remove('active'));
-      b.classList.add('active');
-      _rollingWindow = parseInt(b.dataset.window, 10);
-      refreshRolling();
-    };
-  });
-  refreshRolling();
-}
-
-function renderYoYRows(d) {
-  const prevYear = String(+curYear - 1);
-  const cy = YEARS[curYear] && YEARS[curYear].players[d.id];
-  const py = YEARS[prevYear] && YEARS[prevYear].players[d.id];
-  if (!cy || !py) return '<div class="pp-yoy-empty">No ' + prevYear + ' data for this hitter.</div>';
-  const f1 = (v,s='') => v==null ? '—' : v.toFixed(1)+s;
-  return [
-    ['Bat speed',  py.bat_speed, cy.bat_speed, '',  true],
-    ['Barrel%',    py.barrel,    cy.barrel,    '%', true],
-    ['Z-Contact%', py.z_contact, cy.z_contact, '%', true],
-    ['BB%',        py.bb,        cy.bb,        '%', true],
-    ['K%',         py.k,         cy.k,         '%', false],
-  ].map(([label, pv, cv, suf, hi]) => {
-    const dl = (pv!=null && cv!=null) ? cv-pv : null;
-    const good = dl==null ? true : (hi ? dl>=0 : dl<=0);
-    const ds = dl==null ? '—' : (dl>=0?'+':'−') + Math.abs(dl).toFixed(1);
-    return '<div class="yoy-row"><span class="yoy-label">'+label+'</span><div class="yoy-bars"><div class="yoy-bar-prev"><span class="yoy-bar-prev-val">'+f1(pv,suf)+'</span></div><div class="yoy-bar-curr"><span class="yoy-bar-curr-val">'+f1(cv,suf)+'</span></div></div><span class="yoy-delta '+(good?'good':'bad')+'">'+ds+'</span></div>';
-  }).join('');
 }
 function yoyLegendHTML() {
   const prevYear = String(+curYear - 1);
@@ -1447,7 +1326,6 @@ load();
     s+='</svg>'; return tabBar()+s;
   }
   function yoyTop(){var c=document.querySelector('#panel .yoy-view-cells, #panel .yoy2-cell');if(c)return c.getBoundingClientRect().top;return window.innerHeight*0.62;}
-  function rowAnchorTop(){var rs=document.querySelectorAll('#tbody tr[data-id]');var r=rs[3];if(!r)return yoyTop()-38;return r.getBoundingClientRect().bottom+window.scrollY;}
   function vis(){var tw=document.querySelector('.table-wrap');if(!tw)return null;if(window.innerWidth<=720)return null;if(/^#(player|compare)/.test(location.hash||''))return null;var r=tw.getBoundingClientRect();if(r.width<2||tw.offsetParent===null)return null;return r;}
   function pinFooter(on){
     if(!footer)return 0;

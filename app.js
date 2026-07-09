@@ -907,46 +907,7 @@ function ppDrawQuad(){
   if(!PP_CLOUD)return;
   var X=PP_STATS[document.getElementById('qx').value],Y=PP_STATS[document.getElementById('qy').value];
   var rows=PP_CLOUD.rows,y25=PP_CLOUD.y25,y26=PP_CLOUD.y26;
-  ppQuadMobile(X,Y,rows,y25,y26);return;
-  var mob=window.innerWidth<=900;
-  var FT=1;
-  var W=500,H=346,PL=50,PR=18,PT=16,PB=44,pw=W-PL-PR,ph=H-PT-PB;
-  var fs=x=>(x*FT).toFixed(1);
-  function dom(k){var vs=rows.map(r=>r[k]).concat([y25[k],y26[k]]);var mn=Math.min.apply(null,vs),mx=Math.max.apply(null,vs);var pad=(mx-mn)*0.08||1;return [mn-pad,mx+pad];}
-  function mean(k){return rows.reduce((a,r)=>a+r[k],0)/rows.length;}
-  var dX=dom(X.key),dY=dom(Y.key);
-  var xs=v=>PL+(v-dX[0])/(dX[1]-dX[0])*pw, ys=v=>PT+(1-(v-dY[0])/(dY[1]-dY[0]))*ph;
-  var cx=xs(mean(X.key)),cy=ys(mean(Y.key));
-  var gx=X.up?'right':'left',gy=Y.up?'top':'bottom';
-  var ixr=gx==='right'?[cx,PL+pw]:[PL,cx], iyr=gy==='top'?[PT,cy]:[cy,PT+ph];
-  var x25=xs(y25[X.key]),y25p=ys(y25[Y.key]),x26=xs(y26[X.key]),y26p=ys(y26[Y.key]);
-  var dx=x26-x25,dy=y26p-y25p,len=Math.hypot(dx,dy)||1,ex=x26-dx/len*11,ey=y26p-dy/len*11;
-  var dk=Math.abs(dx)>=Math.abs(dy)?X:Y;
-  var fm=(v,u)=>v.toFixed(1)+u;
-  var cloud=rows.map(r=>'<circle cx="'+xs(r[X.key]).toFixed(1)+'" cy="'+ys(r[Y.key]).toFixed(1)+'" r="'+(mob?5:3.6)+'" fill="#74747e" fill-opacity="0.5"/>').join('');
-  var tagx=gx==='right'?PL+pw-8:PL+8,ta=gx==='right'?'end':'start',tagy=gy==='top'?PT+16:PT+ph-9;
-  var svg='<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%;max-height:100%;display:block;margin:0 auto">'
-   +'<rect x="'+PL+'" y="'+PT+'" width="'+pw+'" height="'+ph+'" fill="#13151a"/>'
-   +'<rect x="'+ixr[0]+'" y="'+iyr[0]+'" width="'+(ixr[1]-ixr[0])+'" height="'+(iyr[1]-iyr[0])+'" fill="#1b2128"/>'
-   +'<line x1="'+cx+'" y1="'+PT+'" x2="'+cx+'" y2="'+(PT+ph)+'" stroke="#565662" stroke-width="1.2"/>'
-   +'<line x1="'+PL+'" y1="'+cy+'" x2="'+(PL+pw)+'" y2="'+cy+'" stroke="#565662" stroke-width="1.2"/>'
-   +'<text x="'+(cx+6)+'" y="'+(cy-7)+'" font-size="'+fs(11)+'" fill="#9a9a92" font-weight="700" letter-spacing=".05em">LG AVG</text>'
-   +cloud
-   +'<rect x="'+PL+'" y="'+PT+'" width="'+pw+'" height="'+ph+'" fill="none" stroke="#3a3a44" stroke-width="1.2"/>'
-   +'<text x="'+tagx+'" y="'+tagy+'" text-anchor="'+ta+'" font-size="'+fs(11.5)+'" letter-spacing=".14em" font-weight="800" fill="#e0a878">IDEAL</text>'
-   +'<text x="'+PL+'" y="'+(PT+ph+(mob?24:18))+'" text-anchor="middle" font-size="'+fs(11)+'" fill="#86867e" font-weight="600">'+dX[0].toFixed(0)+'</text>'
-   +'<text x="'+(PL+pw)+'" y="'+(PT+ph+(mob?24:18))+'" text-anchor="middle" font-size="'+fs(11)+'" fill="#86867e" font-weight="600">'+dX[1].toFixed(0)+X.u+'</text>'
-   +'<text x="'+(PL-9)+'" y="'+(PT+ph+4)+'" text-anchor="end" font-size="'+fs(11)+'" fill="#86867e" font-weight="600">'+dY[0].toFixed(0)+'</text>'
-   +'<text x="'+(PL-9)+'" y="'+(PT+9)+'" text-anchor="end" font-size="'+fs(11)+'" fill="#86867e" font-weight="600">'+dY[1].toFixed(0)+Y.u+'</text>'
-   +(len>4?'<line x1="'+x25+'" y1="'+y25p+'" x2="'+ex+'" y2="'+ey+'" stroke="#efeee7" stroke-width="2.4" marker-end="url(#qarw)"/>':'')
-   +'<circle cx="'+x25+'" cy="'+y25p+'" r="'+(mob?7.6:5.5)+'" fill="#13151a" stroke="#ecebe2" stroke-width="2.2"/>'
-   +'<text x="'+x25+'" y="'+(y25p-(mob?13:10))+'" text-anchor="middle" font-size="'+fs(11)+'" font-weight="700" fill="#c9c7bf" stroke="#0a0a0a" stroke-width="2.6" paint-order="stroke">\u201925</text>'
-   +'<circle cx="'+x26+'" cy="'+y26p+'" r="'+(mob?10.5:8)+'" fill="#ffd54a"/>'
-   +'<text x="'+x26+'" y="'+(y26p-(mob?15:12))+'" text-anchor="middle" font-size="'+fs(11)+'" font-weight="800" fill="#ffd54a" stroke="#0a0a0a" stroke-width="2.6" paint-order="stroke">\u201926</text>'
-   +'<text x="'+(PL+pw/2)+'" y="'+(H-(mob?12:10))+'" text-anchor="middle" font-size="'+fs(12)+'" font-weight="700" fill="#cfcdc6">'+X.lab+'</text>'
-   +'<text x="'+(mob?16:15)+'" y="'+(PT+ph/2)+'" text-anchor="middle" font-size="'+fs(12)+'" font-weight="700" fill="#cfcdc6" transform="rotate(-90 '+(mob?16:15)+' '+(PT+ph/2)+')">'+Y.lab+'</text>'
-   +'<defs><marker id="qarw" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#efeee7"/></marker></defs></svg>';
-  document.getElementById('quadHost').innerHTML=svg;
+  ppQuadMobile(X,Y,rows,y25,y26);
 }
 function ppSetMode(m){
   var bars=document.getElementById('vz-bars'),quad=document.getElementById('vz-quad'),radar=document.getElementById('vz-radar');

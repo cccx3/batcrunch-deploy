@@ -940,13 +940,12 @@ function ppDrawQuad(){
    +'<text x="'+(PL-9)+'" y="'+(PT+9)+'" text-anchor="end" font-size="'+fs(11)+'" fill="#86867e" font-weight="600">'+dY[1].toFixed(0)+Y.u+'</text>'
    +(len>4?'<line x1="'+x25+'" y1="'+y25p+'" x2="'+ex+'" y2="'+ey+'" stroke="#efeee7" stroke-width="2.4" marker-end="url(#qarw)"/>':'')
    +'<circle cx="'+x25+'" cy="'+y25p+'" r="'+(mob?7.6:5.5)+'" fill="#13151a" stroke="#ecebe2" stroke-width="2.2"/>'
-   +'<text x="'+(x25-(mob?13:9))+'" y="'+(y25p+3.5)+'" text-anchor="end" font-size="'+fs(10.5)+'" font-weight="700" fill="#eceadf" stroke="#0a0a0a" stroke-width="2.6" paint-order="stroke">'+fm(y25[dk.key],dk.u)+'</text>'
+   +'<text x="'+x25+'" y="'+(y25p-(mob?13:10))+'" text-anchor="middle" font-size="'+fs(11)+'" font-weight="700" fill="#c9c7bf" stroke="#0a0a0a" stroke-width="2.6" paint-order="stroke">\u201925</text>'
    +'<circle cx="'+x26+'" cy="'+y26p+'" r="'+(mob?10.5:8)+'" fill="#ffd54a"/>'
-   +'<text x="'+(x26+(mob?16:12))+'" y="'+(y26p+3.5)+'" text-anchor="start" font-size="'+fs(10.5)+'" font-weight="800" fill="#ffd54a" stroke="#0a0a0a" stroke-width="2.6" paint-order="stroke">'+fm(y26[dk.key],dk.u)+'</text>'
+   +'<text x="'+x26+'" y="'+(y26p-(mob?15:12))+'" text-anchor="middle" font-size="'+fs(11)+'" font-weight="800" fill="#ffd54a" stroke="#0a0a0a" stroke-width="2.6" paint-order="stroke">\u201926</text>'
    +'<text x="'+(PL+pw/2)+'" y="'+(H-(mob?12:10))+'" text-anchor="middle" font-size="'+fs(12)+'" font-weight="700" fill="#cfcdc6">'+X.lab+'</text>'
    +'<text x="'+(mob?16:15)+'" y="'+(PT+ph/2)+'" text-anchor="middle" font-size="'+fs(12)+'" font-weight="700" fill="#cfcdc6" transform="rotate(-90 '+(mob?16:15)+' '+(PT+ph/2)+')">'+Y.lab+'</text>'
-   +'<defs><marker id="qarw" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#efeee7"/></marker></defs></svg>'
-   +'<div class="qlegend"><span class="d"><span class="gd"></span>2025</span><span class="d"><span class="sd"></span>2026</span></div>';
+   +'<defs><marker id="qarw" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#efeee7"/></marker></defs></svg>';
   document.getElementById('quadHost').innerHTML=svg;
 }
 function ppSetMode(m){
@@ -1095,7 +1094,7 @@ function renderPlayerPage(id){
     +'<div class="viz-head"><select class="viz-sel viz-sel-solo" id="mode" onchange="ppSetMode(this.value)"><option value="bars">Percentile bars</option><option value="quad">Quadrant \u00b7 YoY</option><option value="radar">Radar</option><option value="rolling" class="ppopt-roll">Rolling</option></select><select class="viz-sel viz-sel-metric" id="rmetric" onchange="_rollingMetric=this.value;ppDrawRolling()"><option value="outcomes">Outcomes</option><option value="discipline">Discipline</option><option value="power">Power</option><option value="swing">Swing path</option></select><span class="viz-cap" id="vcap">2026 \u00b7 vs qualified hitters</span></div>'
     +'<div class="vz-body">'
     +'<div id="vz-bars"><div class="swing-top">'+swing+'</div><div id="rows">'+ppBarsHTML(d)+'</div></div>'
-    +'<div id="vz-quad"><div class="qpick"><span class="cmp-lbl">Compare </span><select id="qx" onchange="ppDrawQuad()"></select><span class="vs">vs</span><select id="qy" onchange="ppDrawQuad()"></select></div><div id="quadHost"></div><div class="qlegend"><span class="d"><span class="gd"></span>2025</span><span class="d"><span class="sd"></span>2026</span></div></div>'
+    +'<div id="vz-quad"><div class="qpick"><span class="cmp-lbl">Compare </span><select id="qx" onchange="ppDrawQuad()"></select><span class="vs">vs</span><select id="qy" onchange="ppDrawQuad()"></select></div><div id="quadHost"></div></div>'
     +'<div id="vz-radar">'+renderRadar(d)+ppDumbbell(d)+'</div>'
     +'</div></div></div>'
     +'<div class="right"><div class="rollpanel">'+rollControls+'</div></div>'

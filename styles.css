@@ -1418,7 +1418,12 @@
 .ppx .viz-cap{display:none}
 /* mode select spans header when solo (rmetric removed) */
 .ppx .viz-sel-solo{flex:1;min-width:0}
-@media (min-width:901px){ .ppx .viz-sel-metric,.ppx #rmetric{display:none!important} .ppx .viz-head{justify-content:flex-start} .ppx .viz-sel-solo{flex:1} }
+@media (min-width:901px){ .ppx .viz-sel-metric,.ppx #rmetric{display:none!important} .ppx .viz-head{justify-content:flex-start} .ppx .viz-sel-solo{flex:0 0 auto;font-size:14px;padding:8px 14px} }
+/* v80 mobile: tighter radar divider, trim rolling neg space */
+@media (max-width:900px){
+  .ppx #rollHost{height:200px!important}
+  .ppx #vz-radar svg{max-width:82%!important;margin:0 auto -6px!important}
+}
 /* v72 mobile: shorter rolling+quad, tighter radar divider, narrower dropdowns */
 @media (max-width:900px){
   .ppx #rollHost{height:230px!important}

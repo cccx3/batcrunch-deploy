@@ -1420,7 +1420,9 @@
   .ppx .rollpanel{flex:none!important;height:auto!important;min-height:0!important}
   .ppx #rollingChartHost{padding:4px 8px 2px!important;flex:none!important}
   .ppx #quadHost{height:300px;flex:none}
-  .ppx #vz-radar svg{max-width:80%!important;margin:-4px auto -14px!important}
+  .ppx #vz-radar svg{max-width:80%!important;margin:-4px auto -8px!important}
+  .ppx .viz-head{gap:8px}
+  .ppx .viz-sel{min-width:0;flex:1 1 0}
   .ppx .swing-top{margin-bottom:6px;padding-left:20px!important}
   .ppx .viz-sel{font-size:15px;padding:11px 14px;border-radius:8px}
   .ppx .qpick select{font-size:15px;padding:9px 12px}

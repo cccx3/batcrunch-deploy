@@ -735,7 +735,7 @@ function ppBuildCloud(d){
 function ppQuadMobile(X,Y,rows,y25,y26){
   var FAR=0.30;
   var yTall=(Y.lab||'').length>3;   // verbose Y label sits above plot; reserve room
-  var W=500,H=452,PL=58,PR=22,PT=yTall?46:24,PB=64,pw=W-PL-PR,ph=H-PT-PB,bot=PT+ph;
+  var W=500,H=430,PL=58,PR=22,PT=yTall?52:24,PB=64,pw=W-PL-PR,ph=H-PT-PB,bot=PT+ph;
   var mean=k=>rows.reduce((a,r)=>a+r[k],0)/rows.length;
   var mX=mean(X.key),mY=mean(Y.key);
   var has25=y25&&y25[X.key]!=null&&y25[Y.key]!=null;
@@ -780,7 +780,7 @@ function ppQuadMobile(X,Y,rows,y25,y26){
    +yoy
    +'<circle cx="'+qx26+'" cy="'+qy26+'" r="12" fill="#ffd54a" stroke="#0a0a0a" stroke-width="2"/>'
    +'<text x="'+qx26+'" y="'+(qy26-18)+'" text-anchor="middle" font-size="14" font-weight="800" fill="#ffd54a" stroke="#0a0a0a" stroke-width="3" paint-order="stroke">\u201926</text>'
-   +'<text x="'+(yTall?PL:8)+'" y="'+(yTall?18:PT+16)+'" text-anchor="start" font-size="'+(yTall?18:22)+'" font-weight="800" fill="#e8e6de">'+Y.lab+'</text>'
+   +'<text x="'+(yTall?PL:8)+'" y="'+(yTall?24:PT+16)+'" text-anchor="start" font-size="'+(yTall?26:22)+'" font-weight="800" fill="#e8e6de">'+Y.lab+'</text>'
    +'<text x="'+(W/2)+'" y="'+(H-8)+'" text-anchor="middle" font-size="22" font-weight="800" fill="#e8e6de">'+X.lab+'</text>'
    +'</svg>';
   document.getElementById('quadHost').innerHTML=svg;
@@ -928,7 +928,7 @@ function renderPlayerPage(id){
   var _rr=ROLLING[d.id]; var _rollOK=_rr&&_rr.length>=50;
   var rollControls=_rollOK?'<div class="rolling-controls"><div class="rolling-tabs" id="rollingMetricTabs"><button class="rt-tab active" data-metric="outcomes">Outcomes</button><button class="rt-tab" data-metric="discipline">Discipline</button><button class="rt-tab" data-metric="power">Power</button><button class="rt-tab" data-metric="swing">Swing path</button></div><div class="rolling-window"><button class="rw-btn" data-window="50">50</button><button class="rw-btn active" data-window="100">100</button><button class="rw-btn" data-window="250">250</button><span class="rw-lbl">PA</span></div></div><div id="rollLegend"></div><div id="rollHost"></div>':'<div class="roll-empty">Insufficient PA for rolling trends.</div>';
   pp.querySelector('.pp-inner').innerHTML='<div class="ppx">'
-    +'<button class="pp-back" onclick="history.back()" style="background:none;border:none;color:#9a9a95;font:inherit;cursor:pointer;margin:0;font-size:13px">\u2190 Back to all hitters</button>'
+    +'<button class="pp-back" onclick="location.hash=&#39;&#39;" style="background:none;border:none;color:#9a9a95;font:inherit;cursor:pointer;margin:0;font-size:13px">\u2190 Back to all hitters</button>' 
     +'<div class="ppx-main">'
     +'<div class="ph-top"><h1 class="ph-name">'+d.first+' '+d.last+'</h1><div class="ph-grade" style="background:'+d.overall.color+'">'+d.overall.letter+'</div></div>'
     +'<div class="ph-meta">'+pills+'</div>'

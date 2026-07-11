@@ -1427,3 +1427,21 @@
 @media (max-width:720px){
   .hero{display:none!important}
 }
+
+/* v90: compare inline btn, barbell edge, container trims, glossary compress */
+.cmp-inline{background:var(--accent);color:#0a0a0a;border:none;border-radius:6px;padding:7px 13px;font-family:'Inter',sans-serif;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;margin-left:4px}
+.cmp-inline:hover{filter:brightness(1.08)}
+@media (min-width:901px){
+  /* sub-radar barbells: full-bleed to card edge like bars */
+  .ppx .db-row{margin:0 -6px;padding:0 6px}
+  /* trim rolling + bars main containers vertically */
+  .ppx .left,.ppx .right,.ppx .viz,.ppx .rollpanel{height:calc(100vh - 250px);min-height:460px}
+  /* rolling sub-container: group legend + chart */
+  .ppx #rollLegend{border-bottom:1px solid #202024;margin-bottom:2px}
+}
+/* glossary: compress (tighter rows + text), structure unchanged */
+.gl-row{padding:10px 0}
+.gl-term{font-size:15px}
+.gl-def{font-size:13px;line-height:1.4}
+.gl-title{font-size:38px;margin:10px 0 4px}
+.gl-sub{font-size:13px;margin:0 0 18px}

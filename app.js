@@ -296,7 +296,7 @@ function renderTable() {
   tbody.innerHTML = data.map(d => `
     <tr data-id="${d.id}" class="${state.selectedId === d.id ? 'selected' : ''}">
       <td class="rank">${d._rank ?? '—'}</td>
-      <td class="name-cell"><a href="javascript:void(0)" class="mc-name-link" onclick="window.location.hash='player/${d.id}';return false;">${d.first} ${d.last}</a></td>
+      <td class="name-cell"><a href="javascript:void(0)" class="mc-name-link" onclick="event.stopPropagation();window.location.hash='player/${d.id}';return false;">${d.first} ${d.last}</a></td>
       <td class="ctr">${d.team ? `<span class="team-pill team-${d.team}">${d.team}</span>` : ''}</td>
       <td class="ctr"><span class="side-pill ${d.side}">${d.side}</span></td>
       <td class="ctr"><span class="platoon-pill p-${d.platoon_tier}">${d.platoon_tier}</span></td>
@@ -763,7 +763,7 @@ function ppQuadMobile(X,Y,rows,y25,y26){
   if(has25){var ax=xs(y25[X.key]),ay=ys(y25[Y.key]),L=Math.hypot(qx26-ax,qy26-ay);
     if(L>=16)yoy+='<line x1="'+ax+'" y1="'+ay+'" x2="'+(qx26-(qx26-ax)/L*13)+'" y2="'+(qy26-(qy26-ay)/L*13)+'" stroke="#efeee7" stroke-width="2.4" marker-end="url(#qarw)"/>';
     yoy+='<circle cx="'+ax+'" cy="'+ay+'" r="6.5" fill="none" stroke="#ecebe2" stroke-width="2.2"/>';
-    yoy+='<text x="'+ax+'" y="'+(ay-13)+'" text-anchor="middle" font-size="14" font-weight="800" fill="#d8d6ce" stroke="#0a0a0a" stroke-width="3" paint-order="stroke">\u201925</text>';}
+    yoy+='<text x="'+(L<40?ax-11:ax)+'" y="'+(ay-13)+'" text-anchor="'+(L<40?'end':'middle')+'" font-size="14" font-weight="800" fill="#d8d6ce" stroke="#0a0a0a" stroke-width="3" paint-order="stroke">\u201925</text>';}
   var lgX=mx+5>PL+pw-70?PL+5:mx+5;
   var svg='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;max-height:100%;display:block;margin:0 auto">'
    +'<defs><marker id="qarw" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#efeee7"/></marker></defs>'
@@ -1244,7 +1244,11 @@ async function load() {
     document.querySelectorAll('#yearSeg button').forEach(b =>
       b.addEventListener('click', () => switchYear(b.dataset.v)));
     const top = sorted(filtered())[0]; if (top) state.selectedId = top.id;
-    renderTable(); renderPanel(); renderMobileCards(); handleRoute();
+    // route first if deep-linked to a player, so leaderboard doesn't flash behind it
+    const deepPlayer = /^#player\//.test(window.location.hash);
+    if (deepPlayer) handleRoute();
+    renderTable(); renderPanel(); renderMobileCards();
+    handleRoute();
   } catch (e) {
     if (tbody) tbody.innerHTML = '<tr><td colspan="12" style="padding:28px;text-align:center;color:var(--ink-3)">Couldn\u2019t load ' + DATA_URL + ' \u2014 serve over http (python3 -m http.server), not file://</td></tr>';
     console.error(e);

@@ -1397,8 +1397,7 @@
 @media (min-width:901px){
   .ppx .swing-top{padding-left:16px}
   .ppx .main{align-items:flex-start}
-  .ppx .left,.ppx .viz{max-height:calc(100vh - 200px)}
-  .ppx .right,.ppx .rollpanel{height:calc(100vh - 260px);min-height:440px}
+  .ppx .left,.ppx .viz,.ppx .right,.ppx .rollpanel{height:calc(100vh - 260px);min-height:440px}
   .ppx .rolling-controls{justify-content:flex-start;gap:18px}
 }
 

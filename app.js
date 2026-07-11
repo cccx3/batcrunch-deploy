@@ -401,7 +401,7 @@ function renderRadar(d) {
   // 5 axes (shared with _radarAxes / compareRadar)
   const _v = _radarAxes(d);
   const axes = RADAR_LABELS.map((label, i) => ({ label, value: _v[i] }));
-  const cx = 230, cy = 158, R = 104;
+  const cx = 230, cy = 172, R = 104;
   const N = axes.length;
   
   // Polar to cartesian
@@ -470,7 +470,7 @@ function renderRadar(d) {
   }
   
   return `
-
+    <svg viewBox="12 8 436 320" width="100%" style="max-width:600px;display:block;margin:0 auto">
       ${grid}
       ${spokes}
       ${prevPoints ? `<polygon points="${prevPoints}" fill="#888" fill-opacity="0.14" stroke="#888" stroke-width="1.5" stroke-dasharray="4 3" />` : ''}

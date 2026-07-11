@@ -470,7 +470,7 @@ function renderRadar(d) {
   }
   
   return `
-    <svg viewBox="12 8 436 320" width="100%" style="max-width:600px;display:block;margin:0 auto">
+    <svg viewBox="26 26 398 288" width="100%" preserveAspectRatio="xMidYMid meet">
       ${grid}
       ${spokes}
       ${prevPoints ? `<polygon points="${prevPoints}" fill="#888" fill-opacity="0.14" stroke="#888" stroke-width="1.5" stroke-dasharray="4 3" />` : ''}
@@ -791,6 +791,18 @@ function ppDrawQuad(){
   var rows=PP_CLOUD.rows,y25=PP_CLOUD.y25,y26=PP_CLOUD.y26;
   ppQuadMobile(X,Y,rows,y25,y26);
 }
+function ppFitHeight(){
+  var pp=document.querySelector('.player-page'),main=document.querySelector('.ppx .main');
+  if(!pp||!main)return;
+  var els=document.querySelectorAll('.ppx .left,.ppx .viz,.ppx .right,.ppx .rollpanel');
+  var i;
+  if(window.innerWidth<=900){ for(i=0;i<els.length;i++){els[i].style.height='';els[i].style.maxHeight='';} return; }
+  var pm=document.querySelector('.ppx .ppx-main'),pi=document.querySelector('.pp-inner');
+  var pad=(pm?parseFloat(getComputedStyle(pm).paddingBottom)||0:0)+(pi?parseFloat(getComputedStyle(pi).paddingBottom)||0:0)+2;
+  var top=main.getBoundingClientRect().top-pp.getBoundingClientRect().top+pp.scrollTop;
+  var h=Math.max(420,Math.floor(pp.clientHeight-top-pad));
+  for(i=0;i<els.length;i++){els[i].style.height=h+'px';els[i].style.maxHeight=h+'px';}
+}
 function ppSetMode(m){
   var bars=document.getElementById('vz-bars'),quad=document.getElementById('vz-quad'),radar=document.getElementById('vz-radar');
   var body=document.querySelector('.ppx .vz-body'),right=document.querySelector('.ppx .right');
@@ -807,7 +819,7 @@ function ppSetMode(m){
   } else {
     if(body)body.style.display=''; if(right)right.style.display='';
     quad.style.position='absolute'; radar.style.position='absolute';
-    bars.style.display='block'; bars.style.visibility=(m==='bars'||m==='rolling')?'visible':'hidden';
+    bars.style.display='flex'; bars.style.visibility=(m==='bars'||m==='rolling')?'visible':'hidden';
     quad.style.display=m==='quad'?'flex':'none'; radar.style.display=m==='radar'?'flex':'none';
   }
   if(cap)cap.textContent=m==='quad'?'2025 \u2192 2026':'2026 \u00b7 vs qualified hitters';
@@ -938,16 +950,17 @@ function renderPlayerPage(id){
     +'<div class="vz-body">'
     +'<div id="vz-bars"><div class="swing-top">'+swing+'</div><div id="rows">'+ppBarsHTML(d)+'</div></div>'
     +'<div id="vz-quad"><div class="qpick"><span class="cmp-lbl">Compare </span><select id="qx" onchange="ppDrawQuad()"></select><span class="vs">vs</span><select id="qy" onchange="ppDrawQuad()"></select></div><div id="quadHost"></div></div>'
-    +'<div id="vz-radar">'+renderRadar(d)+ppDumbbell(d)+'</div>'
+    +'<div id="vz-radar"><div id="radarHost">'+renderRadar(d)+'</div>'+ppDumbbell(d)+'</div>'
     +'</div></div></div>'
     +'<div class="right"><div class="rollpanel">'+rollControls+'</div></div>'
     +'</div></div></div>';
   var ox=document.getElementById('qx'),oy=document.getElementById('qy');
   for(var k in PP_STATS){ox.add(new Option(PP_STATS[k].lab,k));oy.add(new Option(PP_STATS[k].lab,k));}
   ox.value='barrel'; oy.value='k';
+  ppFitHeight();
   ppSetMode('bars');
   setTimeout(ppWireRolling,0);
-  window.addEventListener('resize',function(){ppDrawRolling();ppSetMode(document.getElementById('mode').value);});
+  window.addEventListener('resize',function(){ppFitHeight();ppDrawRolling();ppSetMode(document.getElementById('mode').value);});
 }
 document.getElementById('q')?.addEventListener('input', e => { state.query = e.target.value; renderTable(); renderMobileCards(); });
 document.querySelectorAll('#sideSeg button').forEach(b => {

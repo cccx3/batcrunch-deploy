@@ -1378,7 +1378,7 @@
 
 /* desktop bars mirror mobile: row striping (full-bleed to card edge) + muted values */
 @media (min-width:901px){
-  .ppx .vz-body{padding:18px 12px 22px}
+  .ppx .vz-body{padding:18px 12px 0}
   .ppx #rows>.row{margin:0 -12px;padding:0 16px;grid-template-columns:80px 1fr 52px;column-gap:16px}
   .ppx .scale{grid-template-columns:80px 1fr 52px}
   .ppx #rows>.row .r-lab{text-align:left!important}
@@ -1450,9 +1450,19 @@
 @media (min-width:901px){
   .ppx #vz-bars{flex:1;display:flex;flex-direction:column;min-height:0}
   .ppx #rows{flex:1;display:flex;flex-direction:column;min-height:0}
-  .ppx #rows>.row{flex:1 1 0;height:auto;min-height:34px}
+  .ppx #rows>.row{flex:0 1 auto;height:46px;min-height:34px}
   .ppx #vz-radar{justify-content:flex-start}
   .ppx #radarHost{flex:1 1 auto;min-height:0;display:flex;align-items:center;justify-content:center;width:100%}
   .ppx #radarHost svg{width:100%;height:100%;max-width:330px;max-height:100%;display:block;margin:0 auto}
   .ppx .db{flex:0 0 auto}
+}
+
+/* v94: compare left box fills its card — no right gutter, rows absorb slack */
+@media (min-width:901px){
+  .cp-card{padding:0;overflow:hidden}
+  .cp-table-headers{padding:12px 0;margin:0;flex:0 0 auto}
+  .cp-section-h{padding:8px 0;margin:0;flex:0 0 auto}
+  .cp-card .cp-section-h:first-child{padding-top:8px;border-top:none}
+  .cp-card .cp-row{flex:1 1 0;min-height:40px}
+  .cp-row .cp-label{padding:6px 14px}
 }

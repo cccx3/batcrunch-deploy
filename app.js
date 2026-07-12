@@ -794,13 +794,16 @@ function ppDrawQuad(){
 function ppFitHeight(){
   var pp=document.querySelector('.player-page'),main=document.querySelector('.ppx .main');
   if(!pp||!main)return;
-  var els=document.querySelectorAll('.ppx .left,.ppx .viz,.ppx .right,.ppx .rollpanel');
-  var i;
-  if(window.innerWidth<=900){ for(i=0;i<els.length;i++){els[i].style.height='';els[i].style.maxHeight='';} return; }
+  var els=document.querySelectorAll('.ppx .left,.ppx .viz,.ppx .right,.ppx .rollpanel'),i;
+  for(i=0;i<els.length;i++){els[i].style.height='';els[i].style.maxHeight='';}
+  if(window.innerWidth<=900)return;
+  var viz=document.querySelector('.ppx .viz');
+  var nat=viz?viz.scrollHeight:0;                       // natural height of the bars content
   var pm=document.querySelector('.ppx .ppx-main'),pi=document.querySelector('.pp-inner');
   var pad=(pm?parseFloat(getComputedStyle(pm).paddingBottom)||0:0)+(pi?parseFloat(getComputedStyle(pi).paddingBottom)||0:0)+2;
   var top=main.getBoundingClientRect().top-pp.getBoundingClientRect().top+pp.scrollTop;
-  var h=Math.max(420,Math.floor(pp.clientHeight-top-pad));
+  var avail=Math.floor(pp.clientHeight-top-pad);
+  var h=Math.max(420,Math.min(nat||avail,avail));       // hug content, cap at viewport
   for(i=0;i<els.length;i++){els[i].style.height=h+'px';els[i].style.maxHeight=h+'px';}
 }
 function ppSetMode(m){
@@ -842,7 +845,7 @@ function ppDrawRolling(){
   var unit=info.unit;
   var lines=info.L.map(a=>({name:a[0],color:a[1],v:a[2],cur:a[2][a[2].length-1]}));
   var len=lines[0].v.length;
-  var mL=mob?44:58,mR=mob?14:26,mT=mob?12:16,mB=30,iw=w-mL-mR,ih=h-mT-mB;
+  var mL=mob?44:58,mR=mob?14:26,mT=mob?12:16,mB=mob?30:34,iw=w-mL-mR,ih=h-mT-mB;
   var all=[];lines.forEach(L=>{all=all.concat(L.v);});
   var lo=Math.min.apply(null,all),hi=Math.max.apply(null,all);
   if(unit==='woba')lo=Math.min(lo,info.base);
@@ -859,16 +862,21 @@ function ppDrawRolling(){
   } else {
     if(leg)leg.innerHTML=lines.map(L=>'<span class="rl"><i style="background:'+L.color+'"></i>'+L.name+'<b style="color:'+L.color+'">'+fmtVal(L.cur)+'</b></span>').join('');
   }
+  var AX='rgba(255,255,255,.26)',y0=(mT+ih).toFixed(1);
   ticks.forEach(function(t){var y=Y(t).toFixed(1);
     s+='<line x1="'+mL+'" y1="'+y+'" x2="'+(mL+iw)+'" y2="'+y+'" stroke="rgba(255,255,255,.08)" stroke-width="1"/>';
-    s+='<text x="'+(mL-9)+'" y="'+(+y+4).toFixed(1)+'" text-anchor="end" fill="'+INK2+'" font-size="11" font-weight="600">'+fmtYtick(t)+'</text>';
+    s+='<line x1="'+(mL-4)+'" y1="'+y+'" x2="'+mL+'" y2="'+y+'" stroke="'+AX+'" stroke-width="1"/>';
+    s+='<text x="'+(mL-10)+'" y="'+(+y+4).toFixed(1)+'" text-anchor="end" fill="'+INK2+'" font-size="11" font-weight="600">'+fmtYtick(t)+'</text>';
   });
+  s+='<line x1="'+mL+'" y1="'+mT+'" x2="'+mL+'" y2="'+y0+'" stroke="'+AX+'" stroke-width="1"/>';
+  s+='<line x1="'+mL+'" y1="'+y0+'" x2="'+(mL+iw)+'" y2="'+y0+'" stroke="'+AX+'" stroke-width="1"/>';
   if(unit==='woba'&&info.base>=lo&&info.base<=hi){var by=Y(info.base).toFixed(1);
     s+='<line x1="'+mL+'" y1="'+by+'" x2="'+(mL+iw)+'" y2="'+by+'" stroke="'+ORANGE+'" stroke-width="1.4" stroke-dasharray="6 5"/>';
     s+='<text x="'+(mL+iw)+'" y="'+(+by-5)+'" text-anchor="end" fill="'+ORANGE+'" font-size="9.5" font-weight="700" letter-spacing=".06em">LG AVG</text>';
   }
-  [0,0.25,0.5,0.75,1].forEach(function(f){var i=Math.round(f*(len-1)),a=f<=0?'start':f>=1?'end':'middle';
-    s+='<text x="'+X(i).toFixed(1)+'" y="'+(h-mB+18)+'" text-anchor="'+a+'" fill="'+INK2+'" font-size="11" font-weight="600">'+Math.round(f*win)+'</text>';
+  [0,0.25,0.5,0.75,1].forEach(function(f){var i=Math.round(f*(len-1)),a=f<=0?'start':f>=1?'end':'middle',x=X(i).toFixed(1);
+    s+='<line x1="'+x+'" y1="'+y0+'" x2="'+x+'" y2="'+(+y0+4).toFixed(1)+'" stroke="'+AX+'" stroke-width="1"/>';
+    s+='<text x="'+x+'" y="'+(+y0+19).toFixed(1)+'" text-anchor="'+a+'" fill="'+INK2+'" font-size="11" font-weight="600">'+Math.round(f*win)+'</text>';
   });
   lines.forEach(function(L){var p=L.v.map((v,i)=>X(i).toFixed(1)+','+Y(v).toFixed(1)).join(' ');
     s+='<polyline points="'+p+'" fill="none" stroke="'+L.color+'" stroke-width="'+(L.name==='xwOBA'?2.6:2.1)+'" stroke-linejoin="round" stroke-linecap="round"/>';
@@ -1034,12 +1042,14 @@ function renderCompare() {
     ['wOBA',            d => d.woba,       fmtWoba,    true],
     ['xwOBA',           d => d.xwoba,      fmtWoba,    true],
     ['Whiff %',         d => d.whiff,      v => v == null ? '—' : v.toFixed(1) + '%', false],
+    ['Barrel %',        d => d.barrel_pct, fmtPctDirect, true],
     ['__section', 'Plate skills'],
     ['Z-Contact %',     d => d.z_contact,  fmtPct,     true],
     ['O-Swing %',       d => d.o_swing,    fmtPct,     false],
     ['__section', 'Swing path'],
     ['Sweet Spot %',    d => d.sweet_pct,  fmtPctDirect, true],
     ['Bat speed',       d => d.bat_speed,  v => v == null ? '—' : v.toFixed(1), true],
+    ['Ideal AA %',      d => d.iaa,        fmtPctDirect, true],
   ];
   
   const headers = '';

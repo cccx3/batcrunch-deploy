@@ -545,15 +545,16 @@ function compareRollingChart(a, b, metric, W){
     return '<div class="cp-roll-empty">Not enough PA for a ' + W + '-PA window on both hitters.</div>';
   }
   const isPct = (metric === 'barrel' || metric === 'k' || metric === 'bb' || metric === 'zone');
-  const wa = rollingSeries(ra, W)[metric];
-  const wb = rollingSeries(rb, W)[metric];
+  const tail = v => v.length > W ? v.slice(v.length - W) : v;
+  const wa = tail(rollingSeries(ra, W)[metric]);
+  const wb = tail(rollingSeries(rb, W)[metric]);
   const Wd = 460, Hd = (typeof window !== "undefined" && window.innerWidth <= 900) ? 250 : 184, pad = { t: 12, r: 14, b: 24, l: 40 };
   const iW = Wd - pad.l - pad.r, iH = Hd - pad.t - pad.b;
-  const xMin = W, xMax = Math.max(W + wa.length - 1, W + wb.length - 1);
+  const nPts = Math.max(wa.length, wb.length);
   const allv = wa.concat(wb);
   let yMin = Math.min(...allv), yMax = Math.max(...allv);
   const padY = (yMax - yMin) * 0.10 + (isPct ? 0.4 : 0.004); yMin -= padY; yMax += padY;
-  const sx = pa => pad.l + ((pa - xMin) / (xMax - xMin || 1)) * iW;
+  const sx = i => pad.l + (i / ((nPts - 1) || 1)) * iW;
   const sy = v => pad.t + (1 - (v - yMin) / (yMax - yMin || 1)) * iH;
   const fmtY = isPct ? (v => v.toFixed(0) + '%') : (v => v.toFixed(3).replace(/^0\./, '.').replace(/^-0\./, '-.'));
   const niceStep = r => { const m = Math.pow(10, Math.floor(Math.log10(r))); const n = r / m; return (n < 1.5 ? 1 : n < 3 ? 2 : n < 7 ? 5 : 10) * m; };
@@ -561,10 +562,12 @@ function compareRollingChart(a, b, metric, W){
   const yt = []; for (let v = Math.ceil(yMin / step) * step; v <= yMax + 1e-9; v += step) yt.push(+v.toFixed(6));
   const grid = yt.map(t => `<line x1="${pad.l}" y1="${sy(t).toFixed(1)}" x2="${Wd-pad.r}" y2="${sy(t).toFixed(1)}" stroke="#2a2a2a" stroke-width="1" />`).join('');
   const yLab = yt.map(t => `<text x="${pad.l-7}" y="${(sy(t)+3.5).toFixed(1)}" text-anchor="end" fill="#888" font-family="Inter,sans-serif" font-size="10">${fmtY(t)}</text>`).join('');
-  let xt = []; for (let pa = Math.ceil(xMin/100)*100; pa <= xMax - 20; pa += 100) xt.push(pa);
-  const xLab = xt.map(pa => `<text x="${sx(pa).toFixed(1)}" y="${Hd-pad.b+16}" text-anchor="middle" fill="#888" font-family="Inter,sans-serif" font-size="10">${pa}</text>`).join('');
+  const xLab = [0,0.25,0.5,0.75,1].map(f => {
+    const i = Math.round(f * (nPts - 1)), a = f <= 0 ? 'start' : f >= 1 ? 'end' : 'middle';
+    return `<text x="${sx(i).toFixed(1)}" y="${Hd-pad.b+16}" text-anchor="${a}" fill="#888" font-family="Inter,sans-serif" font-size="10">${Math.round(f*W)}</text>`;
+  }).join('');
   const line = (vals, color, w) => {
-    const pts = vals.map((v, i) => `${sx(W+i).toFixed(1)},${sy(v).toFixed(1)}`).join(' ');
+    const pts = vals.map((v, i) => `${sx(i).toFixed(1)},${sy(v).toFixed(1)}`).join(' ');
     return `<polyline points="${pts}" fill="none" stroke="${color}" stroke-width="${w}" stroke-linejoin="round" />`;
   };
   return `
@@ -837,6 +840,8 @@ function ppDrawRolling(){
   if(ROLLING_ROWS.length<win){host.innerHTML='<div style="padding:24px;color:var(--ink-3);font-family:Inter,sans-serif;font-size:12px;">Not enough PA for a '+win+'-PA window.</div>';return;}
   var AMBER='#ffd54a',BLUE='#7fb3dd',WHITE='#f5f5f0',RED='#e57373',ORANGE='#d99a6c',INK2='#8a8a85';
   var RS=rollingSeries(ROLLING_ROWS,win);
+  var tail=function(v){return v.length>win?v.slice(v.length-win):v;};
+  Object.keys(RS).forEach(function(k){if(Array.isArray(RS[k]))RS[k]=tail(RS[k]);});
   var info;
   if(slice==='discipline')info={unit:'pct',L:[['Z-Swing',WHITE,RS.z_swing],['O-Swing',BLUE,RS.o_swing],['Z-Contact',AMBER,RS.z_contact],['Whiff',RED,RS.whiff]]};
   else if(slice==='power')info={unit:'pct',L:[['Barrel',AMBER,RS.barrel],['HardHit',WHITE,RS.hardhit]]};

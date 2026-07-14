@@ -806,7 +806,7 @@ function ppFitHeight(){
   var pad=(pm?parseFloat(getComputedStyle(pm).paddingBottom)||0:0)+(pi?parseFloat(getComputedStyle(pi).paddingBottom)||0:0)+2;
   var top=main.getBoundingClientRect().top-pp.getBoundingClientRect().top+pp.scrollTop;
   var avail=Math.floor(pp.clientHeight-top-pad);
-  var h=Math.max(420,Math.min(nat||avail,avail));       // hug content, cap at viewport
+  var h=Math.max(420,nat||avail);                       // hug content; page scrolls if the window is short
   for(i=0;i<els.length;i++){els[i].style.height=h+'px';els[i].style.maxHeight=h+'px';}
 }
 function ppSetMode(m){

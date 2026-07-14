@@ -1470,3 +1470,13 @@
 /* v95: empty rolling state keeps the chart's footprint so the compare cards don't resize */
 .cp-roll-empty{aspect-ratio:460/184;display:flex;align-items:center;justify-content:center;padding:0}
 @media (max-width:900px){.cp-roll-empty{aspect-ratio:460/250}}
+
+/* v97 mobile: rolling chart gets real vertical room; barbell track gets real horizontal room */
+@media (max-width:900px){
+  .ppx #rollHost{height:300px!important}
+  .ppx .db{padding:0 10px}
+  .ppx .db-row{grid-template-columns:52px 1fr auto;column-gap:8px}
+  .ppx .db-ax{grid-template-columns:52px 1fr auto;column-gap:8px}
+  .ppx .db-sp{width:84px}
+  .ppx .db-yy{grid-template-columns:24px 20px 40px;column-gap:3px}
+}

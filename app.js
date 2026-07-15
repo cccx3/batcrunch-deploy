@@ -737,7 +737,7 @@ function ppBuildCloud(d){
 }
 function ppQuadMobile(X,Y,rows,y25,y26){
   var FAR=0.30;
-  var yTall=(Y.lab||'').length>3;   // verbose Y label sits above plot; reserve room
+  var yTall=true;   // Y label always sits above the plot
   var W=500,H=430,PL=58,PR=22,PT=yTall?52:24,PB=64,pw=W-PL-PR,ph=H-PT-PB,bot=PT+ph;
   var mean=k=>rows.reduce((a,r)=>a+r[k],0)/rows.length;
   var mX=mean(X.key),mY=mean(Y.key);
@@ -783,7 +783,7 @@ function ppQuadMobile(X,Y,rows,y25,y26){
    +yoy
    +'<circle cx="'+qx26+'" cy="'+qy26+'" r="12" fill="#ffd54a" stroke="#0a0a0a" stroke-width="2"/>'
    +'<text x="'+qx26+'" y="'+(qy26-18)+'" text-anchor="middle" font-size="14" font-weight="800" fill="#ffd54a" stroke="#0a0a0a" stroke-width="3" paint-order="stroke">\u201926</text>'
-   +'<text x="'+(yTall?PL:8)+'" y="'+(yTall?24:PT+16)+'" text-anchor="start" font-size="'+(yTall?26:22)+'" font-weight="800" fill="#e8e6de">'+Y.lab+'</text>'
+   +'<text x="'+PL+'" y="24" text-anchor="start" font-size="22" font-weight="800" fill="#e8e6de">'+Y.lab+'</text>'
    +'<text x="'+(W/2)+'" y="'+(H-8)+'" text-anchor="middle" font-size="22" font-weight="800" fill="#e8e6de">'+X.lab+'</text>'
    +'</svg>';
   document.getElementById('quadHost').innerHTML=svg;
@@ -835,9 +835,7 @@ function ppDrawRolling(){
   var host=document.getElementById('rollHost'); if(!host||!ROLLING_ROWS)return;
   var mob=window.innerWidth<=900;
   var leg=document.getElementById('rollLegend');
-  var w=host.clientWidth,h=host.clientHeight;
-  if(mob){ if(w<20)return; w=Math.max(300,w); h=Math.round(w*0.74); }
-  else if(w<20||h<20)return;
+  var w=host.clientWidth,h=host.clientHeight; if(w<20||h<20)return;
   var win=_rollingWindow, slice=_rollingMetric;
   if(ROLLING_ROWS.length<win){host.innerHTML='<div style="padding:24px;color:var(--ink-3);font-family:Inter,sans-serif;font-size:12px;">Not enough PA for a '+win+'-PA window.</div>';return;}
   var AMBER='#ffd54a',BLUE='#7fb3dd',WHITE='#f5f5f0',RED='#e57373',ORANGE='#d99a6c',INK2='#8a8a85';
@@ -888,11 +886,7 @@ function ppDrawRolling(){
   lines.forEach(function(L){var p=L.v.map((v,i)=>X(i).toFixed(1)+','+Y(v).toFixed(1)).join(' ');
     s+='<polyline points="'+p+'" fill="none" stroke="'+L.color+'" stroke-width="'+(L.name==='xwOBA'?2.6:2.1)+'" stroke-linejoin="round" stroke-linecap="round"/>';
   });
-  if(mob){
-    host.innerHTML='<svg viewBox="0 0 '+w+' '+h+'" width="100%" style="display:block;height:auto">'+s+'</svg>';
-  } else {
-    host.innerHTML='<svg width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'" style="display:block">'+s+'</svg>';
-  }
+  host.innerHTML='<svg width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'" style="display:block">'+s+'</svg>';
 }
 function ppWireRolling(){
   var tabs=document.getElementById('rollingMetricTabs');

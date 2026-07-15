@@ -835,7 +835,9 @@ function ppDrawRolling(){
   var host=document.getElementById('rollHost'); if(!host||!ROLLING_ROWS)return;
   var mob=window.innerWidth<=900;
   var leg=document.getElementById('rollLegend');
-  var w=host.clientWidth,h=host.clientHeight; if(w<20||h<20)return;
+  var w=host.clientWidth,h=host.clientHeight;
+  if(mob){ if(w<20)return; w=Math.max(300,w); h=Math.round(w*0.74); }
+  else if(w<20||h<20)return;
   var win=_rollingWindow, slice=_rollingMetric;
   if(ROLLING_ROWS.length<win){host.innerHTML='<div style="padding:24px;color:var(--ink-3);font-family:Inter,sans-serif;font-size:12px;">Not enough PA for a '+win+'-PA window.</div>';return;}
   var AMBER='#ffd54a',BLUE='#7fb3dd',WHITE='#f5f5f0',RED='#e57373',ORANGE='#d99a6c',INK2='#8a8a85';
@@ -886,7 +888,11 @@ function ppDrawRolling(){
   lines.forEach(function(L){var p=L.v.map((v,i)=>X(i).toFixed(1)+','+Y(v).toFixed(1)).join(' ');
     s+='<polyline points="'+p+'" fill="none" stroke="'+L.color+'" stroke-width="'+(L.name==='xwOBA'?2.6:2.1)+'" stroke-linejoin="round" stroke-linecap="round"/>';
   });
-  host.innerHTML='<svg width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'" style="display:block">'+s+'</svg>';
+  if(mob){
+    host.innerHTML='<svg viewBox="0 0 '+w+' '+h+'" width="100%" style="display:block;height:auto">'+s+'</svg>';
+  } else {
+    host.innerHTML='<svg width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'" style="display:block">'+s+'</svg>';
+  }
 }
 function ppWireRolling(){
   var tabs=document.getElementById('rollingMetricTabs');
@@ -926,7 +932,8 @@ function ppDumbbell(d){
     var chip=!a.has?'':dl>0?'\u25B2 +'+dl:dl<0?'\u25BC \u2212'+Math.abs(dl):'0';
     var yy='<div class="db-yy"><span class="db-n" style="color:'+vc+'">'+a.r26+'</span><span class="db-u" style="color:'+vc+'">'+a.u+'</span>'
       +(a.has?'<span class="db-chip" style="color:'+cc+';background:'+cc+'22">'+chip+'</span>':'<span></span>')+'</div>';
-    return '<div class="db-row"><div class="db-lab">'+a.k+'</div><div class="db-bar"><div class="db-tk"></div>'
+    var labHTML=(a.k==='Bat Speed')?'<span class="lab-lg">Bat Speed</span><span class="lab-sm">Bat Spd</span>':a.k;
+    return '<div class="db-row"><div class="db-lab">'+labHTML+'</div><div class="db-bar"><div class="db-tk"></div>'
       +'<div class="db-ln" style="left:'+lo+'%;width:'+(hi-lo)+'%;background:'+barc+'"></div>'
       +(a.has?'<div class="db-d25" style="left:'+a.p25+'%"></div>':'')
       +'<div class="db-d26" style="left:'+a.p26+'%;background:'+barc+'"></div></div>'+yy+'</div>';}).join('');

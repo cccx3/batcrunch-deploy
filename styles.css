@@ -1508,7 +1508,15 @@
   .glossary-page .gl-desk{display:none}
 }
 
-/* v101 desktop: shorter boxes — smaller rows; card height tracks bars exactly (ppFitHeight) so rows fill, no gap */
+/* v102 desktop: genuinely shorter cards — scale the left card's internals proportionally.
+   card height tracks bars via ppFitHeight, so both cards shrink together and rows stay flush. */
 @media (min-width:901px){
-  .ppx .row{height:40px}
+  .ppx .row{height:34px}
+  .ppx .track{height:16px}
+  .ppx .dot{width:22px;height:22px;font-size:9px;border-width:2px}
+  .ppx .swing-top{padding-bottom:11px;margin-bottom:11px}
+  .ppx .stp b{font-size:15px}
+  .ppx .vz-body{padding:14px 20px 14px}
+  .ppx .scale{margin-bottom:8px}
+  .ppx .scale-mk{height:22px}
 }

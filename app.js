@@ -795,19 +795,18 @@ function ppDrawQuad(){
   ppQuadMobile(X,Y,rows,y25,y26);
 }
 function ppFitHeight(){
-  var pp=document.querySelector('.player-page'),main=document.querySelector('.ppx .main');
-  if(!pp||!main)return;
-  var els=document.querySelectorAll('.ppx .left,.ppx .viz,.ppx .right,.ppx .rollpanel'),i;
-  for(i=0;i<els.length;i++){els[i].style.height='';els[i].style.maxHeight='';}
+  var main=document.querySelector('.ppx .main');
+  var left=document.querySelector('.ppx .left'),viz=document.querySelector('.ppx .viz');
+  var right=document.querySelector('.ppx .right'),roll=document.querySelector('.ppx .rollpanel');
+  if(!main||!viz)return;
+  var els=[left,viz,right,roll],i;
+  for(i=0;i<els.length;i++){if(els[i]){els[i].style.height='';els[i].style.maxHeight='';}}
   if(window.innerWidth<=900)return;
-  var viz=document.querySelector('.ppx .viz');
-  var nat=viz?viz.scrollHeight:0;                       // natural height of the bars content
-  var pm=document.querySelector('.ppx .ppx-main'),pi=document.querySelector('.pp-inner');
-  var pad=(pm?parseFloat(getComputedStyle(pm).paddingBottom)||0:0)+(pi?parseFloat(getComputedStyle(pi).paddingBottom)||0:0)+2;
-  var top=main.getBoundingClientRect().top-pp.getBoundingClientRect().top+pp.scrollTop;
-  var avail=Math.floor(pp.clientHeight-top-pad);
-  var h=Math.max(420,nat||avail);                       // hug content; page scrolls if the window is short
-  for(i=0;i<els.length;i++){els[i].style.height=h+'px';els[i].style.maxHeight=h+'px';}
+  left.style.alignSelf='flex-start';          // stop the flex stretch so the card hugs its bars
+  void viz.offsetHeight;
+  var h=Math.max(360,Math.round(viz.getBoundingClientRect().height));
+  left.style.alignSelf='';
+  for(i=0;i<els.length;i++){if(els[i]){els[i].style.height=h+'px';els[i].style.maxHeight=h+'px';}}
 }
 function ppSetMode(m){
   var bars=document.getElementById('vz-bars'),quad=document.getElementById('vz-quad'),radar=document.getElementById('vz-radar');

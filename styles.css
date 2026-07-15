@@ -1508,9 +1508,7 @@
   .glossary-page .gl-desk{display:none}
 }
 
-/* v100 desktop: shorter player-page boxes — trim bar row height + panel padding */
+/* v101 desktop: shorter boxes — smaller rows; card height tracks bars exactly (ppFitHeight) so rows fill, no gap */
 @media (min-width:901px){
   .ppx .row{height:40px}
-  .ppx .vz-body{padding:14px 20px 16px}
-  .ppx .swing-top{padding-bottom:12px;margin-bottom:12px}
 }

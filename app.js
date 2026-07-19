@@ -3,6 +3,8 @@ const DATA_2025_URL = 'data/data_2025.json';
 const ROLLING_URL = 'data/rolling.json';
 let DATA = [];
 let ROLLING = {};
+let SAVANT_ROLL = {};
+let PP_PID = null;
 let ROLLING_ROWS = null;
 let QUALPA = 502;
 
@@ -738,7 +740,7 @@ function ppBuildCloud(d){
 function ppQuadMobile(X,Y,rows,y25,y26){
   var FAR=0.30;
   var yTall=true;   // Y label always sits above the plot
-  var W=500,H=430,PL=58,PR=22,PT=yTall?52:24,PB=64,pw=W-PL-PR,ph=H-PT-PB,bot=PT+ph;
+  var W=(window.innerWidth<=900?500:600),H=430,PL=58,PR=22,PT=yTall?52:24,PB=64,pw=W-PL-PR,ph=H-PT-PB,bot=PT+ph;
   var mean=k=>rows.reduce((a,r)=>a+r[k],0)/rows.length;
   var mX=mean(X.key),mY=mean(Y.key);
   var has25=y25&&y25[X.key]!=null&&y25[Y.key]!=null;
@@ -848,6 +850,13 @@ function ppDrawRolling(){
   else info={unit:'woba',base:0.300,L:[['wOBA',AMBER,RS.woba],['xwOBA',BLUE,RS.xwoba]]};
   var unit=info.unit;
   var lines=info.L.map(a=>({name:a[0],color:a[1],v:a[2],cur:a[2][a[2].length-1]}));
+  if(slice!=='discipline'&&slice!=='power'&&slice!=='swing'){
+    var _sv=PP_PID&&SAVANT_ROLL[PP_PID]&&SAVANT_ROLL[PP_PID][String(win)];
+    if(_sv)lines.forEach(function(L){
+      var kk=L.name==='wOBA'?'woba':L.name==='xwOBA'?'xwoba':null;
+      if(kk&&_sv[kk]&&_sv[kk].last!=null)L.cur=_sv[kk].last;   // Savant endpoint, not our tail
+    });
+  }
   var len=lines[0].v.length;
   var mL=mob?44:58,mR=mob?14:26,mT=mob?12:16,mB=mob?30:34,iw=w-mL-mR,ih=h-mT-mB;
   var all=[];lines.forEach(L=>{all=all.concat(L.v);});
@@ -937,7 +946,7 @@ function ppDumbbell(d){
 
 function renderPlayerPage(id){
   var d=DATA.find(x=>x.id===id);
-  ROLLING_ROWS=(d&&ROLLING[d.id])||null;
+  ROLLING_ROWS=(d&&ROLLING[d.id])||null; PP_PID=d?String(d.id):null;
   var pp=document.getElementById('playerPage');
   if(!d||!pp){if(pp)pp.style.display='none';return;}
   document.body.style.overflow='hidden'; pp.style.display='block';
@@ -1264,6 +1273,7 @@ async function load() {
       fetch(ROLLING_URL).then(r => r.ok ? r.json() : {}).catch(() => ({}))
     ]);
     ROLLING = roll || {};
+    SAVANT_ROLL = cur.savantRoll || {};
     YEARS['2026'] = { players: cur.players, qualPA: cur.qualPA };
     YEARS['2025'] = { players: prev.players || {}, qualPA: prev.qualPA || 502 };
     curYear = '2026';

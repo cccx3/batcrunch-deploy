@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 
 from savant import (pull_raw, pull_expected, pull_sprint, pull_bat_tracking,
-                    pull_swing_path, pull_position)
+                    pull_swing_path, pull_position, pull_rolling)
 
 CURRENT_YEAR = 2026
 SEASON = {
@@ -25,9 +25,9 @@ HALVES = {
 }
 
 SWING = {"swinging_strike", "swinging_strike_blocked", "foul", "foul_tip", "hit_into_play"}
-WHIFF = {"swinging_strike", "swinging_strike_blocked"}
+WHIFF = {"swinging_strike", "swinging_strike_blocked", "foul_tip"}
 K_EVENTS = {"strikeout", "strikeout_double_play"}
-BB_EVENTS = {"walk"}
+BB_EVENTS = {"walk", "intent_walk"}
 
 
 # ----------------------------------------------------------------------------- #
@@ -184,7 +184,16 @@ def _pa_pitch_aggs(raw):
     wh  = desc.isin(WHIFF).values
     con = sw & ~wh
     iz  = d["zone"].between(1, 9).values
-    bt  = sw & d["bat_speed"].notna().values
+    tracked = sw & d["bat_speed"].notna().values
+    # Savant "competitive swings": fastest 90% of a player's swings, plus any 60+ mph
+    # swing resulting in 90+ mph EV. Threshold is per-batter/per-season, so it is
+    # recomputed on every build from the full-season raw both callers pass in.
+    _thr  = d.loc[tracked].groupby("batter")["bat_speed"].quantile(0.10)
+    thr_v = d["batter"].map(_thr).to_numpy(dtype="float64")
+    bs_v  = d["bat_speed"].to_numpy(dtype="float64")
+    ev_v  = d["launch_speed"].fillna(0.0).to_numpy(dtype="float64")
+    with np.errstate(invalid="ignore"):
+        bt = tracked & ((bs_v >= thr_v) | ((bs_v >= 60.0) & (ev_v >= 90.0)))
     d["d_pitches"]  = 1
     d["d_inzone"]   = iz.astype(int)
     d["d_swing"]    = sw.astype(int)
@@ -219,8 +228,9 @@ def compute_pa_log(raw):
     pa = pa.sort_values(["batter", "game_date", "game_pk", "at_bat_number"])
     pa.loc[pa["events"] == "intent_walk", ["woba_value", "woba_denom"]] = 0
     ewu = pa["estimated_woba_using_speedangle"]
+    bip = pa["launch_speed"].notna()          # real tracked batted ball; K/BB/HBP use woba_value
     pa = pa.assign(
-        xv=np.where(ewu.notna(), ewu, pa["woba_value"]),
+        xv=np.where(bip & ewu.notna(), ewu, pa["woba_value"]),
         brl=(pa["launch_speed_angle"] == 6).astype(int),
         bbe=pa["launch_speed"].notna().astype(int),
         kf=pa["events"].isin(K_EVENTS).astype(int),
@@ -321,11 +331,29 @@ def write_json(obj, path):
     os.replace(tmp, path)
 
 
+def _savant_roll():
+    """Savant's own rolling endpoints (wOBA/xwOBA/BA/xBA/SLG/xSLG, per window).
+
+    Fail-soft on purpose: this is the only scrape of an HTML page (rather than a
+    CSV endpoint) in the pipeline, so a Savant layout change degrades to {} and the
+    dashboard falls back to its computed series, instead of killing the build.
+    """
+    try:
+        d = pull_rolling(CURRENT_YEAR)
+        print(f"savant rolling: {len(d)} batters")
+        return {str(k): v for k, v in d.items()}
+    except Exception as e:
+        print(f"savant rolling: SKIPPED ({e.__class__.__name__}: {e})")
+        return {}
+
+
 def write_current(stats, log, qual):
     """Write current-year data.json + rolling.json (qualified + sub-qualified floor).
     Shared by build.py (full backfill) and update.py (nightly)."""
     floor = 10      # emit everyone down to 10 PA; low-PA flagged in UI, rolling gated separately
-    write_json(year_payload(stats, qual, CURRENT_YEAR, floor=floor), dpath("data.json"))
+    payload = year_payload(stats, qual, CURRENT_YEAR, floor=floor)
+    payload["savantRoll"] = _savant_roll()
+    write_json(payload, dpath("data.json"))
     qual_ids = set(int(i) for i in stats[stats["pa"] >= qual].index)
     emit_ids = set(int(i) for i in stats[stats["pa"] >= floor].index)
     write_json({str(b): rows for b, rows in log.items() if b in emit_ids}, dpath("rolling.json"))

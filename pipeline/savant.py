@@ -10,9 +10,10 @@ Per-component smoke tests via the dispatcher:
     python savant.py sprint        [year]
     python savant.py bat_tracking  [year]
     python savant.py swing_path    [year]
+    python savant.py rolling       [year]
 """
 
-import io, sys, time, datetime as dt
+import io, sys, time, json, datetime as dt
 import requests
 import pandas as pd
 
@@ -39,6 +40,23 @@ def get_csv(url, retries=4):
         except Exception as e:
             last = str(e)
         time.sleep(2 ** attempt)                    # 1, 2, 4, 8s
+    raise RuntimeError(f"failed after {retries} tries: {last}")
+
+
+def get_html(url, retries=4):
+    """GET a Savant HTML page with backoff. Used by the rolling board, whose payload
+    is embedded as a JS object literal rather than exposed as CSV."""
+    last = None
+    for attempt in range(retries):
+        try:
+            r = requests.get(url, headers={**HEADERS, "Accept-Encoding": "identity"},
+                             timeout=TIMEOUT)
+            if r.status_code == 200 and r.text.strip():
+                return r.text
+            last = f"HTTP {r.status_code}"
+        except Exception as e:
+            last = str(e)
+        time.sleep(2 ** attempt)
     raise RuntimeError(f"failed after {retries} tries: {last}")
 
 
@@ -154,6 +172,59 @@ def pull_swing_path(year):
     return df[_SWING_PATH_KEEP]
 
 
+# Rolling Windows board. No CSV export: the page embeds the whole league as a raw
+# JS object literal (NOT quote-wrapped), keyed Batter50/Batter100/Batter250. Only six
+# stats roll on Savant, and only the endpoint + prior point are exposed - no curve.
+_ROLLING_URL = ("https://baseballsavant.mlb.com/leaderboard/rolling"
+                "?season={year}&type=batter")
+_ROLLING_STATS = ("woba", "xwoba", "ba", "xba", "slg", "xslg")
+_ROLLING_WINDOWS = (50, 100, 250)
+
+
+def _rolling_object(html):
+    i = html.find("var rolling")
+    if i < 0:
+        raise RuntimeError("`var rolling` not found; Savant page layout changed")
+    b = html.find("{", i)
+    depth, instr, esc = 0, False, False
+    for k in range(b, len(html)):
+        ch = html[k]
+        if esc:
+            esc = False
+            continue
+        if ch == "\\":
+            esc = True
+            continue
+        if ch == '"':
+            instr = not instr
+        if instr:
+            continue
+        if ch == "{":
+            depth += 1
+        elif ch == "}":
+            depth -= 1
+            if depth == 0:
+                return json.loads(html[b:k + 1])
+    raise RuntimeError("unbalanced braces in rolling payload")
+
+
+def pull_rolling(year):
+    """-> {int id: {"50"|"100"|"250": {stat: {"last": x, "prev": y}}}} for all batters."""
+    data = _rolling_object(get_html(_ROLLING_URL.format(year=year)))
+    out = {}
+    for w in _ROLLING_WINDOWS:
+        for r in data.get(f"Batter{w}") or []:
+            pid = r.get("player_id")
+            if pid is None:
+                continue
+            slot = out.setdefault(int(pid), {}).setdefault(str(w), {})
+            for st in _ROLLING_STATS:
+                last = r.get(f"last_x_{st}")
+                if last is not None:
+                    slot[st] = {"last": last, "prev": r.get(f"penultimate_x_{st}")}
+    return out
+
+
 # --------------------------------------------------------------------------- #
 # Primary fielding position - MLB StatsAPI (JSON). The one field not on Savant.
 # --------------------------------------------------------------------------- #
@@ -197,6 +268,15 @@ if __name__ == "__main__":
             print(f"  MISSING columns: {missing}" if missing else "  all required columns present")
     else:
         year = int(sys.argv[2]) if len(sys.argv) > 2 else 2026
+        if cmd == "rolling":
+            d = pull_rolling(year)
+            print(f"rolling {year}: {len(d)} batters | sample (Yordan 670541):")
+            y = d.get(670541) or {}
+            for w in ("50", "100", "250"):
+                x = (y.get(w) or {}).get("xwoba")
+                if x:
+                    print(f"  {w:>3} PA  xwOBA last={x['last']} prev={x['prev']}")
+            sys.exit(0)
         fn = {"expected": pull_expected, "sprint": pull_sprint,
               "bat_tracking": pull_bat_tracking, "swing_path": pull_swing_path}[cmd]
         out = fn(year)

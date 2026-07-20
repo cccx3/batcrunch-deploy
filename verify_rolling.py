@@ -21,7 +21,7 @@ ROLL = os.path.join("data", "rolling.json")
 
 # idx map into a rolling.json row (see core.compute_pa_log)
 WV, WD, XV, BRL, BBE, KF, BBF = range(7)
-DPIT, DINZ, DSW, DZSW, DOSW, DZC, DOC, DWH, DBE, EVS, HH, NSW, BSS, SLS, AAS, ADS, TLS, NID = range(7, 25)
+DPIT, DINZ, DSW, DZSW, DOSW, DZC, DWH, DBE, EVS, HH, NSW, BSS, SLS, AAS, ADS, TLS, NID = range(7, 24)
 
 
 def col(rows, i):
@@ -47,8 +47,6 @@ CHECKS = [
      "o_swing", "local", 0.25),
     ("Z-Contact%",  lambda r: col(r, DZC) / col(r, DZSW) * 100 if col(r, DZSW) else None,
      "z_contact", "local", 0.25),
-    ("O-Contact%",  lambda r: col(r, DOC) / col(r, DOSW) * 100 if col(r, DOSW) else None,
-     "o_contact", "local", 0.25),
     ("Whiff%",      lambda r: col(r, DWH) / col(r, DSW) * 100 if col(r, DSW) else None,
      "whiff", "local", 0.25),
     # --- the competitive-swing group: bars are Savant pulls, rolling is ours ---

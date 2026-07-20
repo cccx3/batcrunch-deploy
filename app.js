@@ -600,28 +600,28 @@ function cmpRoll(kind, val){
 function rollingSeries(rows, W) {
   const n = rows.length;
   const woba=[],xwoba=[],barrel=[],k=[],bb=[];
-  const z_swing=[],o_swing=[],z_contact=[],o_contact=[],whiff=[],hardhit=[],ev=[];
+  const z_swing=[],o_swing=[],z_contact=[],whiff=[],hardhit=[],ev=[];
   const bat_speed=[],swing_length=[],attack_angle=[],attack_direction=[],tilt=[],iaa=[];
   const g=(r,i)=>(r[i]||0);
   for (let i = W - 1; i < n; i++) {
     let wv=0,wd=0,xv=0,br=0,be=0,kf=0,bf=0;
-    let dp=0,din=0,dsw=0,dzs=0,dos=0,dzc=0,doc=0,dwh=0,dbe=0,evs=0,hh=0,nsw=0,bss=0,sls=0,aas=0,ads=0,tis=0,nid=0;
+    let dp=0,din=0,dsw=0,dzs=0,dos=0,dzc=0,dwh=0,dbe=0,evs=0,hh=0,nsw=0,bss=0,sls=0,aas=0,ads=0,tis=0,nid=0;
     for (let j = i-W+1; j <= i; j++){ const r=rows[j];
       wv+=r[0];wd+=r[1];xv+=r[2];br+=r[3];be+=r[4];kf+=r[5];bf+=r[6];
-      dp+=g(r,7);din+=g(r,8);dsw+=g(r,9);dzs+=g(r,10);dos+=g(r,11);dzc+=g(r,12);doc+=g(r,13);dwh+=g(r,14);dbe+=g(r,15);
-      evs+=g(r,16);hh+=g(r,17);nsw+=g(r,18);bss+=g(r,19);sls+=g(r,20);aas+=g(r,21);ads+=g(r,22);tis+=g(r,23);nid+=g(r,24);
+      dp+=g(r,7);din+=g(r,8);dsw+=g(r,9);dzs+=g(r,10);dos+=g(r,11);dzc+=g(r,12);dwh+=g(r,13);dbe+=g(r,14);
+      evs+=g(r,15);hh+=g(r,16);nsw+=g(r,17);bss+=g(r,18);sls+=g(r,19);aas+=g(r,20);ads+=g(r,21);tis+=g(r,22);nid+=g(r,23);
     }
     woba.push(wd?wv/wd:0); xwoba.push(wd?xv/wd:0);
     barrel.push(dbe?br/dbe*100:0); k.push(kf/W*100); bb.push(bf/W*100);
     const oz=dp-din;
     z_swing.push(din?dzs/din*100:0); o_swing.push(oz?dos/oz*100:0);
-    z_contact.push(dzs?dzc/dzs*100:0); o_contact.push(dos?doc/dos*100:0); whiff.push(dsw?dwh/dsw*100:0);
+    z_contact.push(dzs?dzc/dzs*100:0); whiff.push(dsw?dwh/dsw*100:0);
     hardhit.push(dbe?hh/dbe*100:0); ev.push(dbe?evs/dbe:0);
     bat_speed.push(nsw?bss/nsw:0); swing_length.push(nsw?sls/nsw:0);
     attack_angle.push(nsw?aas/nsw:0); attack_direction.push(nsw?ads/nsw:0); tilt.push(nsw?tis/nsw:0);
     iaa.push(nsw?nid/nsw*100:0);
   }
-  return { woba,xwoba,barrel,k,bb, z_swing,o_swing,z_contact,o_contact,whiff,
+  return { woba,xwoba,barrel,k,bb, z_swing,o_swing,z_contact,whiff,
            hardhit,ev, bat_speed,swing_length,attack_angle,attack_direction,tilt,iaa };
 }
 

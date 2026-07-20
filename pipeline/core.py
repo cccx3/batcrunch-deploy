@@ -95,16 +95,9 @@ def batter_team(raw):
 
 
 def compute_production(raw, pa=None):
-    """PA count + a vectorized wOBA fallback. Savant's woba overwrites this wherever
-    the expected-stats board has the player; k/bb now come from the custom board."""
+    """PA count only. woba/xwoba/k/bb all come from Savant leaderboards."""
     pa = pa_frame(raw) if pa is None else pa
-    nb = pa[pa["events"] != "intent_walk"]
-    g = nb.groupby("batter")
-    den = g["woba_denom"].sum()
-    return pd.DataFrame({
-        "pa":   pa.groupby("batter").size(),
-        "woba": g["woba_value"].sum() / den.replace(0, np.nan),
-    })
+    return pd.DataFrame({"pa": pa.groupby("batter").size()})
 
 
 def compute_splits(raw, pa=None):
@@ -123,7 +116,7 @@ def compute_splits(raw, pa=None):
 
 
 _PA_AGG = ["d_pitches", "d_inzone", "d_swing", "d_zswing", "d_oswing",
-          "d_zcontact", "d_ocontact", "d_whiff", "d_bbe", "ev_sum", "hardhit",
+          "d_zcontact", "d_whiff", "d_bbe", "ev_sum", "hardhit",
           "n_sw", "bs_sum", "sl_sum", "aa_sum", "ad_sum", "tilt_sum", "n_ideal"]
 
 
@@ -162,7 +155,6 @@ def _pa_pitch_aggs(raw):
     d["d_zswing"]   = (sw & iz).astype(int)
     d["d_oswing"]   = (sw & ~iz).astype(int)
     d["d_zcontact"] = (con & iz).astype(int)
-    d["d_ocontact"] = (con & ~iz).astype(int)
     d["d_whiff"]    = wh.astype(int)
     # A batted-ball event is a ball put IN PLAY. Fouls carry a tracked launch_speed
     # too (~255 of 530 tracked rows for a typical hitter), so gating on launch_speed
@@ -183,7 +175,7 @@ def _pa_pitch_aggs(raw):
 
 def compute_pa_log(raw):
     """Per-batter chronological PA log; the dashboard rolls windows in JS.
-    Row (25 cols): woba_value, woba_denom, xv, brl, bbe, kf, bbf,
+    Row (24 cols): woba_value, woba_denom, xv, brl, bbe, kf, bbf,
     then _PA_AGG (discipline counts + EV/hardhit + bat-tracking sums)."""
     pa = pa_frame(raw)
     pa = pa.merge(_pa_pitch_aggs(raw), on=["game_pk", "at_bat_number"], how="left")
@@ -224,8 +216,7 @@ def compute_year(year, with_log, raw=None):
              .join(pull_sprint(year).set_index("id"))
              .join(pull_bat_tracking(year).set_index("id"))
              .join(pull_swing_path(year).set_index("id")))
-    stats["woba"] = stats["woba_sv"].fillna(stats["woba"])
-    stats = stats.drop(columns="woba_sv")
+    stats = stats.rename(columns={"woba_sv": "woba"})
     meta = pd.DataFrame({
         "team": batter_team(raw),
         "name": pa.groupby("batter")["player_name"].first(),

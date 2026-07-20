@@ -11,6 +11,7 @@ Per-component smoke tests via the dispatcher:
     python savant.py bat_tracking  [year]
     python savant.py swing_path    [year]
     python savant.py rolling       [year]
+    python savant.py custom        [year]
 """
 
 import io, sys, time, json, datetime as dt
@@ -225,6 +226,51 @@ def pull_rolling(year):
     return out
 
 
+# Custom Leaderboard - one call for every season scalar we used to derive from raw.
+# URL shape taken verbatim from the Savant UI (address bar) + csv=true, same as the
+# other boards. `selections` is a comma-separated list of the column ids exposed by
+# the page's own column picker.
+_CUSTOM_SELECTIONS = [
+    "pa", "k_percent", "bb_percent",
+    "sweet_spot_percent", "barrel_batted_rate", "hard_hit_percent", "avg_best_speed",
+    "whiff_percent", "z_swing_percent", "oz_swing_percent",
+    "iz_contact_percent", "oz_contact_percent",
+    # raw integer counts: let verify_rolling diff _pa_pitch_aggs exactly, not by rate
+    "in_zone", "out_zone", "in_zone_swing", "out_zone_swing",
+    "in_zone_swing_miss", "out_zone_swing_miss",
+]
+_CUSTOM_URL = ("https://baseballsavant.mlb.com/leaderboard/custom"
+               "?year={year}&type=batter&filter=&min={min_pa}"
+               "&selections={selections}"
+               "&chart=false&x=pa&y=pa&r=no&chartType=beeswarm"
+               "&sort=xwoba&sortDir=desc&csv=true")
+_CUSTOM_RENAME = {
+    "player_id": "id",
+    "k_percent": "k", "bb_percent": "bb",
+    "sweet_spot_percent": "sweet", "barrel_batted_rate": "barrel",
+    "hard_hit_percent": "hardhit", "avg_best_speed": "ev50",
+    "whiff_percent": "whiff", "z_swing_percent": "z_swing",
+    "oz_swing_percent": "o_swing", "iz_contact_percent": "z_contact",
+    "oz_contact_percent": "o_contact",
+}
+_CUSTOM_KEEP = ["id", "k", "bb", "sweet", "barrel", "hardhit", "ev50",
+                "whiff", "z_swing", "o_swing", "z_contact", "o_contact",
+                "in_zone", "out_zone", "in_zone_swing", "out_zone_swing",
+                "in_zone_swing_miss", "out_zone_swing_miss"]
+
+
+def pull_custom(year, min_pa=10):
+    """Season scalars for every batter >= min_pa. Replaces compute_discipline and
+    the derived half of compute_power/compute_production."""
+    url = _CUSTOM_URL.format(year=year, min_pa=min_pa,
+                             selections="%2C".join(_CUSTOM_SELECTIONS))
+    df = get_csv(url).rename(columns=_CUSTOM_RENAME)
+    missing = [c for c in _CUSTOM_KEEP if c not in df.columns]
+    if missing:
+        raise KeyError(f"custom: missing {missing}; real cols: {list(df.columns)}")
+    return df[_CUSTOM_KEEP]
+
+
 # --------------------------------------------------------------------------- #
 # Primary fielding position - MLB StatsAPI (JSON). The one field not on Savant.
 # --------------------------------------------------------------------------- #
@@ -268,6 +314,11 @@ if __name__ == "__main__":
             print(f"  MISSING columns: {missing}" if missing else "  all required columns present")
     else:
         year = int(sys.argv[2]) if len(sys.argv) > 2 else 2026
+        if cmd == "custom":
+            out = pull_custom(year)
+            print(f"custom {year}: {len(out)} rows | sample:")
+            print(out.head(3).to_string(index=False))
+            sys.exit(0)
         if cmd == "rolling":
             d = pull_rolling(year)
             print(f"rolling {year}: {len(d)} batters | sample (Yordan 670541):")

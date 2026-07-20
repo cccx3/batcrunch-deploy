@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 
 from savant import (pull_raw, pull_expected, pull_sprint, pull_bat_tracking,
-                    pull_swing_path, pull_position, pull_rolling)
+                    pull_swing_path, pull_position, pull_rolling, pull_custom)
 
 CURRENT_YEAR = 2026
 SEASON = {
@@ -94,71 +94,29 @@ def batter_team(raw):
     return pa.groupby("batter")["team"].last()
 
 
-def compute_power(raw):
-    bb = raw[raw["launch_speed"].notna()]
-    g = bb.groupby("batter")
+def compute_production(raw, pa=None):
+    """PA count + a vectorized wOBA fallback. Savant's woba overwrites this wherever
+    the expected-stats board has the player; k/bb now come from the custom board."""
+    pa = pa_frame(raw) if pa is None else pa
+    nb = pa[pa["events"] != "intent_walk"]
+    g = nb.groupby("batter")
+    den = g["woba_denom"].sum()
     return pd.DataFrame({
-        "barrel": g.apply(lambda d: (d["launch_speed_angle"] == 6).mean() * 100),
-        "sweet":  g.apply(lambda d: d["launch_angle"].between(8, 32).mean() * 100),
-        "ev90":   g["launch_speed"].quantile(0.90),
+        "pa":   pa.groupby("batter").size(),
+        "woba": g["woba_value"].sum() / den.replace(0, np.nan),
     })
 
 
-def woba_of(d):
-    den = d["woba_denom"].sum()
-    return d["woba_value"].sum() / den if den else np.nan
-
-
-def compute_production(raw):
-    pa = pa_frame(raw)
-    g = pa.groupby("batter")
-    return pd.DataFrame({
-        "pa":   g.size(),
-        "woba": g.apply(lambda d: woba_of(d[d["events"] != "intent_walk"])),
-        "k":    g.apply(lambda d: d["events"].isin(K_EVENTS).mean() * 100),
-        "bb":   g.apply(lambda d: d["events"].isin(BB_EVENTS).mean() * 100),
-    })
-
-
-def compute_discipline(raw):
-    # build a narrow frame instead of assigning onto the wide raw frame (no PerformanceWarning)
-    m = ~raw["description"].str.contains("bunt", na=False)
-    desc = raw.loc[m, "description"]
-    swing = desc.isin(SWING).values
-    whiff = desc.isin(WHIFF).values
-    p = pd.DataFrame({
-        "batter": raw.loc[m, "batter"].values,
-        "inzone": raw.loc[m, "zone"].between(1, 9).values,
-        "swing":  swing,
-        "whiff":  whiff,
-        "contact": swing & ~whiff,
-    })
-    g = p.groupby("batter")
-
-    def rate(num, den):
-        n = g.apply(lambda d: int(num(d).sum()))
-        m2 = g.apply(lambda d: int(den(d).sum()))
-        return (n / m2.replace(0, np.nan)) * 100
-
-    return pd.DataFrame({
-        "z_swing":   rate(lambda d: d["swing"] & d["inzone"],    lambda d: d["inzone"]),
-        "o_swing":   rate(lambda d: d["swing"] & ~d["inzone"],   lambda d: ~d["inzone"]),
-        "z_contact": rate(lambda d: d["contact"] & d["inzone"],  lambda d: d["swing"] & d["inzone"]),
-        "o_contact": rate(lambda d: d["contact"] & ~d["inzone"], lambda d: d["swing"] & ~d["inzone"]),
-        "whiff":     rate(lambda d: d["whiff"],                   lambda d: d["swing"]),
-    })
-
-
-def compute_splits(raw):
-    pa = pa_frame(raw)
-    rows = {}
+def compute_splits(raw, pa=None):
+    pa = pa_frame(raw) if pa is None else pa
     switch = pa.groupby("batter")["stand"].nunique().gt(1)
+    rows = {}
     for hand in ("L", "R"):
-        side = pa[pa["p_throws"] == hand].groupby("batter")
-        rows[f"pa_{hand}"]   = side.size()
-        # guard 0-denom platoon sides so they yield NaN (-> null), never inf
-        rows[f"woba_{hand}"] = side.apply(
-            lambda d: woba_of(d[d["events"] != "intent_walk"]))
+        side = pa[pa["p_throws"] == hand]
+        rows[f"pa_{hand}"] = side.groupby("batter").size()
+        g = side[side["events"] != "intent_walk"].groupby("batter")
+        den = g["woba_denom"].sum()
+        rows[f"woba_{hand}"] = g["woba_value"].sum() / den.replace(0, np.nan)
     out = pd.DataFrame(rows)
     out["switch"] = switch.reindex(out.index).fillna(False)
     return out
@@ -194,7 +152,11 @@ def _pa_pitch_aggs(raw):
     ev_v  = d["launch_speed"].fillna(0.0).to_numpy(dtype="float64")
     with np.errstate(invalid="ignore"):
         bt = tracked & ((bs_v >= thr_v) | ((bs_v >= 60.0) & (ev_v >= 90.0)))
-    d["d_pitches"]  = 1
+    # d_pitches exists only so the JS can derive out-of-zone as (d_pitches - d_inzone).
+    # Statcast leaves ~0.4% of pitches with a null zone; counting them made them
+    # out-of-zone by default and dragged O-Swing%/O-Contact% low. Only zone-classified
+    # pitches count, so (d_pitches - d_inzone) == zone 11-14 exactly.
+    d["d_pitches"]  = d["zone"].between(1, 14).astype(int)
     d["d_inzone"]   = iz.astype(int)
     d["d_swing"]    = sw.astype(int)
     d["d_zswing"]   = (sw & iz).astype(int)
@@ -202,9 +164,13 @@ def _pa_pitch_aggs(raw):
     d["d_zcontact"] = (con & iz).astype(int)
     d["d_ocontact"] = (con & ~iz).astype(int)
     d["d_whiff"]    = wh.astype(int)
-    d["d_bbe"]      = d["launch_speed"].notna().astype(int)
-    d["ev_sum"]     = d["launch_speed"].fillna(0.0)
-    d["hardhit"]    = (d["launch_speed"] >= 95).fillna(False).astype(int)
+    # A batted-ball event is a ball put IN PLAY. Fouls carry a tracked launch_speed
+    # too (~255 of 530 tracked rows for a typical hitter), so gating on launch_speed
+    # alone nearly doubles the denominator and halves Barrel%/HardHit%.
+    bip = (d["description"] == "hit_into_play").values & d["launch_speed"].notna().values
+    d["d_bbe"]      = bip.astype(int)
+    d["ev_sum"]     = np.where(bip, d["launch_speed"].fillna(0.0), 0.0)
+    d["hardhit"]    = (bip & (d["launch_speed"] >= 95).fillna(False).values).astype(int)
     d["n_sw"]       = bt.astype(int)
     d["bs_sum"]     = np.where(bt, d["bat_speed"].fillna(0.0), 0.0)
     d["sl_sum"]     = np.where(bt, d["swing_length"].fillna(0.0), 0.0)
@@ -217,13 +183,9 @@ def _pa_pitch_aggs(raw):
 
 def compute_pa_log(raw):
     """Per-batter chronological PA log; the dashboard rolls windows in JS.
-    Row (27 cols): woba_value, woba_denom, xv, brl, bbe, kf, bbf, zone_in, pitches,
+    Row (25 cols): woba_value, woba_denom, xv, brl, bbe, kf, bbf,
     then _PA_AGG (discipline counts + EV/hardhit + bat-tracking sums)."""
-    pc = (raw.assign(_z=raw["zone"].between(1, 9))
-             .groupby(["game_pk", "at_bat_number"])
-             .agg(pitches=("zone", "size"), zone_in=("_z", "sum"))
-             .reset_index())
-    pa = pa_frame(raw).merge(pc, on=["game_pk", "at_bat_number"], how="left")
+    pa = pa_frame(raw)
     pa = pa.merge(_pa_pitch_aggs(raw), on=["game_pk", "at_bat_number"], how="left")
     pa = pa.sort_values(["batter", "game_date", "game_pk", "at_bat_number"])
     pa.loc[pa["events"] == "intent_walk", ["woba_value", "woba_denom"]] = 0
@@ -236,8 +198,7 @@ def compute_pa_log(raw):
         kf=pa["events"].isin(K_EVENTS).astype(int),
         bbf=pa["events"].isin(BB_EVENTS).astype(int),
     )
-    cols = (["woba_value", "woba_denom", "xv", "brl", "bbe", "kf", "bbf",
-             "zone_in", "pitches"] + _PA_AGG)
+    cols = (["woba_value", "woba_denom", "xv", "brl", "bbe", "kf", "bbf"] + _PA_AGG)
     log = {}
     for bid, d in pa.groupby("batter"):
         log[int(bid)] = d[cols].fillna(0).round(3).values.tolist()
@@ -255,17 +216,16 @@ def team_games(raw):
 def compute_year(year, with_log, raw=None):
     if raw is None:
         raw = get_raw(year)
-    stats = (compute_production(raw)
-             .join(compute_power(raw))
-             .join(compute_discipline(raw))
-             .join(compute_splits(raw))
+    pa = pa_frame(raw)                      # one pass, shared by every consumer below
+    stats = (compute_production(raw, pa)
+             .join(compute_splits(raw, pa))
+             .join(pull_custom(year).set_index("id"))
              .join(pull_expected(year).set_index("id"))
              .join(pull_sprint(year).set_index("id"))
              .join(pull_bat_tracking(year).set_index("id"))
              .join(pull_swing_path(year).set_index("id")))
     stats["woba"] = stats["woba_sv"].fillna(stats["woba"])
     stats = stats.drop(columns="woba_sv")
-    pa = pa_frame(raw)
     meta = pd.DataFrame({
         "team": batter_team(raw),
         "name": pa.groupby("batter")["player_name"].first(),
@@ -279,7 +239,7 @@ def compute_year(year, with_log, raw=None):
 # ----------------------------------------------------------------------------- #
 # Assemble + coverage gate + write
 # ----------------------------------------------------------------------------- #
-CORE = ["pa", "woba", "xwoba", "k", "bb", "barrel", "sweet", "ev90",
+CORE = ["pa", "woba", "xwoba", "k", "bb", "barrel", "sweet", "ev50",
         "z_swing", "o_swing", "z_contact", "o_contact", "whiff", "sprint"]
 BAT_TRACK = ["bat_speed", "swing_length", "attack_angle", "attack_direction", "tilt", "iaa"]
 REQUIRED = CORE + BAT_TRACK            # all written; null where missing

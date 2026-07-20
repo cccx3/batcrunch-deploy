@@ -40,13 +40,13 @@ function transform(id, p, prevWoba, shL, shR) {
     platoon_tier: platoonTier(p, shL, shR), pa_L: p.pa_L, pa_R: p.pa_R,
     woba: p.woba, xwoba: p.xwoba, woba_diff: wd, bb_minus_k: bbk,
     k_pct: frac(p.k), bb_pct: frac(p.bb),
-    position: p.position, team: p.team, ev90: p.ev90, sprint: p.sprint,
+    position: p.position, team: p.team, ev50: p.ev50, sprint: p.sprint,
     pf: (p.pf != null ? p.pf : (PARK_PF[p.team] != null ? PARK_PF[p.team] : null)),
     woba_recent: null, pa_recent: null, heat: null,
     z_swing: frac(p.z_swing), o_swing: frac(p.o_swing),
     z_contact: frac(p.z_contact), o_contact: frac(p.o_contact),
     woba_L: p.woba_L, xwoba_L: null, woba_R: p.woba_R, xwoba_R: null,
-    ev50: null, disc_score: null, int_batter: null, sq_up: null,
+    disc_score: null, int_batter: null, sq_up: null,
     last: nm.split(',')[0].trim(),
     first: (nm.split(',')[1] || '').trim()
   };
@@ -89,7 +89,7 @@ function recompute() {
   const POOL = DATA.filter(d => d.pa >= QUALPA);
   const src = POOL.length ? POOL : DATA;
   S = {
-  ev50: [...src].map(d=>d.ev50).sort((a,b)=>a-b),
+  ev50: [...src].map(d=>d.ev50).filter(x=>x!=null).sort((a,b)=>a-b),
   bat_speed: [...src].map(d=>d.bat_speed).sort((a,b)=>a-b),
   iaa: [...src].map(d=>d.iaa).sort((a,b)=>a-b),
   timing: [...src].map(d=>timingScore(d.int_batter)).sort((a,b)=>a-b),
@@ -102,7 +102,6 @@ function recompute() {
   woba: [...src].map(d=>d.woba).filter(x=>x!=null).sort((a,b)=>a-b),
   xwoba: [...src].map(d=>d.xwoba).filter(x=>x!=null).sort((a,b)=>a-b),
   luck_diff: [...src].map(d=>(d.xwoba!=null && d.woba!=null) ? (d.xwoba-d.woba) : null).filter(x=>x!=null).sort((a,b)=>a-b),
-  ev90: [...src].map(d=>d.ev90).filter(x=>x!=null).sort((a,b)=>a-b),
   bat_speed_s: [...src].map(d=>d.bat_speed).filter(x=>x!=null).sort((a,b)=>a-b),
   sprint: [...src].map(d=>d.sprint).filter(x=>x!=null).sort((a,b)=>a-b),
   z_swing: [...src].map(d=>d.z_swing).filter(x=>x!=null).sort((a,b)=>a-b),
@@ -546,7 +545,7 @@ function compareRollingChart(a, b, metric, W){
   if (!ra || !rb || ra.length < W || rb.length < W){
     return '<div class="cp-roll-empty">Not enough PA for a ' + W + '-PA window on both hitters.</div>';
   }
-  const isPct = (metric === 'barrel' || metric === 'k' || metric === 'bb' || metric === 'zone');
+  const isPct = (metric === 'barrel' || metric === 'k' || metric === 'bb');
   const tail = v => v.length > W ? v.slice(v.length - W) : v;
   const wa = tail(rollingSeries(ra, W)[metric]);
   const wb = tail(rollingSeries(rb, W)[metric]);
@@ -600,20 +599,20 @@ function cmpRoll(kind, val){
 
 function rollingSeries(rows, W) {
   const n = rows.length;
-  const woba=[],xwoba=[],zone=[],barrel=[],k=[],bb=[];
+  const woba=[],xwoba=[],barrel=[],k=[],bb=[];
   const z_swing=[],o_swing=[],z_contact=[],o_contact=[],whiff=[],hardhit=[],ev=[];
   const bat_speed=[],swing_length=[],attack_angle=[],attack_direction=[],tilt=[],iaa=[];
   const g=(r,i)=>(r[i]||0);
   for (let i = W - 1; i < n; i++) {
-    let wv=0,wd=0,xv=0,br=0,be=0,kf=0,bf=0,zi=0,pi=0;
+    let wv=0,wd=0,xv=0,br=0,be=0,kf=0,bf=0;
     let dp=0,din=0,dsw=0,dzs=0,dos=0,dzc=0,doc=0,dwh=0,dbe=0,evs=0,hh=0,nsw=0,bss=0,sls=0,aas=0,ads=0,tis=0,nid=0;
     for (let j = i-W+1; j <= i; j++){ const r=rows[j];
-      wv+=r[0];wd+=r[1];xv+=r[2];br+=r[3];be+=r[4];kf+=r[5];bf+=r[6];zi+=r[7];pi+=r[8];
-      dp+=g(r,9);din+=g(r,10);dsw+=g(r,11);dzs+=g(r,12);dos+=g(r,13);dzc+=g(r,14);doc+=g(r,15);dwh+=g(r,16);dbe+=g(r,17);
-      evs+=g(r,18);hh+=g(r,19);nsw+=g(r,20);bss+=g(r,21);sls+=g(r,22);aas+=g(r,23);ads+=g(r,24);tis+=g(r,25);nid+=g(r,26);
+      wv+=r[0];wd+=r[1];xv+=r[2];br+=r[3];be+=r[4];kf+=r[5];bf+=r[6];
+      dp+=g(r,7);din+=g(r,8);dsw+=g(r,9);dzs+=g(r,10);dos+=g(r,11);dzc+=g(r,12);doc+=g(r,13);dwh+=g(r,14);dbe+=g(r,15);
+      evs+=g(r,16);hh+=g(r,17);nsw+=g(r,18);bss+=g(r,19);sls+=g(r,20);aas+=g(r,21);ads+=g(r,22);tis+=g(r,23);nid+=g(r,24);
     }
     woba.push(wd?wv/wd:0); xwoba.push(wd?xv/wd:0);
-    barrel.push(dbe?br/dbe*100:0); k.push(kf/W*100); bb.push(bf/W*100); zone.push(pi?zi/pi*100:0);
+    barrel.push(dbe?br/dbe*100:0); k.push(kf/W*100); bb.push(bf/W*100);
     const oz=dp-din;
     z_swing.push(din?dzs/din*100:0); o_swing.push(oz?dos/oz*100:0);
     z_contact.push(dzs?dzc/dzs*100:0); o_contact.push(dos?doc/dos*100:0); whiff.push(dsw?dwh/dsw*100:0);
@@ -622,7 +621,7 @@ function rollingSeries(rows, W) {
     attack_angle.push(nsw?aas/nsw:0); attack_direction.push(nsw?ads/nsw:0); tilt.push(nsw?tis/nsw:0);
     iaa.push(nsw?nid/nsw*100:0);
   }
-  return { woba,xwoba,zone,barrel,k,bb, z_swing,o_swing,z_contact,o_contact,whiff,
+  return { woba,xwoba,barrel,k,bb, z_swing,o_swing,z_contact,o_contact,whiff,
            hardhit,ev, bat_speed,swing_length,attack_angle,attack_direction,tilt,iaa };
 }
 

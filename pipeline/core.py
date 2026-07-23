@@ -188,7 +188,7 @@ def compute_pa_table(raw):
         kf=pa["events"].isin(K_EVENTS).astype(int),
         bbf=pa["events"].isin(BB_EVENTS).astype(int),
     )
-    cols = ["batter", "woba_value", "woba_denom", "xv", "brl", "kf", "bbf"] + _PA_AGG
+    cols = ["batter", "game_date", "woba_value", "woba_denom", "xv", "brl", "kf", "bbf"] + _PA_AGG
     tbl = pa[cols].copy()
     tbl[_PA_AGG] = tbl[_PA_AGG].fillna(0)
     # out-of-zone is derived, not stored: zone-classified pitches only (see _pa_pitch_aggs)
@@ -244,7 +244,11 @@ def compute_rolling_curves(tbl, windows=ROLL_WINDOWS):
             if len(g) < W:
                 continue
             sums = g[_ROLL_COLS].rolling(W).sum().iloc[W - 1:]
-            per[str(W)] = _rates(sums, W)
+            r = _rates(sums, W)
+            # each point is a window ENDPOINT: the date of the last PA in that window.
+            # "MM-DD" keeps ~4KB/window; the year is implicit in the season.
+            r["dates"] = [str(d)[5:10] for d in g["game_date"].iloc[W - 1:]]
+            per[str(W)] = r
         if per:
             curves[int(bid)] = per
     return curves

@@ -22,6 +22,110 @@ function loadRoll(id){
   return _rollPending[k];
 }
 function rollWin(curves, W){ return (curves && curves[String(W)]) || null; }
+
+/* ---- rolling tooltip: one crosshair, one readout listing every line in the tab.
+   Desktop: floating box that flips at the midpoint. Mobile: pinned above the plot
+   (a box under the finger hides what you're reading). pointer* events cover both. */
+const _RMON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function rollFmtDate(s){
+  if(!s)return '';
+  var p=String(s).split('-'); var mi=+p[p.length-2]-1, d=+p[p.length-1];
+  return (_RMON[mi]||'')+' '+d;
+}
+function wireRollTip(host,g){
+  var svg=host.querySelector('svg'); if(!svg||!g||!g.len||g.len<2)return;
+  var NS='http://www.w3.org/2000/svg';
+  if(!host.style.position)host.style.position='relative';
+  var polys=Array.prototype.slice.call(svg.querySelectorAll('polyline'));
+
+  var grp=document.createElementNS(NS,'g'); grp.style.display='none'; grp.style.pointerEvents='none';
+  var vline=document.createElementNS(NS,'line');
+  vline.setAttribute('y1',g.mT); vline.setAttribute('y2',g.mT+g.ih);
+  vline.setAttribute('stroke','rgba(255,255,255,.42)'); vline.setAttribute('stroke-width','1');
+  grp.appendChild(vline);
+  var dot=document.createElementNS(NS,'circle');
+  dot.setAttribute('r',g.mob?4:4.8); dot.setAttribute('stroke','#0d0d0d'); dot.setAttribute('stroke-width','1.8');
+  grp.appendChild(dot);
+  svg.appendChild(grp);
+
+  var hit=document.createElementNS(NS,'rect');
+  hit.setAttribute('x',g.mL); hit.setAttribute('y',g.mT);
+  hit.setAttribute('width',g.iw); hit.setAttribute('height',g.ih);
+  hit.setAttribute('fill','transparent');
+  hit.style.touchAction='none'; hit.style.cursor='crosshair';
+  svg.appendChild(hit);
+
+  var tip=host.querySelector('.roll-tip');
+  if(!tip){ tip=document.createElement('div'); tip.className='roll-tip'; host.appendChild(tip); }
+  tip.style.cssText='position:absolute;display:none;pointer-events:none;z-index:6;'
+    +'background:rgba(16,16,16,.96);border:1px solid rgba(255,255,255,.14);border-radius:8px;'
+    +'padding:7px 9px;font-family:Inter,sans-serif;font-size:11.5px;line-height:1.45;'
+    +'color:#e8e8e2;white-space:nowrap;font-variant-numeric:tabular-nums;'
+    +'box-shadow:0 6px 18px rgba(0,0,0,.45)';
+
+  function local(e){
+    var r=svg.getBoundingClientRect(), k=g.vbW/(r.width||1);
+    return {x:(e.clientX-r.left)*k, y:(e.clientY-r.top)*k};
+  }
+  function idxAt(sx){
+    var i=Math.round((sx-g.mL)/(g.iw||1)*(g.len-1));
+    return Math.max(0,Math.min(g.len-1,i));
+  }
+  // Y picks the line: nearest series vertically at that x. Never hit-tests the
+  // stroke itself - on Discipline, Z-Contact and Whiff run within a few px for
+  // half the chart, and a fingertip is ~44px wide.
+  function nearest(i,sy){
+    var best=0,bd=Infinity;
+    g.lines.forEach(function(L,k){ var d=Math.abs(g.Y(L.v[i])-sy); if(d<bd){bd=d;best=k;} });
+    return best;
+  }
+  function show(i,li,clientX){
+    var L=g.lines[li], x=g.X(i);
+    vline.setAttribute('x1',x); vline.setAttribute('x2',x);
+    dot.setAttribute('cx',x); dot.setAttribute('cy',g.Y(L.v[i])); dot.setAttribute('fill',L.color);
+    grp.style.display='';
+    polys.forEach(function(p,k){
+      p.style.opacity = (k===li)?'1':'0.22';
+      p.style.strokeWidth = (k===li)?(g.mob?2.9:3.2):'';
+    });
+    var dt=(g.dates&&g.dates[i])?rollFmtDate(g.dates[i]):null;
+    tip.innerHTML='<div style="color:#9a9a94;font-size:10px;font-weight:700;letter-spacing:.05em;'
+      +'text-transform:uppercase;margin-bottom:3px">'+(dt?('thru '+dt):('PA '+(i+1)))+' \u00b7 '+g.win+' PA</div>'
+      +'<div style="display:flex;align-items:center;gap:7px">'
+      +'<i style="width:8px;height:8px;border-radius:2px;background:'+L.color+'"></i>'
+      +'<span>'+L.name+'</span>'
+      +'<b style="color:'+L.color+';margin-left:8px">'+g.fmtVal(L.v[i])+'</b></div>';
+    tip.style.display='block';
+    var hr=host.getBoundingClientRect();
+    if(g.mob){ tip.style.left='8px'; tip.style.top='6px'; }
+    else{
+      var px=clientX-hr.left;
+      tip.style.top='8px';
+      tip.style.left=(px>hr.width/2 ? Math.max(4,px-14-tip.offsetWidth) : px+14)+'px';
+    }
+    if(g.onIndex)g.onIndex(i,li);
+  }
+  function hide(){
+    grp.style.display='none'; tip.style.display='none';
+    polys.forEach(function(p){ p.style.opacity=''; p.style.strokeWidth=''; });
+    if(g.onIndex)g.onIndex(null,null);
+  }
+  function track(e){
+    var p=local(e), i=idxAt(p.x);
+    show(i, nearest(i,p.y), e.clientX);
+  }
+  hit.addEventListener('pointerdown',function(e){
+    e.preventDefault(); try{hit.setPointerCapture(e.pointerId);}catch(_){}
+    track(e);
+  });
+  hit.addEventListener('pointermove',function(e){
+    if(e.pointerType!=='mouse'&&e.buttons===0)return;   // touch: only while dragging
+    e.preventDefault(); track(e);
+  });
+  hit.addEventListener('pointerleave',function(e){ if(e.pointerType==='mouse')hide(); });
+  svg.addEventListener('pointerdown',function(e){ if(e.target!==hit)hide(); });
+}
+
 let QUALPA = 502;
 
 /* PLACEHOLDER park factors (wOBA, 100 = neutral) — directional only, NOT real Savant values.
@@ -676,8 +780,11 @@ function renderRollingChart(slice, windowSize) {
     s+='<polyline points="'+p+'" fill="none" stroke="'+L.color+'" stroke-width="'+(L.thick?2.8:2.1)+'" stroke-linejoin="round" stroke-linecap="round"/>';
   });
   s+='<line x1="'+mL+'" y1="'+mT+'" x2="'+mL+'" y2="'+(mT+ih)+'" stroke="rgba(255,255,255,.18)" stroke-width="1.5"/>';
+  _rollGeom={lines:lines, dates:RS.dates, len:len, win:windowSize, mob:false, vbW:W,
+             mL:mL, iw:iw, mT:mT, ih:ih, X:X, Y:Y, fmtVal:fmtVal};
   return '<svg viewBox="0 0 '+W+' '+H+'" width="100%" style="display:block">'+s+'</svg>';
 }
+let _rollGeom=null;
 
 let _rollingPlot = null;
 let _rollingMetric = 'outcomes';
@@ -686,7 +793,9 @@ let _rollingWindow = 100;
 function refreshRolling() {
   const host = document.getElementById('rollingChartHost');
   if (!host) return;
+  _rollGeom = null;
   host.innerHTML = renderRollingChart(_rollingMetric, _rollingWindow);
+  if (_rollGeom) wireRollTip(host, _rollGeom);
 }
 function yoyLegendHTML() {
   const prevYear = String(+curYear - 1);
@@ -891,6 +1000,20 @@ function ppDrawRolling(){
     s+='<polyline points="'+p+'" fill="none" stroke="'+L.color+'" stroke-width="'+(L.name==='xwOBA'?2.6:2.1)+'" stroke-linejoin="round" stroke-linecap="round"/>';
   });
   host.innerHTML='<svg width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'" style="display:block">'+s+'</svg>';
+  var legHTML=leg?leg.innerHTML:'';
+  wireRollTip(host,{
+    lines:lines, dates:RS.dates, len:len, win:win, mob:mob, vbW:w,
+    mL:mL, iw:iw, mT:mT, ih:ih, X:X, Y:Y, fmtVal:fmtVal,
+    onIndex:function(i,li){
+      if(!leg)return;
+      if(i==null){leg.innerHTML=legHTML;return;}
+      var f=mob?fmtLeg:fmtVal;
+      leg.innerHTML=lines.map(function(L,k){
+        var on=(k===li);
+        return '<span class="rl" style="opacity:'+(on?1:.35)+'"><i style="background:'+L.color+'"></i>'+L.name
+          +'<b style="color:'+L.color+'">'+f(L.v[i])+'</b></span>';}).join('');
+    }
+  });
 }
 function ppWireRolling(){
   var tabs=document.getElementById('rollingMetricTabs');

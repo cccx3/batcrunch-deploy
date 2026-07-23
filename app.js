@@ -978,7 +978,7 @@ function renderPlayerPage(id){
   ppFitHeight();
   ppSetMode('bars');
   setTimeout(ppWireRolling,0);
-  if(_rollOK&&!ROLLING_CURVES){
+  if(_rollOK&&!ROLLING_CURVES&&!(String(d.id) in ROLL_CACHE)){
     loadRoll(d.id).then(function(c){
       if(PP_PID!==String(d.id))return;      // user navigated away mid-fetch
       ROLLING_CURVES=c; ppDrawRolling(); if(window.__boxPlace)window.__boxPlace();
@@ -1334,9 +1334,15 @@ load();
     if(w<140||h<120)return '';
     var cfg=SL[slice]||SL.out, isW=cfg.unit==='woba';
     var d=DATA.find(function(x){return x.id===state.selectedId;}); var nm=d?d.raw_name:'';
+    if(state.selectedId==null||!d)return note('Select a hitter');
+    if((d.pa||0)<50)return note('Insufficient PA for rolling trends');
     var key=String(state.selectedId);
     if(!(key in ROLL_CACHE)){
-      loadRoll(state.selectedId).then(function(){ if(window.__boxPlace)window.__boxPlace(); });
+      // guard re-entrancy: place() -> rollChart() -> loadRoll().then(place) would
+      // otherwise re-fire forever whenever the fetch resolves to a cached miss.
+      if(!_rollPending[key]){
+        loadRoll(state.selectedId).then(function(){ if(window.__boxPlace)window.__boxPlace(); });
+      }
       return note('Loading\u2026');
     }
     var curves=ROLL_CACHE[key];

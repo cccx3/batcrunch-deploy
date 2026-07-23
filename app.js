@@ -1,11 +1,27 @@
 const DATA_URL = 'data/data.json';
 const DATA_2025_URL = 'data/data_2025.json';
-const ROLLING_URL = 'data/rolling.json';
+const ROLL_BASE = 'data/rolling/';
 let DATA = [];
-let ROLLING = {};
+const ROLL_CACHE = {};   // id -> {"50"|"100"|"250": {series:[...]}} | null
 let SAVANT_ROLL = {};
 let PP_PID = null;
-let ROLLING_ROWS = null;
+let ROLLING_CURVES = null;
+
+/* Rolling curves are precomputed in core.py (one file per hitter) and fetched on
+   demand. Series are named, so there is no positional row contract to drift. */
+const _rollPending = {};
+function loadRoll(id){
+  if (id == null) return Promise.resolve(null);
+  const k = String(id);
+  if (k in ROLL_CACHE) return Promise.resolve(ROLL_CACHE[k]);
+  if (_rollPending[k]) return _rollPending[k];
+  _rollPending[k] = fetch(ROLL_BASE + k + '.json')
+    .then(r => r.ok ? r.json() : null)
+    .catch(() => null)
+    .then(c => { ROLL_CACHE[k] = c || null; delete _rollPending[k]; return ROLL_CACHE[k]; });
+  return _rollPending[k];
+}
+function rollWin(curves, W){ return (curves && curves[String(W)]) || null; }
 let QUALPA = 502;
 
 /* PLACEHOLDER park factors (wOBA, 100 = neutral) — directional only, NOT real Savant values.
@@ -540,15 +556,15 @@ let cmpRollMetric = 'woba', cmpRollW = 100;
 
 function compareRollingChart(a, b, metric, W){
   metric = metric || 'woba'; W = W || 100;
-  const ra = (typeof ROLLING !== 'undefined' && ROLLING[a.id]) || null;
-  const rb = (typeof ROLLING !== 'undefined' && ROLLING[b.id]) || null;
-  if (!ra || !rb || ra.length < W || rb.length < W){
+  const ra = rollWin(ROLL_CACHE[String(a.id)], W);
+  const rb = rollWin(ROLL_CACHE[String(b.id)], W);
+  if (!ra || !rb){
     return '<div class="cp-roll-empty">Not enough PA for a ' + W + '-PA window on both hitters.</div>';
   }
   const isPct = (metric === 'barrel' || metric === 'k' || metric === 'bb');
   const tail = v => v.length > W ? v.slice(v.length - W) : v;
-  const wa = tail(rollingSeries(ra, W)[metric]);
-  const wb = tail(rollingSeries(rb, W)[metric]);
+  const wa = tail(ra[metric] || []);
+  const wb = tail(rb[metric] || []);
   const Wd = 460, Hd = (typeof window !== "undefined" && window.innerWidth <= 900) ? 250 : 184, pad = { t: 12, r: 14, b: 24, l: 40 };
   const iW = Wd - pad.l - pad.r, iH = Hd - pad.t - pad.b;
   const nPts = Math.max(wa.length, wb.length);
@@ -579,7 +595,16 @@ function compareRollingChart(a, b, metric, W){
     </svg>`;
 }
 
+function cmpRollEnsure(a, b){
+  if (String(a.id) in ROLL_CACHE && String(b.id) in ROLL_CACHE) return;
+  Promise.all([loadRoll(a.id), loadRoll(b.id)]).then(function(){
+    const wrap = document.querySelector('.cp-roll-wrap');
+    if (wrap) wrap.innerHTML = cmpRollPanel(a, b);
+  });
+}
+
 function cmpRollPanel(a, b){
+  cmpRollEnsure(a, b);
   const mBtns = Object.keys(CMP_METRICS).map(k =>
     `<button class="cp-rtog${cmpRollMetric===k?' on':''}" onclick="cmpRoll('m','${k}')">${CMP_METRICS[k]}</button>`).join('');
   const wBtns = [50,100,250].map(w =>
@@ -597,40 +622,12 @@ function cmpRoll(kind, val){
   if (a && b && wrap) wrap.innerHTML = cmpRollPanel(a, b);
 }
 
-function rollingSeries(rows, W) {
-  const n = rows.length;
-  const woba=[],xwoba=[],barrel=[],k=[],bb=[];
-  const z_swing=[],o_swing=[],z_contact=[],whiff=[],hardhit=[],ev=[];
-  const bat_speed=[],swing_length=[],attack_angle=[],attack_direction=[],tilt=[],iaa=[];
-  const g=(r,i)=>(r[i]||0);
-  for (let i = W - 1; i < n; i++) {
-    let wv=0,wd=0,xv=0,br=0,be=0,kf=0,bf=0;
-    let dp=0,din=0,dsw=0,dzs=0,dos=0,dzc=0,dwh=0,dbe=0,evs=0,hh=0,nsw=0,bss=0,sls=0,aas=0,ads=0,tis=0,nid=0;
-    for (let j = i-W+1; j <= i; j++){ const r=rows[j];
-      wv+=r[0];wd+=r[1];xv+=r[2];br+=r[3];be+=r[4];kf+=r[5];bf+=r[6];
-      dp+=g(r,7);din+=g(r,8);dsw+=g(r,9);dzs+=g(r,10);dos+=g(r,11);dzc+=g(r,12);dwh+=g(r,13);dbe+=g(r,14);
-      evs+=g(r,15);hh+=g(r,16);nsw+=g(r,17);bss+=g(r,18);sls+=g(r,19);aas+=g(r,20);ads+=g(r,21);tis+=g(r,22);nid+=g(r,23);
-    }
-    woba.push(wd?wv/wd:0); xwoba.push(wd?xv/wd:0);
-    barrel.push(dbe?br/dbe*100:0); k.push(kf/W*100); bb.push(bf/W*100);
-    const oz=dp-din;
-    z_swing.push(din?dzs/din*100:0); o_swing.push(oz?dos/oz*100:0);
-    z_contact.push(dzs?dzc/dzs*100:0); whiff.push(dsw?dwh/dsw*100:0);
-    hardhit.push(dbe?hh/dbe*100:0); ev.push(dbe?evs/dbe:0);
-    bat_speed.push(nsw?bss/nsw:0); swing_length.push(nsw?sls/nsw:0);
-    attack_angle.push(nsw?aas/nsw:0); attack_direction.push(nsw?ads/nsw:0); tilt.push(nsw?tis/nsw:0);
-    iaa.push(nsw?nid/nsw*100:0);
-  }
-  return { woba,xwoba,barrel,k,bb, z_swing,o_swing,z_contact,whiff,
-           hardhit,ev, bat_speed,swing_length,attack_angle,attack_direction,tilt,iaa };
-}
-
 function renderRollingChart(slice, windowSize) {
-  if (!ROLLING_ROWS || ROLLING_ROWS.length < windowSize) {
+  const RS = rollWin(ROLLING_CURVES, windowSize);
+  if (!RS) {
     return '<div style="padding:24px;color:var(--ink-3);font-family:Inter,sans-serif;font-size:12px;">Not enough PA for a ' + windowSize + '-PA window.</div>';
   }
   const AMBER='#ffd54a',BLUE='#7fb3dd',WHITE='#f5f5f0',RED='#e57373',ORANGE='#d99a6c',INK2='#a6a69e';
-  const RS = rollingSeries(ROLLING_ROWS, windowSize);
   const SLABELS = {outcomes:'Outcomes',discipline:'Discipline',power:'Power',swing:'Swing path'};
   let info;
   if (slice==='discipline') info={unit:'pct',L:[['Z-Swing',WHITE,RS.z_swing,false],['O-Swing',BLUE,RS.o_swing,false],['Z-Contact',AMBER,RS.z_contact,true],['Whiff',RED,RS.whiff,false]]};
@@ -832,14 +829,14 @@ function ppSetMode(m){
   if(m==='quad')ppDrawQuad();
 }
 function ppDrawRolling(){
-  var host=document.getElementById('rollHost'); if(!host||!ROLLING_ROWS)return;
+  var host=document.getElementById('rollHost'); if(!host||!ROLLING_CURVES)return;
   var mob=window.innerWidth<=900;
   var leg=document.getElementById('rollLegend');
   var w=host.clientWidth,h=host.clientHeight; if(w<20||h<20)return;
   var win=_rollingWindow, slice=_rollingMetric;
-  if(ROLLING_ROWS.length<win){host.innerHTML='<div style="padding:24px;color:var(--ink-3);font-family:Inter,sans-serif;font-size:12px;">Not enough PA for a '+win+'-PA window.</div>';return;}
+  var RS=rollWin(ROLLING_CURVES,win);
+  if(!RS){host.innerHTML='<div style="padding:24px;color:var(--ink-3);font-family:Inter,sans-serif;font-size:12px;">Not enough PA for a '+win+'-PA window.</div>';return;}
   var AMBER='#ffd54a',BLUE='#7fb3dd',WHITE='#f5f5f0',RED='#e57373',ORANGE='#d99a6c',INK2='#8a8a85';
-  var RS=rollingSeries(ROLLING_ROWS,win);
   var tail=function(v){return v.length>win?v.slice(v.length-win):v;};
   Object.keys(RS).forEach(function(k){if(Array.isArray(RS[k]))RS[k]=tail(RS[k]);});
   var info;
@@ -945,7 +942,7 @@ function ppDumbbell(d){
 
 function renderPlayerPage(id){
   var d=DATA.find(x=>x.id===id);
-  ROLLING_ROWS=(d&&ROLLING[d.id])||null; PP_PID=d?String(d.id):null;
+  ROLLING_CURVES=(d&&ROLL_CACHE[String(d.id)])||null; PP_PID=d?String(d.id):null;
   var pp=document.getElementById('playerPage');
   if(!d||!pp){if(pp)pp.style.display='none';return;}
   document.body.style.overflow='hidden'; pp.style.display='block';
@@ -958,7 +955,7 @@ function renderPlayerPage(id){
   var swing='<div class="stp"><span>Attack angle</span><b>'+(d.attack_angle!=null?d.attack_angle.toFixed(1)+'\u00b0':'\u2014')+'</b></div>'
     +'<div class="stp"><span>Direction</span><b>'+attackDirLabel(d.attack_direction)+'</b></div>'
     +'<div class="stp"><span>Tilt</span><b>'+swingTiltLabel(d.tilt)+'</b></div>';
-  var _rr=ROLLING[d.id]; var _rollOK=_rr&&_rr.length>=50;
+  var _rollOK=(d.pa||0)>=50;
   var rollControls=_rollOK?'<div class="rolling-controls"><div class="rolling-tabs" id="rollingMetricTabs"><button class="rt-tab active" data-metric="outcomes">Outcomes</button><button class="rt-tab" data-metric="discipline">Discipline</button><button class="rt-tab" data-metric="power">Power</button><button class="rt-tab" data-metric="swing">Swing path</button></div><div class="rolling-window"><button class="rw-btn" data-window="50">50</button><button class="rw-btn active" data-window="100">100</button><button class="rw-btn" data-window="250">250</button><span class="rw-lbl">PA</span></div></div><div id="rollLegend"></div><div id="rollHost"></div>':'<div class="roll-empty">Insufficient PA for rolling trends.</div>';
   pp.querySelector('.pp-inner').innerHTML='<div class="ppx">'
     +'<button class="pp-back" onclick="location.hash=&#39;&#39;" style="background:none;border:none;color:#9a9a95;font:inherit;cursor:pointer;margin:0;font-size:13px">\u2190 Back to all hitters</button>' 
@@ -981,6 +978,12 @@ function renderPlayerPage(id){
   ppFitHeight();
   ppSetMode('bars');
   setTimeout(ppWireRolling,0);
+  if(_rollOK&&!ROLLING_CURVES){
+    loadRoll(d.id).then(function(c){
+      if(PP_PID!==String(d.id))return;      // user navigated away mid-fetch
+      ROLLING_CURVES=c; ppDrawRolling(); if(window.__boxPlace)window.__boxPlace();
+    });
+  }
   window.addEventListener('resize',function(){ppFitHeight();ppDrawRolling();ppSetMode(document.getElementById('mode').value);});
 }
 document.getElementById('q')?.addEventListener('input', e => { state.query = e.target.value; renderTable(); renderMobileCards(); });
@@ -1226,14 +1229,12 @@ function buildYear(year) {
   QUALPA = c.qualPA || QUALPA;
   if (year === '2026') {
     for (const d of DATA) {
-      const rows = ROLLING[d.id];
-      if (rows && rows.length) {
-        const N = Math.min(100, rows.length), tail = rows.slice(-N);
-        let wv=0, wd=0; for (const r of tail){ wv+=r[0]; wd+=r[1]; }
-        const rec = wd ? wv/wd : null;
-        d.woba_recent = rec!=null ? +rec.toFixed(3) : null;
-        d.pa_recent = N;
-        d.heat = (rec!=null && d.woba!=null) ? +(rec - d.woba).toFixed(3) : null;
+      const p = c.players[String(d.id)];          // trailing-100-PA wOBA, from core.py
+      const rec = (p && p.woba_recent != null) ? p.woba_recent : null;
+      if (rec != null) {
+        d.woba_recent = rec;
+        d.pa_recent = p.pa_recent || 100;
+        d.heat = (d.woba != null) ? +(rec - d.woba).toFixed(3) : null;
       }
     }
   }
@@ -1266,12 +1267,10 @@ function switchYear(year) {
 async function load() {
   const tbody = document.getElementById('tbody');
   try {
-    const [cur, prev, roll] = await Promise.all([
+    const [cur, prev] = await Promise.all([
       fetch(DATA_URL).then(r => { if (!r.ok) throw new Error('http ' + r.status); return r.json(); }),
-      fetch(DATA_2025_URL).then(r => r.ok ? r.json() : { players: {} }).catch(() => ({ players: {} })),
-      fetch(ROLLING_URL).then(r => r.ok ? r.json() : {}).catch(() => ({}))
+      fetch(DATA_2025_URL).then(r => r.ok ? r.json() : { players: {} }).catch(() => ({ players: {} }))
     ]);
-    ROLLING = roll || {};
     SAVANT_ROLL = cur.savantRoll || {};
     YEARS['2026'] = { players: cur.players, qualPA: cur.qualPA };
     YEARS['2025'] = { players: prev.players || {}, qualPA: prev.qualPA || 502 };
@@ -1334,15 +1333,19 @@ load();
   function rollChart(w,h){
     if(w<140||h<120)return '';
     var cfg=SL[slice]||SL.out, isW=cfg.unit==='woba';
-    var rows=(typeof ROLLING!=='undefined'&&ROLLING[state.selectedId])||null;
     var d=DATA.find(function(x){return x.id===state.selectedId;}); var nm=d?d.raw_name:'';
-    if(!rows)return note('No rolling data for this hitter');
-    var N=winN; if(rows.length<20)return note('Not enough PA ('+rows.length+')');
-    var SM=Math.min(N, rows.length);
-    var S=rollingSeries(rows,SM);
+    var key=String(state.selectedId);
+    if(!(key in ROLL_CACHE)){
+      loadRoll(state.selectedId).then(function(){ if(window.__boxPlace)window.__boxPlace(); });
+      return note('Loading\u2026');
+    }
+    var curves=ROLL_CACHE[key];
+    if(!curves)return note('No rolling data for this hitter');
+    var N=winN, S=rollWin(curves,N);
+    if(!S)return note('Not enough PA for a '+N+'-PA window');
     var L=cfg.lines.map(function(ln){return {lab:ln[1],c:ln[2],wdt:ln[3],vals:(S[ln[0]]||[]).slice()};});
     var len=L[0]?L[0].vals.length:0;
-    if(len<2)return note('Not enough PA for a '+N+'-PA window ('+rows.length+')');
+    if(len<2)return note('Not enough PA for a '+N+'-PA window');
     if(len>N){L.forEach(function(o){o.vals=o.vals.slice(-N);});len=N;}
     function fmt(v){return isW?f3(v):cfg.unit==='pct'?Math.round(v)+'%':cfg.unit==='deg'?Math.round(v)+'\u00b0':Math.round(v);}
     var ch=h-64, mL=62, mR=34, mT=58, mB=34, iw=w-mL-mR, ih=ch-mT-mB;

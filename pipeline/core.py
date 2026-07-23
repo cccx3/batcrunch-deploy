@@ -173,10 +173,9 @@ def _pa_pitch_aggs(raw):
     return d.groupby(["game_pk", "at_bat_number"], as_index=False)[_PA_AGG].sum()
 
 
-def compute_pa_log(raw):
-    """Per-batter chronological PA log; the dashboard rolls windows in JS.
-    Row (24 cols): woba_value, woba_denom, xv, brl, bbe, kf, bbf,
-    then _PA_AGG (discipline counts + EV/hardhit + bat-tracking sums)."""
+def compute_pa_table(raw):
+    """Per-batter chronological PA table with NAMED columns (no positional contract).
+    Feeds compute_rolling_curves; never shipped to the browser."""
     pa = pa_frame(raw)
     pa = pa.merge(_pa_pitch_aggs(raw), on=["game_pk", "at_bat_number"], how="left")
     pa = pa.sort_values(["batter", "game_date", "game_pk", "at_bat_number"])
@@ -186,15 +185,93 @@ def compute_pa_log(raw):
     pa = pa.assign(
         xv=np.where(bip & ewu.notna(), ewu, pa["woba_value"]),
         brl=(pa["launch_speed_angle"] == 6).astype(int),
-        bbe=pa["launch_speed"].notna().astype(int),
         kf=pa["events"].isin(K_EVENTS).astype(int),
         bbf=pa["events"].isin(BB_EVENTS).astype(int),
     )
-    cols = (["woba_value", "woba_denom", "xv", "brl", "bbe", "kf", "bbf"] + _PA_AGG)
-    log = {}
-    for bid, d in pa.groupby("batter"):
-        log[int(bid)] = d[cols].fillna(0).round(3).values.tolist()
-    return log
+    cols = ["batter", "woba_value", "woba_denom", "xv", "brl", "kf", "bbf"] + _PA_AGG
+    tbl = pa[cols].copy()
+    tbl[_PA_AGG] = tbl[_PA_AGG].fillna(0)
+    # out-of-zone is derived, not stored: zone-classified pitches only (see _pa_pitch_aggs)
+    tbl["d_ozone"] = tbl["d_pitches"] - tbl["d_inzone"]
+    return tbl.fillna(0)
+
+
+# ----------------------------------------------------------------------------- #
+# Rolling curves (server-side). Single source of truth for every rate the
+# dashboard plots: numerator column, denominator column, scale, rounding.
+# denom None -> divide by the window length (per-PA rate).
+# ----------------------------------------------------------------------------- #
+ROLL_WINDOWS = (50, 100, 250)
+
+ROLL_SERIES = {
+    "woba":             ("woba_value", "woba_denom", 1,   3),
+    "xwoba":            ("xv",         "woba_denom", 1,   3),
+    "k":                ("kf",         None,         100, 1),
+    "barrel":           ("brl",        "d_bbe",      100, 1),
+    "hardhit":          ("hardhit",    "d_bbe",      100, 1),
+    "ev":               ("ev_sum",     "d_bbe",      1,   1),
+    "z_swing":          ("d_zswing",   "d_inzone",   100, 1),
+    "o_swing":          ("d_oswing",   "d_ozone",    100, 1),
+    "z_contact":        ("d_zcontact", "d_zswing",   100, 1),
+    "whiff":            ("d_whiff",    "d_swing",    100, 1),
+    "bat_speed":        ("bs_sum",     "n_sw",       1,   1),
+    "attack_angle":     ("aa_sum",     "n_sw",       1,   2),
+    "attack_direction": ("ad_sum",     "n_sw",       1,   2),
+    "tilt":             ("tilt_sum",   "n_sw",       1,   2),
+    "iaa":              ("n_ideal",    "n_sw",       100, 1),
+}
+
+_ROLL_COLS = sorted({c for v in ROLL_SERIES.values() for c in v[:2] if c})
+
+
+def _rates(sums, window_len):
+    """sums: DataFrame of windowed column sums -> {series: rounded list}."""
+    out = {}
+    for name, (num, den, scale, nd) in ROLL_SERIES.items():
+        d = window_len if den is None else sums[den]
+        v = sums[num] / d * scale
+        out[name] = v.replace([np.inf, -np.inf], np.nan).fillna(0).round(nd).tolist()
+    return out
+
+
+def compute_rolling_curves(tbl, windows=ROLL_WINDOWS):
+    """-> {int id: {"50"|"100"|"250": {series: [curve]}}}. A window is omitted
+    entirely when the hitter has fewer PA than the window length."""
+    curves = {}
+    for bid, g in tbl.groupby("batter", sort=False):
+        per = {}
+        for W in windows:
+            if len(g) < W:
+                continue
+            sums = g[_ROLL_COLS].rolling(W).sum().iloc[W - 1:]
+            per[str(W)] = _rates(sums, W)
+        if per:
+            curves[int(bid)] = per
+    return curves
+
+
+def recent_woba(tbl, N=100):
+    """Trailing-N-PA wOBA per hitter (N shrinks for short seasons), for the
+    leaderboard Form column. A scalar in data.json: the leaderboard needs this for
+    every hitter at once, so it must not require per-player rolling fetches."""
+    out = {}
+    for bid, g in tbl.groupby("batter", sort=False):
+        n = min(N, len(g))
+        t = g.iloc[-n:]
+        den = t["woba_denom"].sum()
+        if den:
+            out[int(bid)] = (round(float(t["woba_value"].sum() / den), 3), int(n))
+    return out
+
+
+def season_rates(tbl):
+    """Same definitions applied over each hitter's full season -> {id: {series: val}}.
+    Verification hook: diff against Savant season bars (pull_custom)."""
+    out = {}
+    for bid, g in tbl.groupby("batter", sort=False):
+        sums = g[_ROLL_COLS].sum().to_frame().T
+        out[int(bid)] = {k: v[0] for k, v in _rates(sums, len(g)).items()}
+    return out
 
 
 def team_games(raw):
@@ -223,7 +300,10 @@ def compute_year(year, with_log, raw=None):
         "hand": pa.groupby("batter")["stand"].agg(lambda s: s.mode().iat[0]),
     })
     qual = round(3.1 * team_games(raw))
-    log = compute_pa_log(raw) if with_log else None
+    log = None
+    if with_log:
+        tbl = compute_pa_table(raw)
+        log = {"curves": compute_rolling_curves(tbl), "recent": recent_woba(tbl)}
     return stats.join(meta), log, qual
 
 
@@ -298,15 +378,49 @@ def _savant_roll():
         return {}
 
 
+def write_rolling(curves, emit_ids):
+    """One small file per hitter: data/rolling/{id}.json. Only files whose contents
+    changed are rewritten, so the nightly git diff is a handful of KB rather than a
+    single multi-MB blob. Hitters no longer emitted get their stale file removed."""
+    outdir = dpath("rolling")
+    os.makedirs(outdir, exist_ok=True)
+    written = kept = 0
+    live = set()
+    for bid, per in curves.items():
+        if bid not in emit_ids:
+            continue
+        live.add(f"{bid}.json")
+        path = os.path.join(outdir, f"{bid}.json")
+        blob = json.dumps(per, separators=(",", ":"), allow_nan=False)
+        if os.path.exists(path):
+            with open(path) as f:
+                if f.read() == blob:
+                    kept += 1
+                    continue
+        fd, tmp = tempfile.mkstemp(dir=outdir, suffix=".tmp")
+        with os.fdopen(fd, "w") as f:
+            f.write(blob)
+        os.replace(tmp, path)
+        written += 1
+    stale = [f for f in os.listdir(outdir) if f.endswith(".json") and f not in live]
+    for f in stale:
+        os.remove(os.path.join(outdir, f))
+    print(f"rolling/: {written} written, {kept} unchanged, {len(stale)} removed")
+
+
 def write_current(stats, log, qual):
-    """Write current-year data.json + rolling.json (qualified + sub-qualified floor).
+    """Write current-year data.json + data/rolling/*.json (qualified + sub-qualified).
     Shared by build.py (full backfill) and update.py (nightly)."""
     floor = 10      # emit everyone down to 10 PA; low-PA flagged in UI, rolling gated separately
     payload = year_payload(stats, qual, CURRENT_YEAR, floor=floor)
+    for bid, (w, n) in log["recent"].items():
+        p = payload["players"].get(str(bid))
+        if p is not None:
+            p["woba_recent"], p["pa_recent"] = w, n
     payload["savantRoll"] = _savant_roll()
     write_json(payload, dpath("data.json"))
     qual_ids = set(int(i) for i in stats[stats["pa"] >= qual].index)
     emit_ids = set(int(i) for i in stats[stats["pa"] >= floor].index)
-    write_json({str(b): rows for b, rows in log.items() if b in emit_ids}, dpath("rolling.json"))
-    print(f"wrote data.json + rolling.json ({len(qual_ids)} qualified, {len(emit_ids)} incl. sub-qualified \u2265{floor} PA)")
+    write_rolling(log["curves"], emit_ids)
+    print(f"wrote data.json + rolling/ ({len(qual_ids)} qualified, {len(emit_ids)} incl. sub-qualified \u2265{floor} PA)")
     return qual_ids

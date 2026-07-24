@@ -1052,8 +1052,8 @@ function ppDumbbell(d){
     var dl=a.has?(a.r26-a.r25):0, cc=dl>0?'#e0a878':dl<0?'#7fb3dd':'#6f6f6a';
     var chip=!a.has?'':dl>0?'\u25B2 +'+dl:dl<0?'\u25BC \u2212'+Math.abs(dl):'';
     var yy='<div class="db-yy"><span class="db-n" style="color:'+vc+'">'+a.r26+'</span><span class="db-u" style="color:'+vc+'">'+a.u+'</span>'
-      +(a.has?'<span class="db-chip" style="color:'+cc+';background:'+cc+'22">'+chip+'</span>'
-        :'<span class="db-chip" style="visibility:hidden;background:none;border:0"></span>')+'</div>';
+      +(chip?'<span class="db-chip" style="color:'+cc+';background:'+cc+'22">'+chip+'</span>'
+       :'<span class="db-chip" style="visibility:hidden"></span>')+'</div>';
     var labHTML=(a.k==='Bat Speed')?'<span class="lab-lg">Bat Speed</span><span class="lab-sm">Bat Spd</span>':a.k;
     return '<div class="db-row"><div class="db-lab">'+labHTML+'</div><div class="db-bar"><div class="db-tk"></div>'
       +'<div class="db-ln" style="left:'+lo+'%;width:'+(hi-lo)+'%;background:'+barc+'"></div>'

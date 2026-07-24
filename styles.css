@@ -1561,3 +1561,11 @@
   .mc{grid-template-columns:minmax(0,1fr) 38px 30px 42px 46px!important}
   .mc-header>div:nth-child(3), .mc .mc-pos{margin-left:7px}
 }
+
+/* v121 desktop: the Park column was clipped by .table-wrap's overflow-x:hidden.
+   Abbreviated grade headers + tighter centred-column padding reclaim the width. */
+@media (min-width:721px){
+  #lb th.ctr, #lb td.ctr{padding-left:6px;padding-right:6px}
+  #lb th.ctr{letter-spacing:.04em;white-space:nowrap}
+  #lb th[data-k="platoon"], #lb td.ctr .platoon-pill{padding-left:8px;padding-right:8px}
+}

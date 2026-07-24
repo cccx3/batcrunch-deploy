@@ -1541,3 +1541,23 @@
   .ppx #rows>.row{padding-left:20px;padding-right:20px}   /* bleed stripes to card edges, keep content inset */
   .ppx .vz-body{padding-bottom:0}                          /* last row reaches the bottom edge */
 }
+
+/* v120 mobile: compare-table density, one-line stat labels, card column spacing.
+   Appended (not merged into the v99/consolidated blocks) so these overrides win at
+   equal specificity without disturbing the rules above. */
+@media (max-width:900px){
+  /* "Sweet Spot %" is the only label long enough to wrap at the space before the %.
+     nowrap + a slightly wider label track keeps every row on one line. */
+  .cp-row, .cp-section-h{grid-template-columns:minmax(74px,.92fr) 1fr 1fr}
+  .cp-card .cp-row .cp-label{white-space:nowrap;font-size:11px;letter-spacing:-.01em;padding:6px 8px}
+
+  /* shorter rows across the whole compare table */
+  .cp-card .cp-row{min-height:0}
+  .cp-row .cp-val, .cp-row .cp-val.winner{padding:6px 4px;font-size:12px;line-height:1.25}
+  .cp-table-headers{padding:8px 8px 9px}
+
+  /* leaderboard cards: gap between TM and POS, less reserved for FORM */
+  .mc-header{grid-template-columns:minmax(0,1fr) 38px 30px 42px 46px!important}
+  .mc{grid-template-columns:minmax(0,1fr) 38px 30px 42px 46px!important}
+  .mc-header>div:nth-child(3), .mc .mc-pos{margin-left:7px}
+}

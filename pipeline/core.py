@@ -116,8 +116,13 @@ def compute_splits(raw, pa=None):
 
 
 _PA_AGG = ["d_pitches", "d_inzone", "d_swing", "d_zswing", "d_oswing",
-          "d_zcontact", "d_whiff", "d_bbe", "ev_sum", "hardhit",
-          "n_sw", "bs_sum", "sl_sum", "aa_sum", "ad_sum", "tilt_sum", "n_ideal"]
+          "d_zcontact", "d_whiff", "d_bbe", "ev_sum", "hardhit", "la_sum",
+          "n_sw", "bs_sum", "sl_sum", "aa_sum", "ad_sum", "tilt_sum", "n_ideal",
+          "n_ip", "ipd_sum", "ips_sum"]
+
+# Statcast intercept-point columns (ball position minus batter position at contact).
+IP_DEPTH = "intercept_ball_minus_batter_pos_y_inches"   # toward the pitcher
+IP_SIDE  = "intercept_ball_minus_batter_pos_x_inches"   # open/closed of centre
 
 
 def _pa_pitch_aggs(raw):
@@ -128,7 +133,7 @@ def _pa_pitch_aggs(raw):
     nb = ~raw["description"].str.contains("bunt", na=False)
     d = raw[nb].copy()
     for c in ["bat_speed", "swing_length", "attack_angle", "attack_direction",
-              "swing_path_tilt", "launch_speed"]:
+              "swing_path_tilt", "launch_speed", "launch_angle", IP_DEPTH, IP_SIDE]:
         d[c] = pd.to_numeric(d[c], errors="coerce") if c in d.columns else np.nan
     desc = d["description"]
     sw  = desc.isin(SWING).values
@@ -162,6 +167,7 @@ def _pa_pitch_aggs(raw):
     bip = (d["description"] == "hit_into_play").values & d["launch_speed"].notna().values
     d["d_bbe"]      = bip.astype(int)
     d["ev_sum"]     = np.where(bip, d["launch_speed"].fillna(0.0), 0.0)
+    d["la_sum"]     = np.where(bip, d["launch_angle"].fillna(0.0), 0.0)
     d["hardhit"]    = (bip & (d["launch_speed"] >= 95).fillna(False).values).astype(int)
     d["n_sw"]       = bt.astype(int)
     d["bs_sum"]     = np.where(bt, d["bat_speed"].fillna(0.0), 0.0)
@@ -170,6 +176,12 @@ def _pa_pitch_aggs(raw):
     d["ad_sum"]     = np.where(bt, d["attack_direction"].fillna(0.0), 0.0)
     d["tilt_sum"]   = np.where(bt, d["swing_path_tilt"].fillna(0.0), 0.0)
     d["n_ideal"]    = (bt & d["attack_angle"].between(5, 20).values).astype(int)
+    # Intercept point carries its own count: it is null on some competitive swings,
+    # so reusing n_sw would dilute the mean toward zero.
+    ip_ok           = bt & d[IP_DEPTH].notna().values & d[IP_SIDE].notna().values
+    d["n_ip"]       = ip_ok.astype(int)
+    d["ipd_sum"]    = np.where(ip_ok, d[IP_DEPTH].fillna(0.0), 0.0)
+    d["ips_sum"]    = np.where(ip_ok, d[IP_SIDE].fillna(0.0), 0.0)
     return d.groupby(["game_pk", "at_bat_number"], as_index=False)[_PA_AGG].sum()
 
 
@@ -219,6 +231,9 @@ ROLL_SERIES = {
     "attack_direction": ("ad_sum",     "n_sw",       1,   2),
     "tilt":             ("tilt_sum",   "n_sw",       1,   2),
     "iaa":              ("n_ideal",    "n_sw",       100, 1),
+    "launch_angle":     ("la_sum",     "d_bbe",        1, 2),
+    "intercept_depth":  ("ipd_sum",    "n_ip",         1, 2),
+    "intercept_side":   ("ips_sum",    "n_ip",         1, 2),
 }
 
 _ROLL_COLS = sorted({c for v in ROLL_SERIES.values() for c in v[:2] if c})

@@ -732,11 +732,12 @@ function renderRollingChart(slice, windowSize) {
     return '<div style="padding:24px;color:var(--ink-3);font-family:Inter,sans-serif;font-size:12px;">Not enough PA for a ' + windowSize + '-PA window.</div>';
   }
   const AMBER='#ffd54a',BLUE='#7fb3dd',WHITE='#f5f5f0',RED='#e57373',ORANGE='#d99a6c',INK2='#a6a69e';
-  const SLABELS = {outcomes:'Outcomes',discipline:'Discipline',power:'Power',swing:'Swing path'};
+  const SLABELS = {outcomes:'Outcomes',discipline:'Discipline',power:'Power',swing:'Swing path',timing:'Timing'};
   let info;
   if (slice==='discipline') info={unit:'pct',L:[['Z-Swing',WHITE,RS.z_swing,false],['O-Swing',BLUE,RS.o_swing,false],['Z-Contact',AMBER,RS.z_contact,true],['Whiff',RED,RS.whiff,false]]};
   else if (slice==='power') info={unit:'pct',L:[['Barrel',AMBER,RS.barrel,true],['HardHit',WHITE,RS.hardhit,false]]};
-  else if (slice==='swing') info={unit:'deg',L:[['Attack',AMBER,RS.attack_angle,true],['Direction',BLUE,RS.attack_direction,false],['Tilt',WHITE,RS.tilt,false]]};
+  else if (slice==='swing') info={unit:'deg',L:[['Attack',AMBER,RS.attack_angle,true],['Direction',BLUE,RS.attack_direction,false],['Tilt',WHITE,RS.tilt,false],['Launch',ORANGE,RS.launch_angle,false]]};
+  else if (slice==='timing') info={unit:'in',L:[['Depth',AMBER,RS.intercept_depth,true],['Side',BLUE,RS.intercept_side,false]]};
   else info={unit:'woba',base:0.300,L:[['wOBA',WHITE,RS.woba,false],['xwOBA',AMBER,RS.xwoba,true]]};
   const unit=info.unit;
   const lines=info.L.map(function(a){return {name:a[0],color:a[1],v:a[2],thick:a[3],cur:a[2][a[2].length-1]};});
@@ -748,8 +749,8 @@ function renderRollingChart(slice, windowSize) {
   const padv=((hi-lo)||1)*0.12; lo-=padv; hi+=padv;
   function niceTicks(lo,hi,n){var sp=hi-lo||1,raw=sp/n,mag=Math.pow(10,Math.floor(Math.log10(raw))),nm=raw/mag;var st=(nm<1.5?1:nm<3?2:nm<7?5:10)*mag,s=Math.ceil(lo/st)*st,t=[];for(var v=s;v<=hi+1e-9;v+=st)t.push(+v.toFixed(6));return t;}
   const ticks=niceTicks(lo,hi,4);
-  function fmtYtick(v){return unit==='woba'?'.'+Math.round(v*1000):unit==='pct'?Math.round(v)+'%':Math.round(v)+'\u00b0';}
-  function fmtVal(v){return unit==='woba'?('.'+Math.round(v*1000)):unit==='pct'?v.toFixed(1)+'%':v.toFixed(1)+'\u00b0';}
+  function fmtYtick(v){return unit==='woba'?'.'+Math.round(v*1000):unit==='pct'?Math.round(v)+'%':unit==='in'?Math.round(v)+'"':Math.round(v)+'\u00b0';}
+  function fmtVal(v){return unit==='woba'?('.'+Math.round(v*1000)):unit==='pct'?v.toFixed(1)+'%':unit==='in'?v.toFixed(1)+'"':v.toFixed(1)+'\u00b0';}
   const X=function(i){return mL+(i/(len-1))*iw;};
   const Y=function(v){return mT+(1-(v-lo)/((hi-lo)||1))*ih;};
   let s='';
@@ -951,11 +952,12 @@ function ppDrawRolling(){
   var info;
   if(slice==='discipline')info={unit:'pct',L:[['Z-Swing',WHITE,RS.z_swing],['O-Swing',BLUE,RS.o_swing],['Z-Contact',AMBER,RS.z_contact],['Whiff',RED,RS.whiff]]};
   else if(slice==='power')info={unit:'pct',L:[['Barrel',AMBER,RS.barrel],['HardHit',WHITE,RS.hardhit]]};
-  else if(slice==='swing')info={unit:'deg',L:[['Attack',AMBER,RS.attack_angle],['Direction',BLUE,RS.attack_direction],['Tilt',WHITE,RS.tilt]]};
+  else if(slice==='swing')info={unit:'deg',L:[['Attack',AMBER,RS.attack_angle],['Direction',BLUE,RS.attack_direction],['Tilt',WHITE,RS.tilt],['Launch',ORANGE,RS.launch_angle]]};
+  else if(slice==='timing')info={unit:'in',L:[['Depth',AMBER,RS.intercept_depth],['Side',BLUE,RS.intercept_side]]};
   else info={unit:'woba',base:0.300,L:[['wOBA',AMBER,RS.woba],['xwOBA',BLUE,RS.xwoba]]};
   var unit=info.unit;
   var lines=info.L.map(a=>({name:a[0],color:a[1],v:a[2],cur:a[2][a[2].length-1]}));
-  if(slice!=='discipline'&&slice!=='power'&&slice!=='swing'){
+  if(slice==='outcomes'){
     var _sv=PP_PID&&SAVANT_ROLL[PP_PID]&&SAVANT_ROLL[PP_PID][String(win)];
     if(_sv)lines.forEach(function(L){
       var kk=L.name==='wOBA'?'woba':L.name==='xwOBA'?'xwoba':null;
@@ -970,11 +972,11 @@ function ppDrawRolling(){
   var padv=((hi-lo)||1)*0.12;lo-=padv;hi+=padv;
   function niceTicks(lo,hi,n){var sp=hi-lo||1,raw=sp/n,mag=Math.pow(10,Math.floor(Math.log10(raw))),nm=raw/mag;var st=(nm<1.5?1:nm<3?2:nm<7?5:10)*mag,s=Math.ceil(lo/st)*st,t=[];for(var v=s;v<=hi+1e-9;v+=st)t.push(+v.toFixed(6));return t;}
   var ticks=niceTicks(lo,hi,4);
-  var fmtYtick=v=>unit==='woba'?'.'+Math.round(v*1000):unit==='pct'?Math.round(v)+'%':Math.round(v)+'\u00b0';
-  var fmtVal=v=>unit==='woba'?('.'+Math.round(v*1000)):unit==='pct'?v.toFixed(1)+'%':v.toFixed(1)+'\u00b0';
+  var fmtYtick=v=>unit==='woba'?'.'+Math.round(v*1000):unit==='pct'?Math.round(v)+'%':unit==='in'?Math.round(v)+'"':Math.round(v)+'\u00b0';
+  var fmtVal=v=>unit==='woba'?('.'+Math.round(v*1000)):unit==='pct'?v.toFixed(1)+'%':unit==='in'?v.toFixed(1)+'"':v.toFixed(1)+'\u00b0';
   var X=i=>mL+(i/(len-1))*iw, Y=v=>mT+(1-(v-lo)/((hi-lo)||1))*ih;
   var s='';
-  var fmtLeg=v=>unit==='woba'?('.'+Math.round(v*1000)):unit==='pct'?Math.round(v)+'%':Math.round(v)+'\u00b0';
+  var fmtLeg=v=>unit==='woba'?('.'+Math.round(v*1000)):unit==='pct'?Math.round(v)+'%':unit==='in'?Math.round(v)+'"':Math.round(v)+'\u00b0';
   if(mob){
     if(leg)leg.innerHTML=lines.map(L=>'<span class="rl"><i style="background:'+L.color+'"></i>'+L.name+'<b style="color:'+L.color+'">'+fmtLeg(L.cur)+'</b></span>').join('');
   } else {
@@ -1080,7 +1082,7 @@ function renderPlayerPage(id){
     +'<div class="stp"><span>Direction</span><b>'+attackDirLabel(d.attack_direction)+'</b></div>'
     +'<div class="stp"><span>Tilt</span><b>'+swingTiltLabel(d.tilt)+'</b></div>';
   var _rollOK=(d.pa||0)>=50;
-  var rollControls=_rollOK?'<div class="rolling-controls"><div class="rolling-tabs" id="rollingMetricTabs"><button class="rt-tab active" data-metric="outcomes">Outcomes</button><button class="rt-tab" data-metric="discipline">Discipline</button><button class="rt-tab" data-metric="power">Power</button><button class="rt-tab" data-metric="swing">Swing path</button></div><div class="rolling-window"><button class="rw-btn" data-window="50">50</button><button class="rw-btn active" data-window="100">100</button><button class="rw-btn" data-window="250">250</button><span class="rw-lbl">PA</span></div></div><div id="rollLegend"></div><div id="rollHost"></div>':'<div class="roll-empty">Insufficient PA for rolling trends.</div>';
+  var rollControls=_rollOK?'<div class="rolling-controls"><div class="rolling-tabs" id="rollingMetricTabs"><button class="rt-tab active" data-metric="outcomes">Outcomes</button><button class="rt-tab" data-metric="discipline">Discipline</button><button class="rt-tab" data-metric="power">Power</button><button class="rt-tab" data-metric="swing">Swing path</button><button class="rt-tab" data-metric="timing">Timing</button></div><div class="rolling-window"><button class="rw-btn" data-window="50">50</button><button class="rw-btn active" data-window="100">100</button><button class="rw-btn" data-window="250">250</button><span class="rw-lbl">PA</span></div></div><div id="rollLegend"></div><div id="rollHost"></div>':'<div class="roll-empty">Insufficient PA for rolling trends.</div>';
   pp.querySelector('.pp-inner').innerHTML='<div class="ppx">'
     +'<button class="pp-back" onclick="location.hash=&#39;&#39;" style="background:none;border:none;color:#9a9a95;font:inherit;cursor:pointer;margin:0;font-size:13px">\u2190 Back to all hitters</button>' 
     +'<div class="ppx-main">'
@@ -1435,8 +1437,8 @@ load();
     return {a:a,b:b,t:t};
   }
   var TOP=[['out','Outcomes'],['disc','Discipline'],['pow','Power'],['path','Swing path']];
-  var SUBS={pow:[['raw','Raw'],['game','Game']],path:[['ang','Angles'],['pq','Path quality']]};
-  function parentOf(sl){return {out:'out',disc:'disc',raw:'pow',game:'pow',ang:'path',pq:'path'}[sl];}
+  var SUBS={pow:[['raw','Raw'],['game','Game']],path:[['ang','Angles'],['pq','Path quality'],['tim','Timing']]};
+  function parentOf(sl){return {out:'out',disc:'disc',raw:'pow',game:'pow',ang:'path',pq:'path',tim:'path'}[sl];}
   function btn(id,lab,on,attr){return '<button '+attr+'="'+id+'" style="font:600 11px Inter;border-radius:4px;padding:4px 9px;cursor:pointer;border:1px solid #303030;'+(on?'color:#0a0a0a;background:'+ACC:'color:#aaa;background:#1c1c1c')+'">'+lab+'</button>';}
   function winBtns(){return [['50','50'],['100','100'],['250','250']].map(function(o){return btn(o[0],o[1],String(winN)===o[0],'data-bcw');}).join('')+'<span style="font:700 10px Inter;letter-spacing:.08em;color:#666;margin-left:5px">PA</span>';}
   function tabBar(){
@@ -1451,7 +1453,8 @@ load();
     disc:{label:'Discipline',unit:'pct',lines:[['z_swing','Z-Swing%','#f5f5f0',2],['o_swing','O-Swing%','#7fb3dd',2],['z_contact','Z-Contact%',ACC,2.5],['whiff','Whiff%','#e57373',2]]},
     raw:{label:'Raw power',unit:'mph',lines:[['bat_speed','Bat speed',ACC,2.5],['ev','Exit velo','#f5f5f0',2]]},
     game:{label:'Game power',unit:'pct',lines:[['barrel','Barrel%',ACC,2.5],['hardhit','HardHit%','#f5f5f0',2]]},
-    ang:{label:'Swing angles',unit:'deg',lines:[['attack_angle','Attack',ACC,2.5],['attack_direction','Direction','#7fb3dd',2],['tilt','Tilt','#f5f5f0',2]]},
+    ang:{label:'Swing angles',unit:'deg',lines:[['attack_angle','Attack',ACC,2.5],['attack_direction','Direction','#7fb3dd',2],['tilt','Tilt','#f5f5f0',2],['launch_angle','Launch','#d99a6c',2]]},
+    tim:{label:'Timing',unit:'in',lines:[['intercept_depth','Depth',ACC,2.5],['intercept_side','Side','#7fb3dd',2]]},
     pq:{label:'Path quality',unit:'pct',lines:[['iaa','Ideal AA%',ACC,2.5]]}
   };
   function rollChart(w,h){
@@ -1477,7 +1480,7 @@ load();
     var len=L[0]?L[0].vals.length:0;
     if(len<2)return note('Not enough PA for a '+N+'-PA window');
     var dts=(S.dates||[]).slice(); if(len>N){L.forEach(function(o){o.vals=o.vals.slice(-N);});dts=dts.slice(-N);len=N;}
-    function fmt(v){return isW?f3(v):cfg.unit==='pct'?Math.round(v)+'%':cfg.unit==='deg'?Math.round(v)+'\u00b0':Math.round(v);}
+    function fmt(v){return isW?f3(v):cfg.unit==='pct'?Math.round(v)+'%':cfg.unit==='deg'?Math.round(v)+'\u00b0':cfg.unit==='in'?Math.round(v)+'"':Math.round(v);}
     var ch=h-64, mL=62, mR=34, mT=58, mB=34, iw=w-mL-mR, ih=ch-mT-mB;
     function X(p){return mL+(p/(N||1))*iw;}
     var all=[];L.forEach(function(o){all=all.concat(o.vals);});

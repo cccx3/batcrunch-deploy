@@ -18,7 +18,7 @@
     background: var(--bg); position: sticky; top: 0; z-index: 10;
   }
   .brand-mark { font-family: 'Inter', sans-serif; font-variant-numeric: tabular-nums; font-weight: 700; letter-spacing: 0.02em; font-size: 16px; }
-  .brand-mark::before { content: "◣"; color: var(--accent); margin-right: 6px; }
+
   .brand-sub { color: var(--ink-3); font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; }
   .top-nav { display: flex; gap: 2px; margin-left: auto; }
   .top-nav a {
@@ -544,6 +544,9 @@
   .pp-radar-section { padding: 0; margin-top: 24px; }
   .pp-radar-section svg { display: block; margin: 8px auto; }
 
+  .brand-link { display: inline-flex; align-items: center; gap: 8px; }
+  .brand-icon { display: inline-flex; }
+  .brand-icon svg { height: 22px; width: auto; display: block; }
   .brand-link, .brand-link:link, .brand-link:visited { color: inherit !important; text-decoration: none; cursor: pointer; }
   .brand-link:hover .brand-mark { opacity: 0.85; }
 

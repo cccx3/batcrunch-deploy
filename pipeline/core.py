@@ -232,8 +232,6 @@ ROLL_SERIES = {
     "tilt":             ("tilt_sum",   "n_sw",       1,   2),
     "iaa":              ("n_ideal",    "n_sw",       100, 1),
     "launch_angle":     ("la_sum",     "d_bbe",        1, 2),
-    "intercept_depth":  ("ipd_sum",    "n_ip",         1, 2),
-    "intercept_side":   ("ips_sum",    "n_ip",         1, 2),
 }
 
 _ROLL_COLS = sorted({c for v in ROLL_SERIES.values() for c in v[:2] if c})
@@ -267,6 +265,17 @@ def compute_rolling_curves(tbl, windows=ROLL_WINDOWS):
         if per:
             curves[int(bid)] = per
     return curves
+
+
+def season_intercept(tbl):
+    """Season mean contact depth (inches vs body, the y column) per hitter, for the
+    profile card. Not rolled - it's a season scalar, not a per-PA trend worth charting."""
+    out={}
+    for bid,g in tbl.groupby("batter",sort=False):
+        n=g["n_ip"].sum()
+        if n:
+            out[int(bid)]=round(float(g["ipd_sum"].sum()/n),1)
+    return out
 
 
 def recent_woba(tbl, N=100):
@@ -322,7 +331,8 @@ def compute_year(year, with_log, raw=None):
     log = None
     if with_log:
         tbl = compute_pa_table(raw)
-        log = {"curves": compute_rolling_curves(tbl), "recent": recent_woba(tbl)}
+        log = {"curves": compute_rolling_curves(tbl), "recent": recent_woba(tbl),
+               "intercept": season_intercept(tbl)}
     return stats.join(meta), log, qual
 
 
@@ -436,6 +446,10 @@ def write_current(stats, log, qual):
         p = payload["players"].get(str(bid))
         if p is not None:
             p["woba_recent"], p["pa_recent"] = w, n
+    for bid, v in log["intercept"].items():
+        p = payload["players"].get(str(bid))
+        if p is not None:
+            p["contact_depth"] = v
     payload["savantRoll"] = _savant_roll()
     write_json(payload, dpath("data.json"))
     qual_ids = set(int(i) for i in stats[stats["pa"] >= qual].index)

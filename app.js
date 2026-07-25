@@ -669,7 +669,7 @@ function compareRollingChart(a, b, metric, W){
   const tail = v => v.length > W ? v.slice(v.length - W) : v;
   const wa = tail(ra[metric] || []);
   const wb = tail(rb[metric] || []);
-  const Wd = 460, Hd = (typeof window !== "undefined" && window.innerWidth <= 900) ? 250 : 184, pad = { t: 12, r: 14, b: 24, l: 40 };
+  const Wd = 460, Hd = (typeof window !== "undefined" && window.innerWidth <= 900) ? 300 : 184, pad = { t: 12, r: 14, b: 24, l: 40 };
   const iW = Wd - pad.l - pad.r, iH = Hd - pad.t - pad.b;
   const nPts = Math.max(wa.length, wb.length);
   const allv = wa.concat(wb);
@@ -1050,7 +1050,7 @@ function ppDumbbell(d){
     var pd=a.p26-a.p25, vc=pd>0?'#e0a878':pd<0?'#7fb3dd':'#c9c9c2';
     var barc=pd>0?'#e0a878':pd<0?'#7fb3dd':'#6f6f6a', lo=Math.min(a.p25,a.p26),hi=Math.max(a.p25,a.p26);
     var dl=a.has?(a.r26-a.r25):0, cc=dl>0?'#e0a878':dl<0?'#7fb3dd':'#6f6f6a';
-    var chip=!a.has?'':dl>0?'\u25B2 +'+dl:dl<0?'\u25BC \u2212'+Math.abs(dl):'';
+    var chip=!a.has?'':dl>0?'\u25B2 +'+dl:dl<0?'\u25BC \u2212'+Math.abs(dl):'0';
     var yy='<div class="db-yy"><span class="db-n" style="color:'+vc+'">'+a.r26+'</span><span class="db-u" style="color:'+vc+'">'+a.u+'</span>'
       +(chip?'<span class="db-chip" style="color:'+cc+';background:'+cc+'22">'+chip+'</span>'
        :'<span class="db-chip" style="visibility:hidden"></span>')+'</div>';
@@ -1076,14 +1076,14 @@ function renderPlayerPage(id){
     +(d.team?'<span class="pill team">'+d.team+'</span>':'')
     +(d.position?'<span class="pill">'+d.position+'</span>':'')
     +'<span>'+d.pa+' PA</span>';
-  var swing='<div class="stp"><span>Attack angle</span><b>'+(d.attack_angle!=null?d.attack_angle.toFixed(1)+'\u00b0':'\u2014')+'</b></div>'
+  var swing='<div class="stp"><span>Atk angle</span><b>'+(d.attack_angle!=null?d.attack_angle.toFixed(1)+'\u00b0':'\u2014')+'</b></div>'
     +'<div class="stp"><span>Direction</span><b>'+attackDirLabel(d.attack_direction)+'</b></div>'
     +'<div class="stp"><span>Tilt</span><b>'+swingTiltLabel(d.tilt)+'</b></div>'
-    +'<div class="stp"><span>Intercept</span><b>'+(d.contact_depth!=null?d.contact_depth.toFixed(1)+'\u2033':'\u2014')+'</b></div>';
+    +'<div class="stp"><span>Int</span><b>'+(d.contact_depth!=null?d.contact_depth.toFixed(1)+'\u2033':'\u2014')+'</b></div>';
   var _rollOK=(d.pa||0)>=50;
   var rollControls=_rollOK?'<div class="rolling-controls"><div class="rolling-tabs" id="rollingMetricTabs"><button class="rt-tab active" data-metric="outcomes">Outcomes</button><button class="rt-tab" data-metric="discipline">Discipline</button><button class="rt-tab" data-metric="power">Power</button><button class="rt-tab" data-metric="swing">Swing path</button></div><div class="rolling-window"><button class="rw-btn" data-window="50">50</button><button class="rw-btn active" data-window="100">100</button><button class="rw-btn" data-window="250">250</button><span class="rw-lbl">PA</span></div></div><div id="rollLegend"></div><div id="rollHost"></div>':'<div class="roll-empty">Insufficient PA for rolling trends.</div>';
   pp.querySelector('.pp-inner').innerHTML='<div class="ppx">'
-    +'<button class="pp-back" onclick="location.hash=&#39;&#39;" style="background:none;border:none;color:#9a9a95;font:inherit;cursor:pointer;margin:0;font-size:13px">\u2190 Back to all hitters</button>' 
+    +'<button class="pp-back" onclick="location.hash=&#39;&#39;">\u2190 Back to all hitters</button>' 
     +'<div class="ppx-main">'
     +'<div class="ph-top"><h1 class="ph-name">'+d.first+' '+d.last+'</h1><div class="ph-grade" style="background:'+d.overall.color+'">'+d.overall.letter+'</div></div>'
     +'<div class="ph-meta">'+pills+'</div>'

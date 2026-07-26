@@ -1527,7 +1527,7 @@
   /* drop the inline Compare next to the 2025/26 toggle (top-right COMPARE stays) */
   .cmp-inline{display:none}
   /* desktop player bars: single-line fit at the shorter row height (no wrapped "76 mph" / "O-Contact%") */
-  .ppx #rows>.row{grid-template-columns:76px 1fr 46px;column-gap:6px}
+  .ppx #rows>.row{grid-template-columns:92px 1fr 52px;column-gap:10px}
   .ppx #rows>.row .r-lab{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .ppx #rows>.row .r-val{white-space:nowrap}
 }
@@ -1541,8 +1541,8 @@
 /* v108 desktop: rows fill the card — flex-grow to fill height, bleed to L/R/bottom edges (no margins) */
 @media (min-width:901px){
   .ppx #vz-bars{flex:1;display:flex;flex-direction:column;min-height:0}
-  .ppx #rows{flex:1;display:flex;flex-direction:column;min-height:0}
-  .ppx #rows>.row{padding-left:34px;padding-right:34px}   /* inset label+value off the card walls */
+  .ppx #rows{flex:1;display:flex;flex-direction:column;min-height:0;margin-left:-20px;margin-right:-20px}
+  .ppx #rows>.row{padding-left:32px;padding-right:32px}   /* stripes bleed to card edges; content stays inset */
   .ppx .vz-body{padding-bottom:0}                          /* last row reaches the bottom edge */
 }
 

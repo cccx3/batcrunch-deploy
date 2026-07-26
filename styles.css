@@ -1527,7 +1527,7 @@
   /* drop the inline Compare next to the 2025/26 toggle (top-right COMPARE stays) */
   .cmp-inline{display:none}
   /* desktop player bars: single-line fit at the shorter row height (no wrapped "76 mph" / "O-Contact%") */
-  .ppx #rows>.row{grid-template-columns:98px 1fr 66px}
+  .ppx #rows>.row{grid-template-columns:76px 1fr 46px;column-gap:6px}
   .ppx #rows>.row .r-lab{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .ppx #rows>.row .r-val{white-space:nowrap}
 }

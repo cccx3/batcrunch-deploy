@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Geist:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
 <link rel="icon" type="image/svg+xml" href="batcrunch-mark.svg">
-<link rel="stylesheet" href="styles.css?v=131">
+<link rel="stylesheet" href="styles.css?v=132">
 </head>
 <body>
 
@@ -26,6 +26,8 @@
   </g>
 </svg></span><span class="brand-mark">BATCRUNCH</span></a>
   <nav class="top-nav">
+    <a href="javascript:void(0)" onclick="window.location.hash='about';return false;">About</a>
+    <span class="nav-sep">|</span>
     <a href="javascript:void(0)" onclick="window.location.hash='glossary';return false;">Glossary</a>
     <a href="javascript:void(0)" class="nav-cta" onclick="window.location.hash='compare';return false;">Compare</a>
   </nav>
@@ -142,6 +144,22 @@
 </div>
 
 
+
+<div id="aboutPage" class="glossary-page" style="display:none">
+  <div class="gl-inner">
+    <button class="pp-back" onclick="window.location.hash='';return false;">← Back to all hitters</button>
+    <h1 class="gl-title">About</h1>
+    <p class="gl-sub">BatCrunch is a Statcast-grade hitter report card, refreshed nightly.</p>
+    <div class="gl-panels">
+      <div class="gl-panel" data-panel="about" data-head="About">
+        <div class="gl-row"><div class="gl-term">What this is</div><p class="gl-def">Season and rolling batted-ball, plate-discipline, and swing-tracking metrics for qualified MLB hitters, graded as percentiles against the qualified pool.</p></div>
+        <div class="gl-row"><div class="gl-term">Data</div><p class="gl-def">Pitch-level Statcast via Baseball Savant, rebuilt each night. Season bars are pulled from Savant leaderboards; rolling windows are computed from the raw pitch feed.</p></div>
+        <div class="gl-row"><div class="gl-term">Contact</div><p class="gl-def">Built by Chris Collins. Not affiliated with or endorsed by MLB.</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div id="comparePage" class="compare-page" style="display:none">
   <div class="cp-inner">
     <div class="cp-head">
@@ -164,7 +182,7 @@
   </div>
 </div>
 
-<script src="app.js?v=131"></script>
+<script src="app.js?v=132"></script>
 
 
 <footer class="dash-footer">

@@ -1301,11 +1301,20 @@ setupCompareSearch();
 function handleRoute() {
   const hash = window.location.hash;
   const gp = document.getElementById('glossaryPage');
+  const ap = document.getElementById('aboutPage');
+  if (ap) ap.style.display = 'none';
   const m = hash.match(/^#player\/(\d+)$/);
   if (m) {
     document.getElementById('comparePage').style.display = 'none';
     if (gp) gp.style.display = 'none';
     renderPlayerPage(parseInt(m[1]));
+  } else if (hash === '#about') {
+    document.getElementById('playerPage').style.display = 'none';
+    document.getElementById('comparePage').style.display = 'none';
+    if (gp) gp.style.display = 'none';
+    if (ap) ap.style.display = 'block';
+    document.body.style.overflow = '';
+    window.scrollTo(0, 0);
   } else if (hash === '#compare') {
     document.getElementById('playerPage').style.display = 'none';
     if (gp) gp.style.display = 'none';

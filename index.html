@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Geist:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
 <link rel="icon" type="image/svg+xml" href="batcrunch-mark.svg">
-<link rel="stylesheet" href="styles.css?v=144">
+<link rel="stylesheet" href="styles.css?v=146">
 </head>
 <body>
 
@@ -145,16 +145,20 @@
 
 
 
-<div id="aboutPage" class="glossary-page" style="display:none">
-  <div class="gl-inner">
-    <button class="pp-back" onclick="window.location.hash='';return false;">← Back to all hitters</button>
-    <h1 class="gl-title">About</h1>
-    <p class="gl-sub">BatCrunch is a Statcast-grade hitter report card, refreshed nightly.</p>
-    <div class="gl-panels">
-      <div class="gl-panel" data-panel="about" data-head="About">
-        <div class="gl-row"><div class="gl-term">What this is</div><p class="gl-def">Season and rolling batted-ball, plate-discipline, and swing-tracking metrics for qualified MLB hitters, graded as percentiles against the qualified pool.</p></div>
-        <div class="gl-row"><div class="gl-term">Data</div><p class="gl-def">Pitch-level Statcast via Baseball Savant, rebuilt each night. Season bars are pulled from Savant leaderboards; rolling windows are computed from the raw pitch feed.</p></div>
-        <div class="gl-row"><div class="gl-term">Contact</div><p class="gl-def">Built by Chris Collins. Not affiliated with or endorsed by MLB.</p></div>
+<div id="aboutPage" style="display:none">
+  <div class="about-panel">
+    <div class="about-fx"><svg viewBox="0 0 900 300" preserveAspectRatio="xMaxYMin slice" aria-hidden="true">
+      <g transform="translate(820,20)" fill="none" stroke="#ffb3470c"><circle r="60"/><circle r="120"/><circle r="185"/><circle r="255"/><circle r="330"/></g>
+    </svg></div>
+    <div class="about-pad">
+      <button class="pp-back" onclick="window.location.hash='';return false;">← Back to all hitters</button>
+      <h1 class="about-title">About</h1>
+      <p class="about-sub">This website serves as a baseball dashboard which aims to provide all the now-standard advanced stats (bat speed, xwOBA, etc.) while also foregrounding some newer, more exciting stats (e.g. ideal attack angle).</p>
+      <div class="about-cards">
+        <div class="about-card"><p class="about-q">Why this site?</p><p class="about-a">A lot of other baseball sites and dashboards can get pretty kitchen-sink with the info they throw you. The goal of this site is to serve both the essential and the esoteric to users in a modular way, such that they don't have to cross-reference fifteen different custom-made tables.</p></div>
+        <div class="about-card"><p class="about-q">What unique features does it offer?</p><p class="about-a">To my knowledge, few sites offer as extensive an array of rolling stats as mine does. It also has useful radial charts that let us compare a player's current performance against both other players and his past self.</p></div>
+        <div class="about-card"><p class="about-q">Where is the data from?</p><p class="about-a">All data is from MLB's Savant platform.</p></div>
+        <div class="about-card"><p class="about-q">Who am I?</p><p class="about-a">I'm a data scientist by degree and training, and you can find my sports analytics work at <a href="https://thirdcc.cc" target="_blank" rel="noopener">thirdcc.cc</a>.</p></div>
       </div>
     </div>
   </div>
@@ -182,7 +186,7 @@
   </div>
 </div>
 
-<script src="app.js?v=144"></script>
+<script src="app.js?v=146"></script>
 
 
 <footer class="dash-footer">

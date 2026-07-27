@@ -1079,7 +1079,7 @@ function renderPlayerPage(id){
   var swing='<div class="stp"><span>Atk angle</span><b>'+(d.attack_angle!=null?d.attack_angle.toFixed(1)+'\u00b0':'\u2014')+'</b></div>'
     +'<div class="stp"><span>Direction</span><b>'+attackDirLabel(d.attack_direction)+'</b></div>'
     +'<div class="stp"><span>Tilt</span><b>'+swingTiltLabel(d.tilt)+'</b></div>'
-    +'<div class="stp"><span>Int</span><b>'+(d.contact_depth!=null?d.contact_depth.toFixed(1)+'\u2033':'\u2014')+'</b></div>';
+    +'<div class="stp"><span><span class="int-lg">Intercept</span><span class="int-sm">Int</span></span><b>'+(d.contact_depth!=null?d.contact_depth.toFixed(1)+'\u2033':'\u2014')+'</b></div>';
   var _rollOK=(d.pa||0)>=50;
   var rollControls=_rollOK?'<div class="rolling-controls"><div class="rolling-tabs" id="rollingMetricTabs"><button class="rt-tab active" data-metric="outcomes">Outcomes</button><button class="rt-tab" data-metric="discipline">Discipline</button><button class="rt-tab" data-metric="power">Power</button><button class="rt-tab" data-metric="swing">Swing path</button></div><div class="rolling-window"><button class="rw-btn" data-window="50">50</button><button class="rw-btn active" data-window="100">100</button><button class="rw-btn" data-window="250">250</button><span class="rw-lbl">PA</span></div></div><div id="rollLegend"></div><div id="rollHost"></div>':'<div class="roll-empty">Insufficient PA for rolling trends.</div>';
   pp.querySelector('.pp-inner').innerHTML='<div class="ppx">'
@@ -1514,7 +1514,7 @@ load();
   }
   var _boxGeom=null;
   function yoyTop(){var c=document.querySelector('#panel .yoy-view-cells, #panel .yoy2-cell');if(c)return c.getBoundingClientRect().top;return window.innerHeight*0.62;}
-  function vis(){var tw=document.querySelector('.table-wrap');if(!tw)return null;if(window.innerWidth<=720)return null;if(/^#(player|compare)/.test(location.hash||''))return null;var r=tw.getBoundingClientRect();if(r.width<2||tw.offsetParent===null)return null;return r;}
+  function vis(){var tw=document.querySelector('.table-wrap');if(!tw)return null;if(window.innerWidth<=720)return null;if(/^#(player|compare|about|glossary)/.test(location.hash||''))return null;var r=tw.getBoundingClientRect();if(r.width<2||tw.offsetParent===null)return null;return r;}
   function pinFooter(on){
     if(!footer)return 0;
     if(on){ if(footerOrig===null)footerOrig=footer.getAttribute('style')||''; footer.setAttribute('style','position:fixed;left:0;right:0;bottom:0;width:100%;max-width:none;margin:0;padding:11px 24px;z-index:31;background:'+BG+';border-top:1px solid '+LINE+';box-sizing:border-box;'); var fh=footer.offsetHeight; document.body.style.paddingBottom=fh+'px'; return fh; }

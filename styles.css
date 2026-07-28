@@ -1624,7 +1624,8 @@
 }
 
 /* ===== About page (v146) — whisper wash + solid cards + floating contour ===== */
-#aboutPage{max-width:1000px;margin:0 auto;padding:26px 22px 80px}
+#aboutPage{position:fixed;inset:0;z-index:50;overflow-y:auto;background:#0d0d0d}
+#aboutPage .about-inner{max-width:1000px;margin:0 auto;padding:26px 22px 80px}
 .about-panel{position:relative;border-radius:16px;overflow:hidden;border:1px solid #1c1c1e;background:#0a0a0a}
 .about-panel::after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;
   background:radial-gradient(80% 90% at 0% 0%, rgba(255,170,80,.07), transparent 55%)}

@@ -591,7 +591,7 @@ function renderRadar(d) {
   }
   
   return `
-    <svg viewBox="26 26 398 288" width="100%" preserveAspectRatio="xMidYMid meet">
+    <svg viewBox="-40 26 500 288" width="100%" preserveAspectRatio="xMidYMid meet">
       ${grid}
       ${spokes}
       ${prevPoints ? `<polygon points="${prevPoints}" fill="#888" fill-opacity="0.14" stroke="#888" stroke-width="1.5" stroke-dasharray="4 3" />` : ''}

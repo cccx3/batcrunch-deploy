@@ -1645,3 +1645,56 @@
   .about-title{font-size:34px}
   .about-card{padding:14px 16px}
 }
+
+/* ===== v149: radar view — bars removed, readouts moved right of radar ===== */
+/* desktop: radar left, readout column right */
+@media (min-width:901px){
+  #vz-radar{display:grid!important;grid-template-columns:1.12fr .88fr;gap:20px;align-items:center;
+            flex-direction:unset;justify-content:unset}
+  #vz-radar>#radarHost{min-width:0}
+  #vz-radar svg{max-width:100%!important;margin:0!important}
+  #vz-radar .db{align-self:center;border-top:none;padding:0;margin:0}
+  #vz-radar .db-row{grid-template-columns:1fr auto!important;column-gap:16px!important;
+            height:52px!important;border-bottom:1px solid #1e1e21;align-items:center}
+  #vz-radar .db-bar,#vz-radar .db-ax{display:none!important}
+  #vz-radar .db-row:last-child{border-bottom:none}
+  #vz-radar .db-lab{font-size:16px!important}
+  #vz-radar .db-yy{grid-template-columns:auto auto auto!important;column-gap:6px!important;align-items:baseline;justify-content:flex-end}
+  #vz-radar .db-n{font-size:24px!important}
+  #vz-radar .db-u{font-size:12px!important}
+  #vz-radar .db-chip{min-width:48px;padding:5px 9px!important;align-self:center}
+}
+/* mobile: keep stacked (radar then readout list), bars already gone */
+@media (max-width:900px){
+  #vz-radar .db-row{grid-template-columns:1fr auto auto!important;column-gap:12px!important}
+  #vz-radar .db-yy{grid-template-columns:auto auto auto!important;column-gap:5px!important;justify-content:flex-end}
+}
+
+/* ===== v149b: DEFINITIVE mobile percentile-bar row geometry (ends the override soup) =====
+   - cuts the excess 34px side padding (too much L/R negative space)
+   - widens the track->value gap so the percentile bubble (which pokes past the bar end
+     at high pcts) never crowds the value
+   - fixed value column sized for '61.8%' so every value right-aligns consistently */
+@media (max-width:900px){
+  .ppx #rows{margin-left:0!important;margin-right:0!important}
+  .ppx #rows>.row{grid-template-columns:86px 1fr 60px!important;column-gap:18px!important;
+                  padding-left:16px!important;padding-right:16px!important}
+  .ppx #rows>.row .r-val{text-align:right!important}
+  /* barbell: give value / unit / delta chip room so 76 and 0 stop colliding */
+  .ppx .db-yy{grid-template-columns:30px 40px 36px!important;column-gap:6px!important}
+  .ppx .db-sp{width:112px!important}
+}
+
+/* ===== v151: desktop bars bottom lip + mobile quad dead-space trim ===== */
+@media (min-width:901px){
+  /* bottom lip: extend the last bar row down a touch, same swatch color (inherits the
+     row's own background so it matches whether the last row is grey or black) */
+  .ppx #rows>.row:last-child{position:relative}
+  .ppx #rows>.row:last-child::after{content:"";position:absolute;left:0;right:0;top:100%;
+    height:14px;background:inherit;pointer-events:none}
+}
+@media (max-width:900px){
+  /* quad YoY: nudge plot + top labels up, trim the lip below (leave some) */
+  .ppx #quadHost{height:266px!important}
+  .ppx #vz-quad{padding-bottom:5px!important}
+}

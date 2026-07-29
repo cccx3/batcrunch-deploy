@@ -1683,20 +1683,22 @@
 }
 
 
-/* ===== v155: radar on top + 5-col readouts, value+delta pill side by side (desktop only) ===== */
+/* ===== v155: radar on top + 5-col readouts, value+delta pill side by side (desktop, render-verified) ===== */
 @media (min-width:901px){
   .ppx #vz-radar{flex-direction:column;justify-content:flex-start}
   .ppx #radarHost{flex:1 1 auto;display:flex;align-items:center;justify-content:center}
   .ppx #radarHost svg{max-width:520px!important;width:100%!important;max-height:100%}
-  .ppx .db{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;
+  .ppx .db{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;
     border-top:1px solid #232323;padding-top:16px;margin-top:4px}
   .ppx .db-bar,.ppx .db-ax{display:none!important}
-  .ppx .db-row{display:flex!important;flex-direction:column;gap:6px;height:auto!important;padding:0!important;border:none!important}
+  .ppx .db-row{display:flex!important;flex-direction:column;gap:6px;height:auto!important;padding:0!important;border:none!important;min-width:0}
   .ppx .db-lab{font-size:10px!important;font-weight:700;text-transform:uppercase;letter-spacing:.04em;
     color:#8a8a85!important;text-align:center}
-  .ppx .db-yy{display:flex!important;align-items:center;justify-content:center;gap:0;flex-wrap:nowrap;
-    grid-template-columns:none!important;background:#181818;border:1px solid #242424;border-radius:10px;padding:14px 12px;min-width:0}
-  .ppx .db-n{font-size:22px!important}
-  .ppx .db-u{font-size:10px!important;margin:0 9px 0 1px}
-  .ppx .db-chip{align-self:center;font-size:10px!important;padding:4px 7px!important;border-radius:6px;min-width:0!important;white-space:nowrap;flex:none}
+  .ppx .db-yy{display:flex!important;align-items:center;justify-content:center;gap:8px;flex-wrap:nowrap;
+    grid-template-columns:none!important;background:#181818;border:1px solid #242424;border-radius:10px;
+    padding:12px 8px;min-width:0;overflow:hidden}
+  .ppx .db-n{font-size:20px!important;white-space:nowrap}
+  .ppx .db-u{font-size:9.5px!important;margin:0 0 0 1px}
+  .ppx .db-chip{align-self:center;font-size:9.5px!important;padding:3px 6px!important;border-radius:5px;
+    min-width:0!important;white-space:nowrap;flex:none}
 }

@@ -1646,23 +1646,7 @@
   .about-card{padding:14px 16px}
 }
 
-/* ===== v149: radar view — bars removed, readouts moved right of radar ===== */
-/* desktop: radar left, readout column right */
-@media (min-width:901px){
-  #vz-radar{grid-template-columns:1.12fr .88fr;gap:20px;align-items:center}
-  #vz-radar>#radarHost{min-width:0}
-  #vz-radar svg{max-width:100%!important;margin:0!important}
-  #vz-radar .db{align-self:center;border-top:none;padding:0;margin:0}
-  #vz-radar .db-row{grid-template-columns:1fr auto!important;column-gap:16px!important;
-            height:52px!important;border-bottom:1px solid #1e1e21;align-items:center}
-  #vz-radar .db-bar,#vz-radar .db-ax{display:none!important}
-  #vz-radar .db-row:last-child{border-bottom:none}
-  #vz-radar .db-lab{font-size:16px!important}
-  #vz-radar .db-yy{grid-template-columns:auto auto auto!important;column-gap:6px!important;align-items:baseline;justify-content:flex-end}
-  #vz-radar .db-n{font-size:24px!important}
-  #vz-radar .db-u{font-size:12px!important}
-  #vz-radar .db-chip{min-width:48px;padding:5px 9px!important;align-self:center}
-}
+
 /* mobile: keep stacked (radar then readout list), bars already gone */
 @media (max-width:900px){
   #vz-radar .db-row{grid-template-columns:1fr auto auto!important;column-gap:12px!important}
@@ -1696,4 +1680,15 @@
   /* quad YoY: nudge plot + top labels up, trim the lip below (leave some) */
   .ppx #quadHost{height:266px!important}
   .ppx #vz-quad{padding-bottom:5px!important}
+}
+
+/* ===== v153: desktop radar gets more room — shrink the barbell, grow the radar (desktop only) ===== */
+@media (min-width:901px){
+  .ppx #radarHost svg{max-width:430px!important}   /* radar can grow much larger */
+  .ppx .db-row{height:25px!important}              /* tighter barbell rows */
+  .ppx .db-lab{font-size:13px!important}
+  .ppx .db-n{font-size:16px!important}
+  .ppx .db-u{font-size:10px!important}
+  .ppx .db{padding-top:6px!important;border-top:1px solid #242424}
+  .ppx .db-ax{margin-top:1px!important}
 }

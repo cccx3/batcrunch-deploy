@@ -1649,8 +1649,7 @@
 /* ===== v149: radar view — bars removed, readouts moved right of radar ===== */
 /* desktop: radar left, readout column right */
 @media (min-width:901px){
-  #vz-radar{display:grid!important;grid-template-columns:1.12fr .88fr;gap:20px;align-items:center;
-            flex-direction:unset;justify-content:unset}
+  #vz-radar{grid-template-columns:1.12fr .88fr;gap:20px;align-items:center}
   #vz-radar>#radarHost{min-width:0}
   #vz-radar svg{max-width:100%!important;margin:0!important}
   #vz-radar .db{align-self:center;border-top:none;padding:0;margin:0}

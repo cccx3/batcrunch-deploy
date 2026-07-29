@@ -927,12 +927,12 @@ function ppSetMode(m){
     if(body)body.style.display=''; if(right)right.style.display='none';
     quad.style.position='static'; radar.style.position='static';
     bars.style.visibility='visible'; bars.style.display=m==='bars'?'block':'none';
-    quad.style.display=m==='quad'?'flex':'none'; radar.style.display=m==='radar'?'flex':'none';
+    quad.style.display=m==='quad'?'flex':'none'; radar.style.display=m==='radar'?'grid':'none';
   } else {
     if(body)body.style.display=''; if(right)right.style.display='';
     quad.style.position='absolute'; radar.style.position='absolute';
     bars.style.display='flex'; bars.style.visibility=(m==='bars'||m==='rolling')?'visible':'hidden';
-    quad.style.display=m==='quad'?'flex':'none'; radar.style.display=m==='radar'?'flex':'none';
+    quad.style.display=m==='quad'?'flex':'none'; radar.style.display=m==='radar'?'grid':'none';
   }
   if(cap)cap.textContent=m==='quad'?'2025 \u2192 2026':'2026 \u00b7 vs qualified hitters';
   if(m==='quad')ppDrawQuad();

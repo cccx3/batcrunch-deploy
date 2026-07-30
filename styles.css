@@ -1679,21 +1679,21 @@
 
 /* ===== v155: radar on top + 5-col readouts, value+delta pill side by side (desktop, render-verified) ===== */
 @media (min-width:901px){
-  .ppx #vz-radar{flex-direction:column;justify-content:flex-start;align-items:stretch!important;left:0!important;right:0!important;padding:0 6px}
+  .ppx #vz-radar{position:static!important;flex-direction:column;justify-content:flex-start;align-items:stretch!important;padding:0 6px;width:100%}
   .ppx #radarHost{flex:1 1 auto;display:flex;align-items:center;justify-content:center}
   .ppx #radarHost svg{max-width:520px!important;width:100%!important;max-height:100%}
-  .ppx .db{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;width:100%!important;
+  .ppx #vz-radar .db{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;width:100%!important;
     padding-left:0!important;padding-right:0!important;border-top:1px solid #232323;padding-top:16px;margin-top:4px}
-  .ppx .db-bar,.ppx .db-ax{display:none!important}
-  .ppx .db-row{display:flex!important;flex-direction:column;gap:6px;height:auto!important;padding:0!important;border:none!important;min-width:0;grid-template-columns:none!important;column-gap:0!important}
-  .ppx .db-lab{font-size:10px!important;font-weight:700;text-transform:uppercase;letter-spacing:.04em;
+  .ppx #vz-radar .db-bar,.ppx #vz-radar .db-ax{display:none!important}
+  .ppx #vz-radar .db-row{display:flex!important;flex-direction:column;gap:6px;height:auto!important;padding:0!important;border:none!important;min-width:0;grid-template-columns:none!important;column-gap:0!important}
+  .ppx #vz-radar .db-lab{font-size:10px!important;font-weight:700;text-transform:uppercase;letter-spacing:.04em;
     color:#8a8a85!important;text-align:center}
-  .ppx .db-yy{display:flex!important;align-items:center;justify-content:center;gap:0!important;flex-wrap:nowrap;
-    grid-template-columns:none!important;background:#181818;border:1px solid #242424;border-radius:10px;
-    padding:12px 5px;min-width:0;overflow:hidden}
-  .ppx .db-yy{border-color:#2a2a2a!important}
-  .ppx .db-n{font-size:17px!important;white-space:nowrap}
-  .ppx .db-u{font-size:10px!important;margin:0 0 0 1px!important}
-  .ppx .db-chip{align-self:center;font-size:10px!important;padding:3px 6px!important;border-radius:5px;
+  .ppx #vz-radar .db-yy{display:flex!important;align-items:center;justify-content:center;gap:0!important;flex-wrap:nowrap;
+    grid-template-columns:none!important;column-gap:0!important;background:#181818;border:1px solid #242424;border-radius:10px;
+    padding:12px 5px;min-width:0;overflow:hidden;width:100%}
+  .ppx #vz-radar .db-yy{border-color:#2a2a2a!important}
+  .ppx #vz-radar .db-n{font-size:17px!important;white-space:nowrap}
+  .ppx #vz-radar .db-u{font-size:10px!important;margin:0 0 0 1px!important}
+  .ppx #vz-radar .db-chip{align-self:center;font-size:10px!important;padding:3px 6px!important;border-radius:5px;
     min-width:0!important;white-space:nowrap;flex:none;margin-left:7px}
 }

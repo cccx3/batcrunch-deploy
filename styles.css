@@ -1679,11 +1679,12 @@
 
 /* ===== v155: radar on top + 5-col readouts, value+delta pill side by side (desktop, render-verified) ===== */
 @media (min-width:901px){
-  .ppx #vz-radar{position:static!important;flex-direction:column;justify-content:flex-start;align-items:stretch!important;padding:0 6px;width:100%}
-  .ppx #radarHost{flex:1 1 auto;display:flex;align-items:center;justify-content:center}
-  .ppx #radarHost svg{max-width:520px!important;width:100%!important;max-height:100%}
-  .ppx #vz-radar .db{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;width:100%!important;
-    padding-left:0!important;padding-right:0!important;border-top:1px solid #232323;padding-top:16px;margin-top:4px}
+  .ppx #vz-radar{position:absolute!important;inset:16px 12px 14px!important;display:flex;flex-direction:column;
+    justify-content:flex-start;align-items:stretch!important;overflow:hidden}
+  .ppx #radarHost{flex:1 1 auto;display:flex;align-items:center;justify-content:center;min-height:0}
+  .ppx #radarHost svg{max-width:460px!important;width:100%!important;max-height:100%!important}
+  .ppx #vz-radar .db{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;width:100%!important;flex:0 0 auto;
+    padding-left:0!important;padding-right:0!important;border-top:1px solid #232323;padding-top:14px;margin-top:4px}
   .ppx #vz-radar .db-bar,.ppx #vz-radar .db-ax{display:none!important}
   .ppx #vz-radar .db-row{display:flex!important;flex-direction:column;gap:6px;height:auto!important;padding:0!important;border:none!important;min-width:0;grid-template-columns:none!important;column-gap:0!important}
   .ppx #vz-radar .db-lab{font-size:10px!important;font-weight:700;text-transform:uppercase;letter-spacing:.04em;

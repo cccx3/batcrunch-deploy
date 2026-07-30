@@ -1647,12 +1647,6 @@
 }
 
 
-/* mobile: keep stacked (radar then readout list), bars already gone */
-@media (max-width:900px){
-  #vz-radar .db-row{grid-template-columns:1fr auto auto!important;column-gap:12px!important}
-  #vz-radar .db-yy{grid-template-columns:auto auto auto!important;column-gap:5px!important;justify-content:flex-end}
-}
-
 /* ===== v149b: DEFINITIVE mobile percentile-bar row geometry (ends the override soup) =====
    - cuts the excess 34px side padding (too much L/R negative space)
    - widens the track->value gap so the percentile bubble (which pokes past the bar end
@@ -1685,10 +1679,10 @@
 
 /* ===== v155: radar on top + 5-col readouts, value+delta pill side by side (desktop, render-verified) ===== */
 @media (min-width:901px){
-  .ppx #vz-radar{flex-direction:column;justify-content:flex-start}
+  .ppx #vz-radar{flex-direction:column;justify-content:flex-start;align-items:stretch!important}
   .ppx #radarHost{flex:1 1 auto;display:flex;align-items:center;justify-content:center}
   .ppx #radarHost svg{max-width:520px!important;width:100%!important;max-height:100%}
-  .ppx .db{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;
+  .ppx .db{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;width:100%!important;
     border-top:1px solid #232323;padding-top:16px;margin-top:4px}
   .ppx .db-bar,.ppx .db-ax{display:none!important}
   .ppx .db-row{display:flex!important;flex-direction:column;gap:6px;height:auto!important;padding:0!important;border:none!important;min-width:0}

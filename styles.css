@@ -1711,9 +1711,9 @@
     overflow:hidden;
   }
   .ppx #radarHost{
-    background:#0c0c0c;
+    background:transparent;
+    border:1px solid #232323;
     border-radius:8px;
-    box-shadow:inset 0 0 0 1px #1e1e1e, inset 0 2px 8px rgba(0,0,0,.55);
     margin:2px 0 10px;
   }
 }

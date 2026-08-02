@@ -1701,12 +1701,13 @@
 
 /* recessed well: rolling chart body sits in an inset surface, not floating on the panel (desktop) */
 @media (min-width:901px){
-  .ppx #rollingChartHost{
+  .ppx .left{flex:0 0 48%}
+  .ppx #rollHost{
     background:#0c0c0c;
     border:1px solid #1e1e1e;
     border-radius:8px;
     box-shadow:inset 0 2px 8px rgba(0,0,0,.6);
-    margin:12px 14px 14px;
-    padding:14px 16px 10px;
+    margin:4px 14px 14px;
+    padding:12px 14px 8px;
   }
 }

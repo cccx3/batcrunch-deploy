@@ -1699,15 +1699,21 @@
     min-width:0!important;white-space:nowrap;flex:none;margin-left:7px}
 }
 
-/* recessed well: rolling chart body sits in an inset surface, not floating on the panel (desktop) */
+/* recessed wells: data surfaces recede into inset panels. box-shadow fakes the border+depth
+   WITHOUT changing box size, so the JS-sized chart SVG still fits exactly (no crop). desktop only. */
 @media (min-width:901px){
-  .ppx .left{flex:0 0 48%}
+  .ppx .left{flex:0 0 46%}
   .ppx #rollHost{
     background:#0c0c0c;
-    border:1px solid #1e1e1e;
     border-radius:8px;
-    box-shadow:inset 0 2px 8px rgba(0,0,0,.6);
+    box-shadow:inset 0 0 0 1px #1e1e1e, inset 0 2px 8px rgba(0,0,0,.55);
     margin:4px 14px 14px;
-    padding:12px 14px 8px;
+    overflow:hidden;
+  }
+  .ppx #radarHost{
+    background:#0c0c0c;
+    border-radius:8px;
+    box-shadow:inset 0 0 0 1px #1e1e1e, inset 0 2px 8px rgba(0,0,0,.55);
+    margin:2px 0 10px;
   }
 }

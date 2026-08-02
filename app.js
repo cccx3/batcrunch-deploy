@@ -963,7 +963,7 @@ function ppDrawRolling(){
     });
   }
   var len=lines[0].v.length;
-  var mL=mob?44:58,mR=mob?14:48,mT=mob?12:16,mB=mob?30:34,iw=w-mL-mR,ih=h-mT-mB;
+  var mL=mob?44:58,mR=mob?14:58,mT=mob?12:16,mB=mob?30:34,iw=w-mL-mR,ih=h-mT-mB;
   var all=[];lines.forEach(L=>{all=all.concat(L.v);});
   var lo=Math.min.apply(null,all),hi=Math.max.apply(null,all);
   if(unit==='woba')lo=Math.min(lo,info.base);

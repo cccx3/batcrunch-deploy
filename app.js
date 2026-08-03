@@ -1298,6 +1298,21 @@ function setupCompareSearch() {
 
 setupCompareSearch();
 
+var _lockY=0;
+function lockScroll(){
+  if(document.body.classList.contains('scroll-locked'))return;
+  _lockY=window.scrollY||window.pageYOffset||0;
+  document.body.style.top=(-_lockY)+'px';
+  document.body.classList.add('scroll-locked');
+}
+function unlockScroll(){
+  if(!document.body.classList.contains('scroll-locked'))return;
+  document.body.classList.remove('scroll-locked');
+  document.body.style.top='';
+  document.body.style.overflow='';
+  window.scrollTo(0,_lockY);
+}
+
 function handleRoute() {
   const hash = window.location.hash;
   const gp = document.getElementById('glossaryPage');
@@ -1307,17 +1322,18 @@ function handleRoute() {
   if (m) {
     document.getElementById('comparePage').style.display = 'none';
     if (gp) gp.style.display = 'none';
+    lockScroll();
     renderPlayerPage(parseInt(m[1]));
   } else if (hash === '#about') {
     document.getElementById('playerPage').style.display = 'none';
     document.getElementById('comparePage').style.display = 'none';
     if (gp) gp.style.display = 'none';
     if (ap) ap.style.display = 'block';
-    document.body.style.overflow = 'hidden';
-    window.scrollTo(0, 0);
+    lockScroll();
   } else if (hash === '#compare') {
     document.getElementById('playerPage').style.display = 'none';
     if (gp) gp.style.display = 'none';
+    lockScroll();
     renderCompare();
   } else if (hash === '#glossary') {
     document.getElementById('playerPage').style.display = 'none';
@@ -1328,13 +1344,12 @@ function handleRoute() {
       gp.querySelectorAll('.gl-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === 'grades'));
       gp.querySelectorAll('.gl-panel').forEach(p => p.style.display = (!mob || p.dataset.panel === 'grades') ? '' : 'none');
     }
-    document.body.style.overflow = 'hidden';
-    window.scrollTo(0, 0);
+    lockScroll();
   } else {
     document.getElementById('playerPage').style.display = 'none';
     document.getElementById('comparePage').style.display = 'none';
     if (gp) gp.style.display = 'none';
-    document.body.style.overflow = '';
+    unlockScroll();
   }
 }
 window.addEventListener('hashchange', handleRoute);

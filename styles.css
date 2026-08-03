@@ -1641,10 +1641,15 @@
 .about-a{color:#a8a6a0;font-size:13.5px;line-height:1.55;margin:0}
 .about-a a{color:var(--accent)}
 @media (max-width:900px){
-  #aboutPage{padding:14px 12px 60px}
-  .about-pad{padding:22px 18px 26px}
+  #aboutPage{padding:0}
+  #aboutPage .about-inner{max-width:100%;padding:12px 10px 48px}
+  .about-panel{border-radius:12px}
+  .about-pad{padding:22px 16px 22px;max-width:100%}
   .about-title{font-size:34px}
+  .about-sub{font-size:14px;max-width:100%}
+  .about-cards{gap:8px}
   .about-card{padding:14px 16px}
+  .about-fx{display:none}
 }
 
 
@@ -1720,8 +1725,11 @@
 
 /* stop mobile scroll-chaining: fixed overlays rubber-band to the body behind them,
    revealing the leaderboard. contain the overscroll + kill the document-level bounce. */
+/* iOS-safe scroll lock: body{overflow:hidden} alone does NOT stop touch-scroll behind a
+   fixed overlay on iOS Safari, so the leaderboard bled through. position:fixed freezes it. */
 .player-page, .compare-page, .glossary-page, #aboutPage{ overscroll-behavior:contain; }
 html{ overscroll-behavior-y:none; }
+body.scroll-locked{ position:fixed; left:0; right:0; width:100%; overflow:hidden; }
 
 /* hard clamp: nothing inside the player page may exceed the viewport width.
    guards against a chart SVG rendered at a stale/too-wide measurement mid-transition,

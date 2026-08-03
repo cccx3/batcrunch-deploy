@@ -963,7 +963,7 @@ function ppDrawRolling(){
     });
   }
   var len=lines[0].v.length;
-  var mL=mob?44:58,mR=mob?14:58,mT=mob?12:16,mB=mob?30:34,iw=w-mL-mR,ih=h-mT-mB;
+  var mL=mob?44:58,mR=mob?14:26,mT=mob?12:16,mB=mob?30:34,iw=w-mL-mR,ih=h-mT-mB;
   var all=[];lines.forEach(L=>{all=all.concat(L.v);});
   var lo=Math.min.apply(null,all),hi=Math.max.apply(null,all);
   if(unit==='woba')lo=Math.min(lo,info.base);
@@ -999,7 +999,7 @@ function ppDrawRolling(){
   lines.forEach(function(L){var p=L.v.map((v,i)=>X(i).toFixed(1)+','+Y(v).toFixed(1)).join(' ');
     s+='<polyline points="'+p+'" fill="none" stroke="'+L.color+'" stroke-width="'+(L.name==='xwOBA'?2.6:2.1)+'" stroke-linejoin="round" stroke-linecap="round"/>';
   });
-  host.innerHTML='<svg width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'" style="display:block">'+s+'</svg>';
+  host.innerHTML='<svg width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'" style="display:block;max-width:100%">'+s+'</svg>';
   var legHTML=leg?leg.innerHTML:'';
   wireRollTip(host,{
     lines:lines, dates:RS.dates, len:len, win:win, mob:mob, vbW:w,
@@ -1050,7 +1050,7 @@ function ppDumbbell(d){
     var pd=a.p26-a.p25, vc=pd>0?'#e0a878':pd<0?'#7fb3dd':'#c9c9c2';
     var barc=pd>0?'#e0a878':pd<0?'#7fb3dd':'#6f6f6a', lo=Math.min(a.p25,a.p26),hi=Math.max(a.p25,a.p26);
     var dl=a.has?(a.r26-a.r25):0, cc=dl>0?'#e0a878':dl<0?'#7fb3dd':'#6f6f6a';
-    var chip=!a.has?'':dl>0?'\u25B2 +'+dl:dl<0?'\u25BC \u2212'+Math.abs(dl):'\u2014';
+    var chip=!a.has?'':dl>0?'\u25B2 +'+dl:dl<0?'\u25BC \u2212'+Math.abs(dl):'0';
     var yy='<div class="db-yy"><span class="db-n" style="color:'+vc+'">'+a.r26+'</span><span class="db-u" style="color:'+vc+'">'+a.u+'</span>'
       +(chip?'<span class="db-chip" style="color:'+cc+';background:'+cc+'22">'+chip+'</span>'
        :'<span class="db-chip" style="visibility:hidden"></span>')+'</div>';
@@ -1313,7 +1313,7 @@ function handleRoute() {
     document.getElementById('comparePage').style.display = 'none';
     if (gp) gp.style.display = 'none';
     if (ap) ap.style.display = 'block';
-    document.body.style.overflow = '';
+    document.body.style.overflow = 'hidden';
     window.scrollTo(0, 0);
   } else if (hash === '#compare') {
     document.getElementById('playerPage').style.display = 'none';
@@ -1328,7 +1328,7 @@ function handleRoute() {
       gp.querySelectorAll('.gl-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === 'grades'));
       gp.querySelectorAll('.gl-panel').forEach(p => p.style.display = (!mob || p.dataset.panel === 'grades') ? '' : 'none');
     }
-    document.body.style.overflow = '';
+    document.body.style.overflow = 'hidden';
     window.scrollTo(0, 0);
   } else {
     document.getElementById('playerPage').style.display = 'none';

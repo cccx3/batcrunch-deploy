@@ -1050,7 +1050,7 @@ function ppDumbbell(d){
     var pd=a.p26-a.p25, vc=pd>0?'#e0a878':pd<0?'#7fb3dd':'#c9c9c2';
     var barc=pd>0?'#e0a878':pd<0?'#7fb3dd':'#6f6f6a', lo=Math.min(a.p25,a.p26),hi=Math.max(a.p25,a.p26);
     var dl=a.has?(a.r26-a.r25):0, cc=dl>0?'#e0a878':dl<0?'#7fb3dd':'#6f6f6a';
-    var chip=!a.has?'':dl>0?'\u25B2 +'+dl:dl<0?'\u25BC \u2212'+Math.abs(dl):'0';
+    var chip=!a.has?'':dl>0?'\u25B2 +'+dl:dl<0?'\u25BC \u2212'+Math.abs(dl):'\u2014';
     var yy='<div class="db-yy"><span class="db-n" style="color:'+vc+'">'+a.r26+'</span><span class="db-u" style="color:'+vc+'">'+a.u+'</span>'
       +(chip?'<span class="db-chip" style="color:'+cc+';background:'+cc+'22">'+chip+'</span>'
        :'<span class="db-chip" style="visibility:hidden"></span>')+'</div>';

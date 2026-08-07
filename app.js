@@ -804,7 +804,7 @@ function yoyLegendHTML() {
 }
 
 function ppRamp(p, boost){
-  var MID=[141,131,122],RED=[214,32,40],BLUE=[46,96,182];
+  var MID=[186,206,210],RED=[200,86,72],BLUE=[107,130,182];
   var base, b; if(p>=50){base=(p-50)/50;b=RED;}else{base=(50-p)/50;b=BLUE;}
   var t=Math.min(1,Math.pow(base,0.7)+(boost||0));
   var L=(x,y)=>Math.round(x+(y-x)*t);

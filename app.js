@@ -804,9 +804,9 @@ function yoyLegendHTML() {
 }
 
 function ppRamp(p, boost){
-  var MID=[186,206,210],RED=[200,86,72],BLUE=[107,130,182];
+  var MID=[196,206,208],RED=[198,49,47],BLUE=[104,128,182];
   var base, b; if(p>=50){base=(p-50)/50;b=RED;}else{base=(50-p)/50;b=BLUE;}
-  var t=Math.min(1,Math.pow(base,0.7)+(boost||0));
+  var t=Math.min(1,Math.pow(base,0.55)+(boost||0));
   var L=(x,y)=>Math.round(x+(y-x)*t);
   return 'rgb('+L(MID[0],b[0])+','+L(MID[1],b[1])+','+L(MID[2],b[2])+')';
 }

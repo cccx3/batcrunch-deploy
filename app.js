@@ -804,11 +804,19 @@ function yoyLegendHTML() {
 }
 
 function ppRamp(p, boost){
-  var MID=[196,206,208],RED=[198,49,47],BLUE=[104,128,182];
-  var base, b; if(p>=50){base=(p-50)/50;b=RED;}else{base=(50-p)/50;b=BLUE;}
-  var t=Math.min(1,Math.pow(base,0.55)+(boost||0));
-  var L=(x,y)=>Math.round(x+(y-x)*t);
-  return 'rgb('+L(MID[0],b[0])+','+L(MID[1],b[1])+','+L(MID[2],b[2])+')';
+  // Anchored to Baseball Savant's actual bar fills, sampled per percentile.
+  var STOPS=[
+    [0,[104,128,182]],[18,[107,130,182]],[24,[125,146,187]],[32,[148,168,196]],
+    [42,[172,186,200]],[50,[196,204,205]],[58,[199,180,172]],[62,[200,168,160]],
+    [70,[200,156,143]],[79,[201,124,109]],[84,[201,106,88]],[89,[200,86,74]],
+    [95,[200,68,60]],[100,[200,55,51]]
+  ];
+  if(boost){p=Math.min(100,p+boost*50);}
+  var lo=STOPS[0],hi=STOPS[STOPS.length-1],i;
+  for(i=0;i<STOPS.length;i++){ if(STOPS[i][0]<=p)lo=STOPS[i]; if(STOPS[i][0]>=p){hi=STOPS[i];break;} }
+  var span=hi[0]-lo[0], f=span?(p-lo[0])/span:0;
+  var c=lo[1].map(function(x,k){return Math.round(x+(hi[1][k]-x)*f);});
+  return 'rgb('+c[0]+','+c[1]+','+c[2]+')';
 }
 function ppBarsHTML(d){
   var woba3=v=>v.toFixed(3).replace(/^0/,'');

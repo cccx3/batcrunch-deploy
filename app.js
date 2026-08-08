@@ -182,7 +182,7 @@ const GRADES = [
 function gradeFromPct(p) {
   let letter = 'F';
   for (const [g, t] of GRADES) if (p >= t) { letter = g; break; }
-  return { letter: letter, color: ppRampSat(p, 1.55), pct: p };
+  return { letter: letter, color: ppGradeColor(p), pct: p };
 }
 function percentile(sortedAsc, v) {
   let lo = 0, hi = sortedAsc.length;
@@ -804,11 +804,12 @@ function yoyLegendHTML() {
     + '<span class="yoy-bar-legend-item"><span class="yoy-bar-legend-sw curr"></span>'+curYear+'</span></div>';
 }
 
-function ppRamp(p, boost){  // Anchored to Baseball Savant's actual bar fills, sampled per percentile.
+function ppRamp(p, boost){
+  // Anchored to Baseball Savant's actual bar fills, sampled per percentile.
   var STOPS=[
-    [0,[44,102,176]],[10,[66,116,182]],[20,[93,134,190]],[30,[125,155,200]],
-    [40,[163,180,210]],[50,[204,204,204]],[60,[218,172,164]],[70,[217,142,131]],
-    [80,[217,110,97]],[90,[215,76,64]],[100,[210,45,45]]
+    [0,[36,92,200]],[12,[44,104,208]],[24,[66,124,214]],[36,[104,146,214]],
+    [46,[150,176,205]],[50,[190,190,190]],[54,[210,150,140]],[62,[214,104,86]],
+    [70,[216,78,60]],[80,[214,58,46]],[90,[212,46,38]],[100,[208,38,34]]
   ];
   if(boost){p=Math.min(100,p+boost*50);}
   var lo=STOPS[0],hi=STOPS[STOPS.length-1],i;
@@ -817,10 +818,11 @@ function ppRamp(p, boost){  // Anchored to Baseball Savant's actual bar fills, s
   var c=lo[1].map(function(x,k){return Math.round(x+(hi[1][k]-x)*f);});
   return 'rgb('+c[0]+','+c[1]+','+c[2]+')';
 }
-function ppRampSat(p, mult){
-  // Same ramp hue as the bars, pushed away from gray so the grade chip reads punchier.
+function ppGradeColor(p){
+  // Letter-grade chip: same ramp hue as bars, saturated + slightly deepened for a solid chip.
   var m=/(\d+),(\d+),(\d+)/.exec(ppRamp(p,0)); if(!m) return ppRamp(p,0);
-  var r=+m[1],g=+m[2],b=+m[3], avg=(r+g+b)/3, f=mult||1.5, cl=function(x){return Math.max(0,Math.min(255,Math.round(avg+(x-avg)*f)));};
+  var r=+m[1],g=+m[2],b=+m[3], avg=(r+g+b)/3, sat=1.5, dp=0.9,
+      cl=function(x){return Math.max(0,Math.min(255,Math.round((avg+(x-avg)*sat)*dp)));};
   return 'rgb('+cl(r)+','+cl(g)+','+cl(b)+')';
 }
 function ppBarsHTML(d){

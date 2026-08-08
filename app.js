@@ -180,8 +180,9 @@ const GRADES = [
   ['D', 5, 'var(--g-d)'], ['F', 0, 'var(--g-f)']
 ];
 function gradeFromPct(p) {
-  for (const [g, t, c] of GRADES) if (p >= t) return { letter: g, color: c, pct: p };
-  return { letter: 'F', color: 'var(--g-f)', pct: p };
+  let letter = 'F';
+  for (const [g, t] of GRADES) if (p >= t) { letter = g; break; }
+  return { letter: letter, color: ppRampSat(p, 1.55), pct: p };
 }
 function percentile(sortedAsc, v) {
   let lo = 0, hi = sortedAsc.length;
@@ -803,12 +804,11 @@ function yoyLegendHTML() {
     + '<span class="yoy-bar-legend-item"><span class="yoy-bar-legend-sw curr"></span>'+curYear+'</span></div>';
 }
 
-function ppRamp(p, boost){
-  // Anchored to Baseball Savant's actual bar fills, sampled per percentile.
+function ppRamp(p, boost){  // Anchored to Baseball Savant's actual bar fills, sampled per percentile.
   var STOPS=[
-    [0,[58,98,176]],[15,[74,110,180]],[25,[96,126,186]],[35,[122,146,192]],
-    [45,[168,182,198]],[50,[188,196,198]],[55,[198,168,158]],[62,[200,132,120]],
-    [70,[201,108,95]],[78,[201,88,76]],[86,[201,72,62]],[93,[201,60,52]],[100,[200,50,46]]
+    [0,[44,102,176]],[10,[66,116,182]],[20,[93,134,190]],[30,[125,155,200]],
+    [40,[163,180,210]],[50,[204,204,204]],[60,[218,172,164]],[70,[217,142,131]],
+    [80,[217,110,97]],[90,[215,76,64]],[100,[210,45,45]]
   ];
   if(boost){p=Math.min(100,p+boost*50);}
   var lo=STOPS[0],hi=STOPS[STOPS.length-1],i;
@@ -816,6 +816,12 @@ function ppRamp(p, boost){
   var span=hi[0]-lo[0], f=span?(p-lo[0])/span:0;
   var c=lo[1].map(function(x,k){return Math.round(x+(hi[1][k]-x)*f);});
   return 'rgb('+c[0]+','+c[1]+','+c[2]+')';
+}
+function ppRampSat(p, mult){
+  // Same ramp hue as the bars, pushed away from gray so the grade chip reads punchier.
+  var m=/(\d+),(\d+),(\d+)/.exec(ppRamp(p,0)); if(!m) return ppRamp(p,0);
+  var r=+m[1],g=+m[2],b=+m[3], avg=(r+g+b)/3, f=mult||1.5, cl=function(x){return Math.max(0,Math.min(255,Math.round(avg+(x-avg)*f)));};
+  return 'rgb('+cl(r)+','+cl(g)+','+cl(b)+')';
 }
 function ppBarsHTML(d){
   var woba3=v=>v.toFixed(3).replace(/^0/,'');

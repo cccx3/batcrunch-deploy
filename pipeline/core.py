@@ -9,7 +9,8 @@ import numpy as np
 import pandas as pd
 
 from savant import (pull_raw, pull_expected, pull_sprint, pull_bat_tracking,
-                    pull_swing_path, pull_position, pull_rolling, pull_custom)
+                    pull_swing_path, pull_position, pull_rolling, pull_custom,
+                    pull_batting_stance)
 
 CURRENT_YEAR = 2026
 SEASON = {
@@ -446,7 +447,7 @@ def write_current(stats, log, qual):
         p = payload["players"].get(str(bid))
         if p is not None:
             p["woba_recent"], p["pa_recent"] = w, n
-    for bid, v in log["intercept"].items():
+    for bid, v in pull_batting_stance(CURRENT_YEAR).items():
         p = payload["players"].get(str(bid))
         if p is not None:
             p["contact_depth"] = v

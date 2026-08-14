@@ -272,6 +272,64 @@ def pull_custom(year, min_pa=10):
 
 
 # --------------------------------------------------------------------------- #
+# Batting Stance visual - intercept point (contact depth). No CSV export: the page
+# embeds the whole league as `vizData = [ ... ]` (a JSON array literal). We keep
+# only the plate-relative intercept in inches (avg_intercept_y_in_vs_plate):
+# higher = contact out in front of the plate, lower = deeper contact.
+# --------------------------------------------------------------------------- #
+_STANCE_URL = ("https://baseballsavant.mlb.com/visuals/batting-stance"
+               "?type=batter&year={year}")
+
+
+def _vizdata_array(html):
+    """Extract the `vizData = [ ... ]` array literal from the batting-stance page."""
+    i = html.find("vizData")
+    if i < 0:
+        raise RuntimeError("`vizData` not found; Savant page layout changed")
+    b = html.find("[", i)
+    depth, instr, esc = 0, False, False
+    for k in range(b, len(html)):
+        ch = html[k]
+        if esc:
+            esc = False
+            continue
+        if ch == "\\":
+            esc = True
+            continue
+        if ch == '"':
+            instr = not instr
+        if instr:
+            continue
+        if ch == "[":
+            depth += 1
+        elif ch == "]":
+            depth -= 1
+            if depth == 0:
+                return json.loads(html[b:k + 1])
+    raise RuntimeError("unbalanced brackets in vizData")
+
+
+def pull_batting_stance(year):
+    """-> {int id: intercept_inches}. Intercept point = contact depth vs front of
+    plate. Returns a plain dict; missing/None values are skipped (frontend dashes)."""
+    rows = _vizdata_array(get_html(_STANCE_URL.format(year=year)))
+    out = {}
+    for r in rows:
+        pid = r.get("player_id")
+        if pid is None:
+            pid = r.get("batter")
+        if pid is None:
+            pid = r.get("id")
+        v = r.get("avg_intercept_y_in_vs_plate")
+        if pid is not None and v is not None:
+            try:
+                out[int(pid)] = round(float(v), 1)
+            except (TypeError, ValueError):
+                pass
+    return out
+
+
+# --------------------------------------------------------------------------- #
 # Primary fielding position - MLB StatsAPI (JSON). The one field not on Savant.
 # --------------------------------------------------------------------------- #
 _STATSAPI_PEOPLE = "https://statsapi.mlb.com/api/v1/people?personIds={ids}"
@@ -318,6 +376,12 @@ if __name__ == "__main__":
             out = pull_custom(year)
             print(f"custom {year}: {len(out)} rows | sample:")
             print(out.head(3).to_string(index=False))
+            sys.exit(0)
+        if cmd == "batting_stance":
+            d = pull_batting_stance(year)
+            print(f"batting_stance {year}: {len(d)} batters | sample:")
+            for pid, v in list(d.items())[:5]:
+                print(f"  {pid}: {v}\"")
             sys.exit(0)
         if cmd == "rolling":
             d = pull_rolling(year)

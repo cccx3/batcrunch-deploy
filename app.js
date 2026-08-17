@@ -179,10 +179,13 @@ const GRADES = [
   ['C+', 35, 'var(--g-cplus)'], ['C', 25, 'var(--g-c)'], ['C-', 15, 'var(--g-cminus)'],
   ['D', 5, 'var(--g-d)'], ['F', 0, 'var(--g-f)']
 ];
+// Fixed representative percentile per grade (wide-nudge, off the neutral pivot) ->
+// every same-letter grade is one identical color, middle band reads warm/cool not gray.
+const GRADE_MID = {'A+':98,'A':90,'A-':81,'B+':73,'B':66,'B-':58,'C+':42,'C':34,'C-':25,'D':12,'F':3};
 function gradeFromPct(p) {
   let letter = 'F';
   for (const [g, t] of GRADES) if (p >= t) { letter = g; break; }
-  return { letter: letter, color: ppGradeColor(p), pct: p };
+  return { letter: letter, color: ppGradeColor(GRADE_MID[letter]), pct: p };
 }
 function percentile(sortedAsc, v) {
   let lo = 0, hi = sortedAsc.length;
@@ -819,7 +822,6 @@ function ppRamp(p, boost){
   return 'rgb('+c[0]+','+c[1]+','+c[2]+')';
 }
 function ppGradeColor(p){
-  // Letter-grade chip: same ramp hue as bars, saturated + slightly deepened for a solid chip.
   var m=/(\d+),(\d+),(\d+)/.exec(ppRamp(p,0)); if(!m) return ppRamp(p,0);
   var r=+m[1],g=+m[2],b=+m[3], avg=(r+g+b)/3, sat=1.5, dp=0.9,
       cl=function(x){return Math.max(0,Math.min(255,Math.round((avg+(x-avg)*sat)*dp)));};

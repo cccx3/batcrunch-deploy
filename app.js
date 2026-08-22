@@ -179,13 +179,9 @@ const GRADES = [
   ['C+', 35, 'var(--g-cplus)'], ['C', 25, 'var(--g-c)'], ['C-', 15, 'var(--g-cminus)'],
   ['D', 5, 'var(--g-d)'], ['F', 0, 'var(--g-f)']
 ];
-// Fixed representative percentile per grade (wide-nudge, off the neutral pivot) ->
-// every same-letter grade is one identical color, middle band reads warm/cool not gray.
-const GRADE_MID = {'A+':98,'A':90,'A-':81,'B+':73,'B':66,'B-':58,'C+':42,'C':34,'C-':25,'D':12,'F':3};
 function gradeFromPct(p) {
-  let letter = 'F';
-  for (const [g, t] of GRADES) if (p >= t) { letter = g; break; }
-  return { letter: letter, color: ppGradeColor(GRADE_MID[letter]), pct: p };
+  for (const [g, t, c] of GRADES) if (p >= t) return { letter: g, color: c, pct: p };
+  return { letter: 'F', color: 'var(--g-f)', pct: p };
 }
 function percentile(sortedAsc, v) {
   let lo = 0, hi = sortedAsc.length;
@@ -686,10 +682,10 @@ function compareRollingChart(a, b, metric, W){
   const step = niceStep((yMax - yMin) / 4);
   const yt = []; for (let v = Math.ceil(yMin / step) * step; v <= yMax + 1e-9; v += step) yt.push(+v.toFixed(6));
   const grid = yt.map(t => `<line x1="${pad.l}" y1="${sy(t).toFixed(1)}" x2="${Wd-pad.r}" y2="${sy(t).toFixed(1)}" stroke="#2a2a2a" stroke-width="1" />`).join('');
-  const yLab = yt.map(t => `<text x="${pad.l-7}" y="${(sy(t)+3.5).toFixed(1)}" text-anchor="end" fill="#888" font-family="Inter,sans-serif" font-size="10">${fmtY(t)}</text>`).join('');
+  const yLab = yt.map(t => `<text x="${pad.l-9}" y="${(sy(t)+4.5).toFixed(1)}" text-anchor="end" fill="#9a9a95" font-family="Inter,sans-serif" font-size="13" font-weight="600">${fmtY(t)}</text>`).join('');
   const xLab = [0,0.25,0.5,0.75,1].map(f => {
     const i = Math.round(f * (nPts - 1)), a = f <= 0 ? 'start' : f >= 1 ? 'end' : 'middle';
-    return `<text x="${sx(i).toFixed(1)}" y="${Hd-pad.b+16}" text-anchor="${a}" fill="#888" font-family="Inter,sans-serif" font-size="10">${Math.round(f*W)}</text>`;
+    return `<text x="${sx(i).toFixed(1)}" y="${Hd-pad.b+18}" text-anchor="${a}" fill="#9a9a95" font-family="Inter,sans-serif" font-size="13" font-weight="600">${Math.round(f*W)}</text>`;
   }).join('');
   const line = (vals, color, w) => {
     const pts = vals.map((v, i) => `${sx(i).toFixed(1)},${sy(v).toFixed(1)}`).join(' ');
@@ -810,9 +806,9 @@ function yoyLegendHTML() {
 function ppRamp(p, boost){
   // Anchored to Baseball Savant's actual bar fills, sampled per percentile.
   var STOPS=[
-    [0,[36,92,200]],[12,[44,104,208]],[24,[66,124,214]],[36,[104,146,214]],
-    [46,[150,176,205]],[50,[190,190,190]],[54,[210,150,140]],[62,[214,104,86]],
-    [70,[216,78,60]],[80,[214,58,46]],[90,[212,46,38]],[100,[208,38,34]]
+    [0,[44,102,176]],[10,[66,116,182]],[20,[93,134,190]],[30,[125,155,200]],
+    [40,[163,180,210]],[50,[204,204,204]],[60,[218,172,164]],[70,[217,142,131]],
+    [80,[217,110,97]],[90,[215,76,64]],[100,[210,45,45]]
   ];
   if(boost){p=Math.min(100,p+boost*50);}
   var lo=STOPS[0],hi=STOPS[STOPS.length-1],i;
@@ -820,12 +816,6 @@ function ppRamp(p, boost){
   var span=hi[0]-lo[0], f=span?(p-lo[0])/span:0;
   var c=lo[1].map(function(x,k){return Math.round(x+(hi[1][k]-x)*f);});
   return 'rgb('+c[0]+','+c[1]+','+c[2]+')';
-}
-function ppGradeColor(p){
-  var m=/(\d+),(\d+),(\d+)/.exec(ppRamp(p,0)); if(!m) return ppRamp(p,0);
-  var r=+m[1],g=+m[2],b=+m[3], avg=(r+g+b)/3, sat=1.5, dp=0.9,
-      cl=function(x){return Math.max(0,Math.min(255,Math.round((avg+(x-avg)*sat)*dp)));};
-  return 'rgb('+cl(r)+','+cl(g)+','+cl(b)+')';
 }
 function ppBarsHTML(d){
   var woba3=v=>v.toFixed(3).replace(/^0/,'');

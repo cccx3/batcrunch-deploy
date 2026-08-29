@@ -179,9 +179,11 @@ const GRADES = [
   ['C+', 35, 'var(--g-cplus)'], ['C', 25, 'var(--g-c)'], ['C-', 15, 'var(--g-cminus)'],
   ['D', 5, 'var(--g-d)'], ['F', 0, 'var(--g-f)']
 ];
+const GRADE_MID = {'A+':98,'A':90,'A-':81,'B+':73,'B':66,'B-':58,'C+':42,'C':34,'C-':25,'D':12,'F':3};
 function gradeFromPct(p) {
-  for (const [g, t, c] of GRADES) if (p >= t) return { letter: g, color: c, pct: p };
-  return { letter: 'F', color: 'var(--g-f)', pct: p };
+  let letter = 'F';
+  for (const [g, t] of GRADES) if (p >= t) { letter = g; break; }
+  return { letter: letter, color: ppGradeColor(GRADE_MID[letter]), pct: p };
 }
 function percentile(sortedAsc, v) {
   let lo = 0, hi = sortedAsc.length;
@@ -806,9 +808,9 @@ function yoyLegendHTML() {
 function ppRamp(p, boost){
   // Anchored to Baseball Savant's actual bar fills, sampled per percentile.
   var STOPS=[
-    [0,[44,102,176]],[10,[66,116,182]],[20,[93,134,190]],[30,[125,155,200]],
-    [40,[163,180,210]],[50,[204,204,204]],[60,[218,172,164]],[70,[217,142,131]],
-    [80,[217,110,97]],[90,[215,76,64]],[100,[210,45,45]]
+    [0,[36,92,200]],[12,[44,104,208]],[24,[66,124,214]],[36,[104,146,214]],
+    [46,[150,176,205]],[50,[190,190,190]],[54,[210,150,140]],[62,[214,104,86]],
+    [70,[216,78,60]],[80,[214,58,46]],[90,[212,46,38]],[100,[208,38,34]]
   ];
   if(boost){p=Math.min(100,p+boost*50);}
   var lo=STOPS[0],hi=STOPS[STOPS.length-1],i;
@@ -817,6 +819,16 @@ function ppRamp(p, boost){
   var c=lo[1].map(function(x,k){return Math.round(x+(hi[1][k]-x)*f);});
   return 'rgb('+c[0]+','+c[1]+','+c[2]+')';
 }
+function _sat(p,sat,dp){
+  var m=/(\d+),(\d+),(\d+)/.exec(ppRamp(p,0)); if(!m) return ppRamp(p,0);
+  var r=+m[1],g=+m[2],b=+m[3], avg=(r+g+b)/3,
+      cl=function(x){return Math.max(0,Math.min(255,Math.round((avg+(x-avg)*sat)*dp)));};
+  return 'rgb('+cl(r)+','+cl(g)+','+cl(b)+')';
+}
+// Dot: deepened + saturated so the white number is legible at every percentile.
+function ppDotColor(p){ return _sat(p,1.35,0.78); }
+// Grade chip: same ramp, saturated + slightly deepened.
+function ppGradeColor(p){ return _sat(p,1.5,0.9); }
 function ppBarsHTML(d){
   var woba3=v=>v.toFixed(3).replace(/^0/,'');
   var R=[
@@ -830,7 +842,7 @@ function ppBarsHTML(d){
     ['Ideal AA%', percentile(S.iaa,d.iaa), d.iaa.toFixed(1)+'%']
   ];
   return R.map(function(r){var lab=r[0],pct=Math.round(r[1]),val=r[2];
-    var fill=ppRamp(pct,0),dotc=ppRamp(pct,0.22),dl=Math.max(4,Math.min(96,pct));
+    var fill=ppRamp(pct,0),dotc=ppDotColor(pct),dl=Math.max(4,Math.min(96,pct));
     return '<div class="row"><div class="r-lab">'+lab+'</div><div class="track"><div class="fill" style="width:'+dl+'%;background:'+fill+'"></div><div class="dot" style="left:'+dl+'%;background:'+dotc+'">'+pct+'</div></div><div class="r-val">'+val+'</div></div>';
   }).join('');
 }

@@ -1737,3 +1737,7 @@ body.scroll-locked{ position:fixed; left:0; right:0; width:100%; overflow:hidden
 .player-page, .pp-inner{ max-width:100vw; overflow-x:hidden; }
 .ppx .ppx-main{ max-width:100%; overflow-x:hidden; }
 .ppx #rollHost svg{ max-width:100%; }
+
+/* iOS Safari zooms in on a text field under 16px when focused (keyboard opens) and
+   doesn't reliably zoom back out. Only the search field types, so scope the fix there. */
+@media (max-width:900px){ .search input, #q { font-size:16px !important; } }
